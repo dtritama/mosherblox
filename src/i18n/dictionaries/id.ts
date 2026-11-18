@@ -201,7 +201,7 @@ export const id = {
     ],
     checklist: ["Cukup username", "Robux langsung ke username (USN)", "Trade di dalam game untuk item"],
     waysToPay: "Metode pembayaran",
-    waysToPayDescription: "QRIS, e-wallet, virtual account & gerai retail",
+    waysToPayDescription: "Satu QRIS untuk GoPay, OVO, DANA, ShopeePay & m-banking",
   },
   how: {
     eyebrow: "Cara kerja",
@@ -375,6 +375,11 @@ export const id = {
       confirm2sv: "Aktifkan 2-Step Verification dulu, lalu centang konfirmasinya.",
       amountMax: "Maksimal {max} Robux.",
     },
+    submitErrors: {
+      invalid: "Ada data yang belum pas. Cek lagi isian di atas, lalu coba lagi.",
+      rateLimited: "Terlalu banyak percobaan. Tunggu beberapa menit, lalu coba lagi.",
+      unavailable: "Pesanan belum bisa dibuat sekarang. Coba lagi sebentar lagi, atau chat CS kami.",
+    },
     success: {
       title: "Pesanan dibuat",
       orderId: "ID Pesanan",
@@ -382,7 +387,7 @@ export const id = {
       copied: "Tersalin!",
       saveHint: "Simpan ID ini untuk cek status pesananmu kapan saja.",
       summary: "{item} untuk {account} via {payment} — {total}.",
-      demo: "Ini checkout demo. Pembayaran asli hadir di fase berikutnya — tidak ada uang yang ditagih.",
+      demo: "Pembayaran online belum aktif. Pesananmu sudah tersimpan, tapi belum ada uang yang ditagih.",
       checkStatus: "Cek status pesanan",
       done: "Selesai",
     },
@@ -401,13 +406,24 @@ export const id = {
     errors: {
       orderId: "Masukkan ID pesanan.",
       notFound: "Pesanan tidak ditemukan. Periksa lagi ID pesanan dan nomor WhatsApp-nya.",
+      rateLimited: "Terlalu banyak pencarian. Tunggu beberapa menit, lalu coba lagi.",
+      unavailable: "Status pesanan belum bisa dicek sekarang. Coba lagi sebentar lagi.",
     },
-    status: { pending: "Menunggu pembayaran", processing: "Diproses", completed: "Selesai", failed: "Gagal" },
+    status: {
+      pending: "Menunggu pembayaran",
+      paid: "Sudah dibayar",
+      processing: "Diproses",
+      completed: "Selesai",
+      failed: "Gagal",
+      expired: "Kedaluwarsa",
+    },
     statusDescription: {
       pending: "Kami menunggu konfirmasi pembayaranmu.",
+      paid: "Pembayaran sudah kami terima. Pesananmu masuk antrean proses.",
       processing: "Pembayaran diterima. Pesananmu sedang kami proses.",
       completed: "Pesanan sudah dikirim. Selamat bermain!",
       failed: "Pesanan tidak dapat diproses. Hubungi CS kami dan sertakan ID pesananmu.",
+      expired: "Pesanan ini tidak dibayar sampai batas waktu. Silakan buat pesanan baru.",
     },
     timeline: ["Pesanan dibuat", "Pembayaran", "Diproses", "Selesai"],
     details: {
@@ -422,9 +438,8 @@ export const id = {
     help: "Butuh bantuan? Chat CS",
     searchAgain: "Cek pesanan lain",
     demo: {
-      title: "Mode demo",
-      description:
-        "Belum ada backend: pesanan yang kamu buat di situs ini tersimpan di browser ini. Coba juga contoh berikut dengan nomor {phone}:",
+      title: "Pesanan contoh (hanya di development)",
+      description: "Dari data contoh (npm run db:seed). Coba dengan nomor {phone}:",
     },
   },
   notFound: {

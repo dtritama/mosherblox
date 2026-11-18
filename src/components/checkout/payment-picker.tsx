@@ -1,12 +1,12 @@
 "use client";
 
-import { paymentMethods } from "@/data/payments";
+import { checkoutPaymentMethods } from "@/data/payments";
 import { formatIDR } from "@/i18n/format";
 import { useI18n } from "@/i18n/i18n-provider";
 import { cn } from "@/lib/utils";
 import type { PaymentGroup, PaymentMethod } from "@/types";
 
-const paymentGroups = paymentMethods.reduce<Partial<Record<PaymentGroup, PaymentMethod[]>>>((acc, method) => {
+const paymentGroups = checkoutPaymentMethods.reduce<Partial<Record<PaymentGroup, PaymentMethod[]>>>((acc, method) => {
   (acc[method.group] ??= []).push(method);
   return acc;
 }, {});

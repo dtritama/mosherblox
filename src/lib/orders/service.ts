@@ -1,53 +1,35 @@
-import { demoOrders } from "@/lib/orders/demo-orders";
-import { createOrderId, normalizeOrderId } from "@/lib/orders/order-id";
-import type { NewOrder, Order } from "@/lib/orders/types";
+import { createProductOrderAction, createRobuxOrderAction, findOrderAction } from "@/server/orders/actions";
+import type { CreateOrderResult, FindOrderResult, ProductOrderInput, RobuxOrderInput } from "@/lib/orders/types";
 
 /**
- * The only place the UI talks to for orders. Phase 1 uses a demo implementation that keeps
- * orders in this browser (localStorage). Phase 2 swaps in an API-backed implementation with the
- * same interface — the components don't change. The server must then also recompute prices,
- * rate-limit lookups and own the order status (updated by the payment gateway webhook).
+ * The only place the UI talks to for orders. Backed by Server Actions (src/server/orders):
+ * the server validates the input again, computes the price (the browser never sends one),
+ * adds the unique payment code, stores the order in Postgres and rate-limits lookups.
  */
 export interface OrderService {
-  readonly isDemo: boolean;
-  createOrder(input: NewOrder): Promise<Order>;
+  createRobuxOrder(input: RobuxOrderInput): Promise<CreateOrderResult>;
+  createProductOrder(input: ProductOrderInput): Promise<CreateOrderResult>;
   /** Both the ID and the WhatsApp number must match, so an ID alone can't reveal an order. */
-  findOrder(id: string, whatsapp: string): Promise<Order | null>;
+  findOrder(id: string, whatsapp: string): Promise<FindOrderResult>;
 }
 
-const STORAGE_KEY = "mosherblox:demo-orders";
-
-function readStored(): Order[] {
+/** A network failure or a stale page after a deploy ("Failed to find Server Action") → retryable error. */
+async function safely<T extends { ok: boolean }>(call: () => Promise<T>, fallback: T): Promise<T> {
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    const parsed: unknown = raw ? JSON.parse(raw) : [];
-    return Array.isArray(parsed) ? (parsed as Order[]) : [];
+    return await call();
   } catch {
-    return [];
+    return fallback;
   }
 }
 
-function writeStored(orders: Order[]) {
-  try {
-    // Keep the demo store small.
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(orders.slice(0, 20)));
-  } catch {
-    // Storage can be unavailable (private mode, blocked site data) — the demo still works for this visit.
-  }
-}
-
-const demoOrderService: OrderService = {
-  isDemo: true,
-  async createOrder(input) {
-    const order: Order = { ...input, id: createOrderId(), status: "pending", createdAt: new Date().toISOString() };
-    writeStored([order, ...readStored()]);
-    return order;
-  },
-  async findOrder(id, whatsapp) {
-    const wanted = normalizeOrderId(id);
-    const match = [...readStored(), ...demoOrders].find((order) => order.id === wanted);
-    return match && match.whatsapp === whatsapp ? match : null;
-  },
+export const orderService: OrderService = {
+  createRobuxOrder: (input) => safely(() => createRobuxOrderAction(input), { ok: false, error: "unavailable" }),
+  createProductOrder: (input) => safely(() => createProductOrderAction(input), { ok: false, error: "unavailable" }),
+  findOrder: (id, whatsapp) => safely(() => findOrderAction(id, whatsapp), { ok: false, error: "unavailable" }),
 };
 
-export const orderService: OrderService = demoOrderService;
+/**
+ * Real payment instructions (QRIS + unique code) arrive in roadmap step 4. Until then the
+ * checkout keeps saying no money is charged.
+ */
+export const PAYMENTS_LIVE = false;

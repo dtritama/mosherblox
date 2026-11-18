@@ -197,7 +197,7 @@ export const en: Dictionary = {
     ],
     checklist: ["Username only", "Robux straight to your username (USN)", "In-game trade for items"],
     waysToPay: "Ways to pay",
-    waysToPayDescription: "QRIS, e-wallets, virtual accounts & retail stores",
+    waysToPayDescription: "One QRIS for GoPay, OVO, DANA, ShopeePay & mobile banking",
   },
   how: {
     eyebrow: "How it works",
@@ -371,6 +371,11 @@ export const en: Dictionary = {
       confirm2sv: "Turn on 2-Step Verification first, then tick the confirmation.",
       amountMax: "Maximum {max} Robux.",
     },
+    submitErrors: {
+      invalid: "Something in the form isn't right. Check the fields above and try again.",
+      rateLimited: "Too many attempts. Wait a few minutes, then try again.",
+      unavailable: "We couldn't create your order right now. Try again shortly, or chat with support.",
+    },
     success: {
       title: "Order created",
       orderId: "Order ID",
@@ -378,7 +383,7 @@ export const en: Dictionary = {
       copied: "Copied!",
       saveHint: "Save this ID to check your order status any time.",
       summary: "{item} for {account} via {payment} — {total}.",
-      demo: "This is a demo checkout. Live payments are coming in the next phase — no money was charged.",
+      demo: "Online payment isn't live yet. Your order is saved, but no money was charged.",
       checkStatus: "Check order status",
       done: "Done",
     },
@@ -397,13 +402,24 @@ export const en: Dictionary = {
     errors: {
       orderId: "Enter your order ID.",
       notFound: "Order not found. Double-check the order ID and WhatsApp number.",
+      rateLimited: "Too many searches. Wait a few minutes, then try again.",
+      unavailable: "We can't check orders right now. Try again shortly.",
     },
-    status: { pending: "Awaiting payment", processing: "Processing", completed: "Completed", failed: "Failed" },
+    status: {
+      pending: "Awaiting payment",
+      paid: "Paid",
+      processing: "Processing",
+      completed: "Completed",
+      failed: "Failed",
+      expired: "Expired",
+    },
     statusDescription: {
       pending: "We're waiting for your payment to be confirmed.",
+      paid: "We've received your payment. Your order is in the queue.",
       processing: "Payment received. We're processing your order.",
       completed: "Your order has been delivered. Enjoy!",
       failed: "This order couldn't be processed. Contact our support and include your order ID.",
+      expired: "This order wasn't paid in time. Please place a new order.",
     },
     timeline: ["Order placed", "Payment", "Processing", "Completed"],
     details: {
@@ -418,9 +434,8 @@ export const en: Dictionary = {
     help: "Need help? Chat with support",
     searchAgain: "Check another order",
     demo: {
-      title: "Demo mode",
-      description:
-        "No backend yet: orders you create on this site are saved in this browser. You can also try these samples with number {phone}:",
+      title: "Sample orders (development only)",
+      description: "From the sample data (npm run db:seed). Try them with number {phone}:",
     },
   },
   notFound: {

@@ -1,17 +1,29 @@
 "use client";
 
 import { AnimatePresence, m } from "motion/react";
-import { Check, CircleAlert, Clock, Loader2, MessageCircle, PackageCheck, Search, X } from "lucide-react";
+import {
+  BadgeCheck,
+  Check,
+  CircleAlert,
+  Clock,
+  Hourglass,
+  Loader2,
+  MessageCircle,
+  PackageCheck,
+  Search,
+  X,
+} from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useRef, useState, type FormEvent } from "react";
 
 import { Field, inputClass, SummaryRow } from "@/components/checkout/form-parts";
+import { SubmitError } from "@/components/checkout/submit-error";
 import { Button } from "@/components/ui/button";
 import { siteConfig } from "@/config/site";
 import { intlLocales } from "@/i18n/config";
 import { formatIDR, interpolate } from "@/i18n/format";
 import { useI18n } from "@/i18n/i18n-provider";
-import { DEMO_WHATSAPP, demoOrders } from "@/lib/orders/demo-orders";
+import { DEMO_WHATSAPP, demoOrders, SHOW_DEMO_ORDERS } from "@/lib/orders/demo-orders";
 import { normalizeOrderId } from "@/lib/orders/order-id";
 import { orderService } from "@/lib/orders/service";
 import type { Order, OrderStatus } from "@/lib/orders/types";
@@ -20,13 +32,22 @@ import { LIMITS, normalizeWhatsapp, sanitizeWhatsapp } from "@/lib/validation";
 
 export const statusStyles: Record<OrderStatus, { badge: string; icon: typeof Clock }> = {
   pending: { badge: "bg-amber-100 text-amber-800", icon: Clock },
+  paid: { badge: "bg-brand-100 text-brand-800", icon: BadgeCheck },
   processing: { badge: "bg-sky-100 text-sky-800", icon: Loader2 },
   completed: { badge: "bg-brand-100 text-brand-800", icon: PackageCheck },
   failed: { badge: "bg-blush-100 text-blush-800", icon: CircleAlert },
+  expired: { badge: "bg-ink-300/25 text-ink-700", icon: Hourglass },
 };
 
 /** Index of the timeline step the order is currently on (0 created · 1 payment · 2 processing · 3 done). */
-const currentStep: Record<OrderStatus, number> = { pending: 1, processing: 2, completed: 4, failed: 1 };
+const currentStep: Record<OrderStatus, number> = {
+  pending: 1,
+  paid: 2,
+  processing: 2,
+  completed: 4,
+  failed: 1,
+  expired: 1,
+};
 
 type FormErrors = { orderId?: string; whatsapp?: string };
 
@@ -41,6 +62,7 @@ export function CheckOrder() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [searching, setSearching] = useState(false);
   const [notFound, setNotFound] = useState(false);
+  const [lookupError, setLookupError] = useState<"rateLimited" | "unavailable" | null>(null);
   const [order, setOrder] = useState<Order | null>(null);
 
   const search = async (id: string, phone: string) => {
@@ -51,13 +73,18 @@ export function CheckOrder() {
     if (!normalizedPhone) nextErrors.whatsapp = dict.checkout.errors.invalidWhatsapp;
     setErrors(nextErrors);
     setNotFound(false);
+    setLookupError(null);
     if (!normalizedId || !normalizedPhone) return;
 
     setSearching(true);
     try {
-      const found = await orderService.findOrder(normalizedId, normalizedPhone);
-      setOrder(found);
-      setNotFound(!found);
+      const result = await orderService.findOrder(normalizedId, normalizedPhone);
+      if (!result.ok) {
+        setLookupError(result.error);
+        return;
+      }
+      setOrder(result.order);
+      setNotFound(!result.order);
     } finally {
       setSearching(false);
     }
@@ -129,22 +156,7 @@ export function CheckOrder() {
                 )}
               </Field>
 
-              <AnimatePresence initial={false}>
-                {notFound ? (
-                  <m.p
-                    role="alert"
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="overflow-hidden"
-                  >
-                    <span className="flex items-start gap-2 rounded-xl bg-blush-50 px-3 py-2.5 text-sm text-blush-900">
-                      <CircleAlert className="mt-0.5 size-4 shrink-0 text-blush-500" aria-hidden="true" />
-                      {t.errors.notFound}
-                    </span>
-                  </m.p>
-                ) : null}
-              </AnimatePresence>
+              <SubmitError message={lookupError ? t.errors[lookupError] : notFound ? t.errors.notFound : null} />
 
               <Button type="submit" size="lg" className="mt-1 w-full" disabled={searching}>
                 {searching ? (
@@ -159,7 +171,7 @@ export function CheckOrder() {
         </AnimatePresence>
       </div>
 
-      {orderService.isDemo ? (
+      {SHOW_DEMO_ORDERS ? (
         <aside className="rounded-2xl border border-dashed border-brand-200 bg-brand-50/60 p-4 text-sm">
           <p className="font-semibold text-ink-900">{t.demo.title}</p>
           <p className="mt-1 text-ink-500">{interpolate(t.demo.description, { phone: DEMO_WHATSAPP })}</p>
@@ -192,7 +204,7 @@ function OrderResult({ order: result, onSearchAgain }: { order: Order; onSearchA
   const style = statusStyles[result.status];
   const StatusIcon = style.icon;
   const step = currentStep[result.status];
-  const failed = result.status === "failed";
+  const failed = result.status === "failed" || result.status === "expired";
   const date = new Intl.DateTimeFormat(intlLocales[locale], { dateStyle: "medium", timeStyle: "short" }).format(
     new Date(result.createdAt),
   );

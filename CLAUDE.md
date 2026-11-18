@@ -19,6 +19,7 @@ npm run tokens       # regenerate design/tokens.json from src/app/globals.css
 npm run db:up        # local Postgres 17 in Docker on port 5433 (5432 is taken on Devan's Mac)
 npm run db:generate  # after editing src/server/db/schema.ts → new SQL file in drizzle/
 npm run db:migrate   # apply migrations (drizzle-kit reads .env.local via @next/env)
+npm run db:seed      # reset the 4 dev sample orders (refuses non-local databases)
 npm run db:studio | db:down
 ```
 
@@ -57,6 +58,7 @@ src/
   i18n/                id (default, source of truth) + en; dictionaries/*.ts
   lib/                 pure logic: validation, robux-pricing, catalog, contact, orders/*
   server/db/           Drizzle schema + getDb() (server-only; import only from server code)
+  server/orders/       order domain: quote (server pricing), service (create/find/transition), actions
   proxy.ts
 design/                tokens.json, screens/*.png, README (Figma)
 scripts/export-tokens.mjs
@@ -70,10 +72,16 @@ Rules:
   in `src/data/*`, never hard-coded in components.
 - **Validation & pricing are pure functions** (`lib/validation.ts`, `lib/robux-pricing.ts`) so the
   phase-2 server reuses them. The server must recompute every price — never trust a client total.
-- **Orders go through `orderService`** (`lib/orders/service.ts`). Today it is a demo implementation
-  (localStorage + seeded demo orders `MB-PEND2026`, `MB-PROC2026`, `MB-DONE2026`, `MB-FAIL2026`,
-  WhatsApp `081234567890`). Phase 2 swaps it for a real implementation with the same interface.
-  Order lookup requires order ID **and** WhatsApp number.
+- **Orders go through `orderService`** (`lib/orders/service.ts`) → Server Actions
+  (`server/orders/actions.ts`) → domain (`server/orders/service.ts`, `quote.ts`). The browser sends
+  only choices (method, amount, product slug, option id, payment id) — **never a price**; the server
+  re-validates, prices from `src/data/*`, adds a random unique code (`data/orders.ts`) and returns
+  error codes, not rows. Status changes only via `transitionOrder()` (checks `lib/orders/status.ts`,
+  locks the row, writes `order_events`). Lookup needs order ID **and** WhatsApp; pending orders past
+  `expires_at` expire on lookup. Lookups/creates are rate-limited per IP (`server/rate-limit.ts`,
+  in-memory: one instance only). Dev sample orders: `npm run db:seed` (`MB-PEND2026`, `MB-PROC2026`,
+  `MB-DONE2026`, `MB-FAIL2026`, WhatsApp `081234567890`), listed on /check-order in dev only.
+  `PAYMENTS_LIVE` stays false until roadmap step 4 (checkout still says no money is charged).
 - Order IDs: `MB-` + 8 chars from an unambiguous alphabet (`lib/orders/order-id.ts`).
 - Server Components by default; `"use client"` only for interactivity. Motion via `LazyMotion` +
   `m.*` components, `MotionConfig reducedMotion="user"`.

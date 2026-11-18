@@ -50,6 +50,7 @@ npm install
 # 4. Start the database (needs Docker Desktop) and create the tables
 npm run db:up
 npm run db:migrate
+npm run db:seed      # optional: sample orders for /check-order
 
 # 5. Start the dev server
 npm run dev
@@ -79,6 +80,7 @@ npm start
 | `npm run db:down`     | Stop it (data is kept in a Docker volume)      |
 | `npm run db:generate` | Write a SQL migration after editing the schema |
 | `npm run db:migrate`  | Apply pending migrations                       |
+| `npm run db:seed`     | Add the 4 sample orders (local database only)  |
 | `npm run db:studio`   | Browse the database in Drizzle Studio          |
 
 ---

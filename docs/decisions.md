@@ -35,6 +35,14 @@ What was decided, by whom, and why — so nobody re-litigates it. Newest first i
 
 ## Architecture decisions (phase 2)
 
+- **Orders (step 3, 2026-11-19):** the browser never sends a price; the server prices from
+  `src/data/*`. Status machine: pending → paid → processing → completed; pending/paid/processing →
+  failed; pending → expired. Every change is a row in `order_events`. Unique code 1–499 added to
+  every total, and the DB forbids two _pending_ orders with the same total. Expiry **30 min
+  (placeholder, open question 7)** in `src/data/orders.ts`. Expired on lookup now; the worker
+  (step 6) will also do it in the background. Rate limits: 20 lookups and 10 new orders per IP per
+  10 min.
+
 - **Backend inside this Next.js app (modular monolith) + one small worker process.** No separate
   backend until there is a second client (mobile app / reseller API) or very high volume.
   Layout: `src/server/{db,orders,pricing,payments,auth,notify}`; pages/actions stay thin.

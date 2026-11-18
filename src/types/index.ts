@@ -44,12 +44,20 @@ export interface Product {
 
 export type PaymentGroup = "QRIS" | "E-Wallet" | "Virtual Account" | "Retail";
 
+/**
+ * - checkout: selectable at checkout now (manual QRIS)
+ * - via-qris: not a separate option, but the buyer can pay the QRIS with it (e-wallet apps)
+ * - later:    needs a payment gateway (phase 3) — hidden everywhere until then
+ */
+export type PaymentAvailability = "checkout" | "via-qris" | "later";
+
 export interface PaymentMethod {
   id: string;
   name: string;
   group: PaymentGroup;
   /** Flat fee in IDR. */
   fee: number;
+  availability: PaymentAvailability;
 }
 
 export type NavKey = "robux" | "gamepass" | "shop" | "deals" | "faq" | "checkOrder";

@@ -7,14 +7,15 @@ import { useId, useMemo, useRef, useState, type FormEvent } from "react";
 import { Field, inputClass, Step, SummaryRow } from "@/components/checkout/form-parts";
 import { OrderSuccess } from "@/components/checkout/order-success";
 import { PaymentPicker } from "@/components/checkout/payment-picker";
+import { SubmitError } from "@/components/checkout/submit-error";
 import { Button } from "@/components/ui/button";
 import { ProductArt } from "@/components/ui/product-art";
-import { getPaymentMethod } from "@/data/payments";
+import { defaultPaymentId, getPaymentMethod } from "@/data/payments";
 import { useDialogA11y } from "@/hooks/use-dialog-a11y";
 import { formatIDR } from "@/i18n/format";
 import { useI18n } from "@/i18n/i18n-provider";
 import { orderService } from "@/lib/orders/service";
-import type { Order } from "@/lib/orders/types";
+import type { Order, OrderFailure } from "@/lib/orders/types";
 import { cn, discountPercent } from "@/lib/utils";
 import {
   LIMITS,
@@ -53,11 +54,12 @@ export function TopUpDialog({ product, initialOptionId, onClose }: TopUpDialogPr
     account: "",
     whatsapp: "",
     optionId: initialOptionId ?? "",
-    paymentId: "",
+    paymentId: defaultPaymentId,
   });
   const [touched, setTouched] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [order, setOrder] = useState<Order | null>(null);
+  const [submitError, setSubmitError] = useState<OrderFailure | null>(null);
 
   const errors: OrderErrors = useMemo(
     () => (touched ? validateOrder(product.delivery, optionIds, draft) : {}),
@@ -75,6 +77,7 @@ export function TopUpDialog({ product, initialOptionId, onClose }: TopUpDialogPr
     setTouched(true);
     const result = validateOrder(product.delivery, optionIds, draft);
     const whatsapp = normalizeWhatsapp(draft.whatsapp);
+    setSubmitError(null);
     if (Object.keys(result).length > 0 || !option || !payment || !whatsapp) {
       const firstInvalid = panelRef.current?.querySelector<HTMLElement>("[aria-invalid='true']");
       firstInvalid?.focus({ preventScroll: true });
@@ -83,17 +86,16 @@ export function TopUpDialog({ product, initialOptionId, onClose }: TopUpDialogPr
     }
     setSubmitting(true);
     try {
-      // Phase 2: the API creates the order (recomputing the price) and returns the payment URL.
-      setOrder(
-        await orderService.createOrder({
-          product: product.name,
-          item: option.label,
-          account: draft.account.trim(),
-          whatsapp,
-          payment: payment.name,
-          total,
-        }),
-      );
+      // Only the choices are sent: the server validates them again and computes the price itself.
+      const created = await orderService.createProductOrder({
+        productSlug: product.slug,
+        optionId: option.id,
+        account: draft.account,
+        whatsapp,
+        paymentId: payment.id,
+      });
+      if (created.ok) setOrder(created.order);
+      else setSubmitError(created.error);
     } finally {
       setSubmitting(false);
     }
@@ -288,6 +290,7 @@ export function TopUpDialog({ product, initialOptionId, onClose }: TopUpDialogPr
                       </m.span>
                     </span>
                   </div>
+                  <SubmitError message={submitError ? t.submitErrors[submitError] : null} className="mt-4" />
                   <Button type="submit" form={formId} size="lg" className="mt-5 w-full" disabled={submitting}>
                     <Zap className="size-4" aria-hidden="true" />
                     {submitting ? t.processing : t.buyNow}

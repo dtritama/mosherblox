@@ -9,7 +9,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { localeHref } from "@/i18n/config";
 import { formatIDR, interpolate } from "@/i18n/format";
 import { useI18n } from "@/i18n/i18n-provider";
-import { orderService } from "@/lib/orders/service";
+import { PAYMENTS_LIVE } from "@/lib/orders/service";
 import type { Order } from "@/lib/orders/types";
 
 /** Confirmation shown after checkout: order ID (copyable), summary and a link to Check Order. */
@@ -76,7 +76,7 @@ export function OrderSuccess({ order, onDone, doneLabel }: { order: Order; onDon
         })}
       </p>
 
-      {orderService.isDemo ? (
+      {!PAYMENTS_LIVE ? (
         <p className="max-w-md rounded-xl bg-brand-50 px-4 py-3 text-sm text-brand-800">{t.demo}</p>
       ) : null}
 

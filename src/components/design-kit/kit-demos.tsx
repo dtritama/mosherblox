@@ -13,8 +13,7 @@ import { ProductCard } from "@/components/topup/product-card";
 import { useTopUp } from "@/components/topup/topup-provider";
 import { products } from "@/data/products";
 import { useI18n } from "@/i18n/i18n-provider";
-import { demoOrders } from "@/lib/orders/demo-orders";
-import type { OrderStatus } from "@/lib/orders/types";
+import type { Order, OrderStatus } from "@/lib/orders/types";
 import { cn } from "@/lib/utils";
 
 /* Interactive specimens for the design kit — real components with demo state. */
@@ -188,10 +187,25 @@ export function OrderCards() {
   );
 }
 
+/** Fixed sample for the kit (no database needed). */
+const sampleOrder: Order = {
+  id: "MB-DONE2026",
+  status: "completed",
+  createdAt: "2026-11-01T10:15:00+07:00",
+  expiresAt: "2026-11-01T10:45:00+07:00",
+  product: "Blox Fruits",
+  item: { id: "Leopard Fruit", en: "Leopard Fruit" },
+  account: "Builderman_01",
+  whatsapp: "6281234567890",
+  payment: "QRIS",
+  total: 89047,
+  uniqueCode: 47,
+};
+
 export function OrderSuccessDemo() {
   return (
     <div className="rounded-[2rem] border border-brand-100">
-      <OrderSuccess order={demoOrders[2]} onDone={() => undefined} />
+      <OrderSuccess order={sampleOrder} onDone={() => undefined} />
     </div>
   );
 }

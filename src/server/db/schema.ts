@@ -207,4 +207,5 @@ export type OrderRow = typeof orders.$inferSelect;
 export type NewOrderRow = typeof orders.$inferInsert;
 export type OrderEventRow = typeof orderEvents.$inferSelect;
 export type PaymentRow = typeof payments.$inferSelect;
+export type NewPaymentRow = typeof payments.$inferInsert;
 export type SettingRow = typeof settings.$inferSelect;

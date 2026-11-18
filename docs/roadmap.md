@@ -16,10 +16,12 @@ Order of work (each step ends with `npm run check` and a browser test):
    provider, provider event id), `settings` (prices, QRIS image, expiry), `users` (later), `admins`.
    Done: `src/server/db/schema.ts`, `drizzle/0000_init.sql`. Guards in the DB: total =
    subtotal + fee + unique code, no two _pending_ orders with the same total, robux/product fields.
-3. **Order domain** (`src/server/orders`) — create order (server-side price via
+3. ✅ **Order domain** (`src/server/orders`) — create order (server-side price via
    `lib/robux-pricing.ts` + `lib/validation.ts`), status machine
    `pending → paid → processing → completed | failed | expired`, lookup by ID + WhatsApp.
    Swap `orderService` to the real implementation (server actions). Rate-limit lookups.
+   Done: `src/server/orders/*`, `lib/orders/status.ts`, `npm run db:seed`. Rate limit is in-memory
+   (fine for one VPS instance; move to Postgres/Redis if the app ever runs twice).
 4. **Manual QRIS payment** — checkout shows the owner's QRIS + exact total with unique code,
    countdown to expiry, "Saya sudah bayar" + optional proof upload (validate type/size, store
    outside `public/`). `PaymentProvider` interface with `manual-qris` as the first provider.

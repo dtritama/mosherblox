@@ -21,16 +21,17 @@ import { useId, useMemo, useRef, useState, type FormEvent, type ReactNode } from
 import { Field, inputClass, Step, SummaryRow } from "@/components/checkout/form-parts";
 import { OrderSuccess } from "@/components/checkout/order-success";
 import { PaymentPicker } from "@/components/checkout/payment-picker";
+import { SubmitError } from "@/components/checkout/submit-error";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { Reveal } from "@/components/ui/reveal";
 import { SectionHeading } from "@/components/ui/section-heading";
-import { getPaymentMethod } from "@/data/payments";
+import { defaultPaymentId, getPaymentMethod } from "@/data/payments";
 import { robuxConfig, type RobuxMethodId } from "@/data/robux";
 import { formatIDR, formatNumber, interpolate } from "@/i18n/format";
 import { useI18n } from "@/i18n/i18n-provider";
 import { orderService } from "@/lib/orders/service";
-import type { Order } from "@/lib/orders/types";
+import type { Order, OrderFailure } from "@/lib/orders/types";
 import {
   calculateRobuxPrice,
   getGamepassPrice,
@@ -62,7 +63,7 @@ const initialDraft: RobuxOrderDraft = {
   amount: defaultAmount,
   account: "",
   whatsapp: "",
-  paymentId: "",
+  paymentId: defaultPaymentId,
   confirmed2sv: false,
 };
 
@@ -93,6 +94,7 @@ export function RobuxPanel({ className }: { className?: string }) {
   const [touched, setTouched] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [order, setOrder] = useState<Order | null>(null);
+  const [submitError, setSubmitError] = useState<OrderFailure | null>(null);
 
   const update = <K extends keyof RobuxOrderDraft>(key: K, value: RobuxOrderDraft[K]) =>
     setDraft((prev) => ({ ...prev, [key]: value }));
@@ -141,7 +143,8 @@ export function RobuxPanel({ className }: { className?: string }) {
     setTouched(true);
     const result = validateRobuxOrder(draft);
     const whatsapp = normalizeWhatsapp(draft.whatsapp);
-    if (Object.keys(result).length > 0 || subtotal === null || total === null || !whatsapp || !payment) {
+    setSubmitError(null);
+    if (Object.keys(result).length > 0 || draft.amount === null || !whatsapp || !payment) {
       const firstInvalid = formRef.current?.querySelector<HTMLElement>("[aria-invalid='true']");
       firstInvalid?.focus({ preventScroll: true });
       firstInvalid?.scrollIntoView({ block: "center", behavior: "smooth" });
@@ -149,20 +152,20 @@ export function RobuxPanel({ className }: { className?: string }) {
     }
     setSubmitting(true);
     try {
-      // Phase 2: the API recomputes the price from the method + amount — never trust this total.
-      const created = await orderService.createOrder({
-        product: "Robux",
-        // Method names are the same in both languages; only the number format differs.
-        item: {
-          id: `${formatNumber(draft.amount ?? 0, "id")} Robux · ${methodName}`,
-          en: `${formatNumber(draft.amount ?? 0, "en")} Robux · ${methodName}`,
-        },
-        account: draft.account.trim(),
+      // Only the choices are sent: the server validates them again and computes the price itself.
+      const result = await orderService.createRobuxOrder({
+        method: draft.method,
+        amount: draft.amount,
+        account: draft.account,
         whatsapp,
-        payment: payment.name,
-        total,
+        paymentId: payment.id,
+        confirmed2sv: draft.confirmed2sv,
       });
-      setOrder(created);
+      if (!result.ok) {
+        setSubmitError(result.error);
+        return;
+      }
+      setOrder(result.order);
       document.getElementById("robux-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
     } finally {
       setSubmitting(false);
@@ -171,6 +174,7 @@ export function RobuxPanel({ className }: { className?: string }) {
 
   const reset = () => {
     setOrder(null);
+    setSubmitError(null);
     setTouched(false);
     setDraft((prev) => ({ ...initialDraft, method: prev.method, whatsapp: prev.whatsapp }));
   };
@@ -503,6 +507,7 @@ export function RobuxPanel({ className }: { className?: string }) {
                       <span className="text-sm font-medium text-ink-700">{c.summary.total}</span>
                       <Total value={total} />
                     </div>
+                    <SubmitError message={submitError ? c.submitErrors[submitError] : null} className="mt-4" />
                     <Button type="submit" form={formId} size="lg" className="mt-5 w-full" disabled={submitting}>
                       <Zap className="size-4" aria-hidden="true" />
                       {submitting ? c.processing : buyLabel}
@@ -515,17 +520,20 @@ export function RobuxPanel({ className }: { className?: string }) {
                 </aside>
 
                 {/* Summary — sticky bottom bar on mobile/tablet, only while this panel is on screen */}
-                <div className="sticky bottom-0 z-10 flex items-center gap-3 border-t border-brand-100 bg-white/95 p-4 backdrop-blur lg:hidden">
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-xs text-ink-500">
-                      {amount ? `${n(amount)} Robux · ${methodName}` : methodName}
-                    </p>
-                    <Total value={total} />
+                <div className="sticky bottom-0 z-10 border-t border-brand-100 bg-white/95 p-4 backdrop-blur lg:hidden">
+                  <SubmitError message={submitError ? c.submitErrors[submitError] : null} className="mb-3" />
+                  <div className="flex items-center gap-3">
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-xs text-ink-500">
+                        {amount ? `${n(amount)} Robux · ${methodName}` : methodName}
+                      </p>
+                      <Total value={total} />
+                    </div>
+                    <Button type="submit" form={formId} disabled={submitting}>
+                      <Zap className="size-4" aria-hidden="true" />
+                      {submitting ? c.processing : c.buyNow}
+                    </Button>
                   </div>
-                  <Button type="submit" form={formId} disabled={submitting}>
-                    <Zap className="size-4" aria-hidden="true" />
-                    {submitting ? c.processing : c.buyNow}
-                  </Button>
                 </div>
               </m.div>
             )}
