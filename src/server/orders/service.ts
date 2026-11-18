@@ -161,9 +161,7 @@ export async function transitionOrder(
  * possibly paid order).
  */
 function shouldExpire(row: OrderRow, payment: PaymentRow | null) {
-  return (
-    row.status === "pending" && payment?.status !== "submitted" && row.expiresAt.getTime() + graceMs <= Date.now()
-  );
+  return row.status === "pending" && payment?.status !== "submitted" && row.expiresAt.getTime() + graceMs <= Date.now();
 }
 
 /**

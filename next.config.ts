@@ -42,6 +42,12 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   cacheComponents: true,
   partialPrefetching: true,
+  experimental: {
+    serverActions: {
+      // Payment proof screenshots (max 4 MB, see src/data/orders.ts) + multipart overhead.
+      bodySizeLimit: "5mb",
+    },
+  },
   turbopack: {
     rules: {
       "*.css": {

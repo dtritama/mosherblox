@@ -22,9 +22,11 @@ Order of work (each step ends with `npm run check` and a browser test):
    Swap `orderService` to the real implementation (server actions). Rate-limit lookups.
    Done: `src/server/orders/*`, `lib/orders/status.ts`, `npm run db:seed`. Rate limit is in-memory
    (fine for one VPS instance; move to Postgres/Redis if the app ever runs twice).
-4. **Manual QRIS payment** — checkout shows the owner's QRIS + exact total with unique code,
+4. ✅ **Manual QRIS payment** — checkout shows the owner's QRIS + exact total with unique code,
    countdown to expiry, "Saya sudah bayar" + optional proof upload (validate type/size, store
    outside `public/`). `PaymentProvider` interface with `manual-qris` as the first provider.
+   Done: `src/server/payments/*`, `components/checkout/qris-payment.tsx` (QR, exact amount, countdown,
+   save-QR for phones, "Saya sudah bayar" + screenshot). Checkout offers QRIS only (e-wallets pay it).
 5. **Admin** (`/admin`) — login (admin accounts only), order list with filters, order detail,
    mark paid / processing / completed / failed with a note, settings (prices, QRIS, expiry).
 6. **Notifications + jobs** — worker with pg-boss: expire unpaid orders, Discord webhook on new

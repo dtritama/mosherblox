@@ -29,11 +29,22 @@ What was decided, by whom, and why — so nobody re-litigates it. Newest first i
 3. Delivery time difference between Gamepass and Send Username (to show on method cards).
 4. Golrox screenshot for the panel layout reference.
 5. Official Robux icon file (SVG preferred).
-6. QRIS image + whether it is registered as usaha mikro (affects the 0% MDR limit).
+6. ~~QRIS image + usaha mikro~~ → received; registered as UMI. Still to confirm: is "Kautsars, Gaming"
+   the right merchant for MOSHERBLOX, or will a QRIS in the store's own name follow?
 7. Unpaid-order expiry time (30 or 60 min?).
 8. Does the client already own mosherblox.com?
 
 ## Architecture decisions (phase 2)
+
+- **Manual QRIS (step 4, 2026-11-19):** the client's static QRIS (`public/payments/qris.jpg`) was
+  decoded and checksum-verified: GoPay merchant **"Kautsars, Gaming"** (Sukabumi), NMID
+  ID1026552374492, criteria **UMI (usaha mikro)** → 0% MDR up to Rp 500.000 (half of open question 6
+  answered). Buyers see that merchant name in their app, so the payment screen names it. Checkout
+  offers only QRIS (any e-wallet / m-banking pays it); VA and retail are hidden until a gateway
+  (`availability: "later"` in `src/data/payments.ts`). "Saya sudah bayar" sets the payment to
+  `submitted` (order stays pending until an admin confirms); a submitted payment never auto-expires.
+  10-minute grace after the countdown for late "I've paid" clicks. Proof screenshots: JPG/PNG/WebP
+  ≤ 4 MB, type checked by file bytes, stored in `UPLOAD_DIR` outside `public/`.
 
 - **Orders (step 3, 2026-11-19):** the browser never sends a price; the server prices from
   `src/data/*`. Status machine: pending → paid → processing → completed; pending/paid/processing →

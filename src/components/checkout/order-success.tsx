@@ -5,6 +5,7 @@ import { Check, CheckCircle2, Copy, Search } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
+import { QrisPayment } from "@/components/checkout/qris-payment";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { localeHref } from "@/i18n/config";
 import { formatIDR, interpolate } from "@/i18n/format";
@@ -12,11 +13,24 @@ import { useI18n } from "@/i18n/i18n-provider";
 import { PAYMENTS_LIVE } from "@/lib/orders/service";
 import type { Order } from "@/lib/orders/types";
 
-/** Confirmation shown after checkout: order ID (copyable), summary and a link to Check Order. */
-export function OrderSuccess({ order, onDone, doneLabel }: { order: Order; onDone: () => void; doneLabel?: string }) {
+/**
+ * Shown after checkout: order ID (copyable), summary, the QRIS payment step while the order
+ * waits for payment, and a link to Check Order.
+ */
+export function OrderSuccess({
+  order: created,
+  onDone,
+  doneLabel,
+}: {
+  order: Order;
+  onDone: () => void;
+  doneLabel?: string;
+}) {
   const { locale, dict } = useI18n();
   const t = dict.checkout.success;
   const [copied, setCopied] = useState(false);
+  // Updated after "Saya sudah bayar".
+  const [order, setOrder] = useState(created);
 
   const copy = async () => {
     try {
@@ -75,6 +89,8 @@ export function OrderSuccess({ order, onDone, doneLabel }: { order: Order; onDon
           total: formatIDR(order.total),
         })}
       </p>
+
+      {PAYMENTS_LIVE && order.status === "pending" ? <QrisPayment order={order} onChange={setOrder} /> : null}
 
       {!PAYMENTS_LIVE ? (
         <p className="max-w-md rounded-xl bg-brand-50 px-4 py-3 text-sm text-brand-800">{t.demo}</p>

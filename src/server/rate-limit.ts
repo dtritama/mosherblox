@@ -49,6 +49,8 @@ export const RATE_LIMITS = {
   lookup: { limit: 20, windowMs: 10 * 60_000 },
   /** New orders from one connection. */
   createOrder: { limit: 10, windowMs: 10 * 60_000 },
+  /** "Saya sudah bayar" (with uploads). */
+  claimPayment: { limit: 10, windowMs: 10 * 60_000 },
 } as const;
 
 export async function rateLimit(name: keyof typeof RATE_LIMITS): Promise<boolean> {

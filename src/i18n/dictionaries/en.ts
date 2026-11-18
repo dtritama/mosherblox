@@ -388,6 +388,43 @@ export const en: Dictionary = {
       done: "Done",
     },
   },
+  payment: {
+    title: "Pay with QRIS",
+    amountLabel: "Amount to pay",
+    copyAmount: "Copy amount",
+    amountCopied: "Amount copied",
+    exactNote:
+      "Pay the exact amount, down to the last digit. It includes the unique code {code} so your payment matches this order straight away.",
+    payBefore: "Pay before {time}",
+    timeLeft: "Time left to pay",
+    timeUp: "Time's up. Already paid? Press “I've paid” before {time}.",
+    expired: "The payment window has passed. Please place a new order.",
+    merchant: "Merchant name in your app: {name}",
+    qrAlt: "QRIS code of {name} to pay for this order",
+    apps: "Pay with GoPay, OVO, DANA, ShopeePay, or mobile banking.",
+    saveQr: "Save QR image",
+    phoneHint:
+      "Shopping on your phone? Save the QR image, open your e-wallet or banking app, tap Scan and pick it from your gallery.",
+    steps: ["Scan the QR code", "Enter the exact amount", "Press “I've paid”"],
+    proofLabel: "Transfer screenshot (optional)",
+    proofHint: "JPG, PNG, or WebP screenshot, max 4 MB. Helps us check faster.",
+    proofChoose: "Choose screenshot",
+    removeProof: "Remove file",
+    claim: "I've paid",
+    claiming: "Sending…",
+    submittedTitle: "Waiting for admin confirmation",
+    submittedText:
+      "Thanks! An admin will match your payment, then your order gets processed. Track it on Check Order with your order ID and WhatsApp number.",
+    submittedProof: "Transfer screenshot received.",
+    errors: {
+      rateLimited: "Too many attempts. Wait a few minutes, then try again.",
+      unavailable: "Couldn't send that right now. Try again shortly, or chat with support.",
+      notFound: "Order not found. Double-check the order ID and WhatsApp number.",
+      tooLate: "The payment window has passed. If you already paid, chat with support and include your order ID.",
+      notPending: "This order isn't waiting for payment anymore. Check its status on Check Order.",
+      badProof: "The file must be a JPG, PNG, or WebP image, max 4 MB.",
+    },
+  },
   checkOrder: {
     metaTitle: "Check Order",
     metaDescription:

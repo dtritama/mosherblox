@@ -17,6 +17,7 @@ import { useSearchParams } from "next/navigation";
 import { useRef, useState, type FormEvent } from "react";
 
 import { Field, inputClass, SummaryRow } from "@/components/checkout/form-parts";
+import { QrisPayment } from "@/components/checkout/qris-payment";
 import { SubmitError } from "@/components/checkout/submit-error";
 import { Button } from "@/components/ui/button";
 import { siteConfig } from "@/config/site";
@@ -112,7 +113,7 @@ export function CheckOrder() {
       <div className="overflow-hidden rounded-[2rem] border border-brand-100 bg-white shadow-xl shadow-brand-900/5">
         <AnimatePresence mode="wait" initial={false}>
           {order ? (
-            <OrderResult key={order.id} order={order} onSearchAgain={searchAgain} />
+            <OrderResult key={order.id} order={order} onChange={setOrder} onSearchAgain={searchAgain} />
           ) : (
             <m.form
               key="form"
@@ -198,7 +199,15 @@ export function CheckOrder() {
   );
 }
 
-function OrderResult({ order: result, onSearchAgain }: { order: Order; onSearchAgain: () => void }) {
+function OrderResult({
+  order: result,
+  onChange,
+  onSearchAgain,
+}: {
+  order: Order;
+  onChange: (order: Order) => void;
+  onSearchAgain: () => void;
+}) {
   const { locale, dict } = useI18n();
   const t = dict.checkOrder;
   const style = statusStyles[result.status];
@@ -228,7 +237,9 @@ function OrderResult({ order: result, onSearchAgain }: { order: Order; onSearchA
           </span>
         </div>
         <p role="status" className="mt-2 text-sm text-ink-500">
-          {t.statusDescription[result.status]}
+          {result.status === "pending" && result.paymentStatus === "submitted"
+            ? dict.payment.submittedTitle
+            : t.statusDescription[result.status]}
         </p>
 
         <ol className="mt-6 grid grid-cols-4 gap-2">
@@ -280,6 +291,12 @@ function OrderResult({ order: result, onSearchAgain }: { order: Order; onSearchA
           })}
         </ol>
       </div>
+
+      {result.status === "pending" ? (
+        <div className="border-b border-brand-100 bg-brand-50/40 p-4 sm:p-6">
+          <QrisPayment order={result} onChange={onChange} />
+        </div>
+      ) : null}
 
       <div className="p-5 sm:p-8">
         <h2 className="text-sm font-semibold tracking-wider text-ink-500 uppercase">{t.details.title}</h2>

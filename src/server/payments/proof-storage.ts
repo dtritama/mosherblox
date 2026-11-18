@@ -9,7 +9,8 @@ import { orderConfig } from "@/data/orders";
  * Folder: UPLOAD_DIR (default ./storage/uploads) — a Docker volume in production.
  */
 
-const uploadRoot = () => path.resolve(process.env.UPLOAD_DIR || "storage/uploads");
+// The upload folder is only known at runtime: tell Turbopack not to trace it into the build.
+const uploadRoot = () => path.resolve(/*turbopackIgnore: true*/ process.env.UPLOAD_DIR || "storage/uploads");
 
 /** Real file type from the first bytes — the browser's MIME type and file name are not trusted. */
 function sniffImage(bytes: Uint8Array): { ext: string; type: string } | null {
@@ -36,9 +37,9 @@ export async function saveProof(
     return { ok: false, error: "notImage" };
   }
   const month = new Date().toISOString().slice(0, 7); // 2026-11
-  // Random file name: never derived from anything the buyer sent.
+  // Order ID (already reduced to A–Z, 0–9 and "-") + a random UUID: the buyer's file name is never used.
   const relative = path.posix.join("proofs", month, `${orderId}-${crypto.randomUUID()}.${kind.ext}`);
-  const absolute = path.join(uploadRoot(), relative);
+  const absolute = path.join(/*turbopackIgnore: true*/ uploadRoot(), relative);
   await mkdir(path.dirname(absolute), { recursive: true });
   await writeFile(absolute, bytes, { flag: "wx" });
   return { ok: true, path: relative };
@@ -46,5 +47,5 @@ export async function saveProof(
 
 /** Removes a saved proof again (when the database update that should reference it failed). */
 export async function deleteProof(relative: string) {
-  await rm(path.join(uploadRoot(), relative), { force: true });
+  await rm(path.join(/*turbopackIgnore: true*/ uploadRoot(), relative), { force: true });
 }

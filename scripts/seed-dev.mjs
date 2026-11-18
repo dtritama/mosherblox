@@ -19,7 +19,8 @@ if (!["localhost", "127.0.0.1", "::1", "db"].includes(host)) {
 }
 
 const WHATSAPP = "6281234567890"; // 081234567890
-const farFuture = new Date("2099-01-01T00:00:00+07:00"); // the pending sample never expires
+// The pending sample gets a normal 30-minute payment window from now (run db:seed again later).
+const payWindowEnd = new Date(Date.now() + 30 * 60_000);
 
 const orders = [
   {
@@ -33,7 +34,7 @@ const orders = [
     payment_method: "qris",
     subtotal: 115000,
     unique_code: 47,
-    created_at: "2026-11-03T19:20:00+07:00",
+    created_at: new Date().toISOString(),
   },
   {
     id: "MB-PROC2026",
@@ -80,7 +81,7 @@ const sql = postgres(url, { max: 1, onnotice: () => {} });
 try {
   await sql.begin(async (tx) => {
     const ids = orders.map((order) => order.id);
-    await tx`DELETE FROM orders WHERE id IN ${tx(ids)}`; // events cascade
+    await tx`DELETE FROM orders WHERE id IN ${tx(ids)}`; // events + payments cascade
     for (const order of orders) {
       const row = {
         product_slug: null,
@@ -92,10 +93,18 @@ try {
         whatsapp: WHATSAPP,
         fee: 0,
         total: order.subtotal + order.unique_code,
-        expires_at: order.status === "pending" ? farFuture : new Date(order.created_at),
+        expires_at: order.status === "pending" ? payWindowEnd : new Date(order.created_at),
         item_label: tx.json(order.item_label),
       };
       await tx`INSERT INTO orders ${tx(row)}`;
+      const paymentStatus = { pending: "pending", processing: "confirmed", completed: "confirmed", failed: "rejected" };
+      await tx`INSERT INTO payments ${tx({
+        order_id: order.id,
+        provider: "manual-qris",
+        status: paymentStatus[order.status],
+        amount: row.total,
+        unique_code: order.unique_code,
+      })}`;
       await tx`INSERT INTO order_events ${tx({ order_id: order.id, to_status: order.status, actor: "system", note: "Sample order (db:seed)" })}`;
     }
   });

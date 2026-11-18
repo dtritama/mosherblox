@@ -193,6 +193,7 @@ const sampleOrder: Order = {
   status: "completed",
   createdAt: "2026-11-01T10:15:00+07:00",
   expiresAt: "2026-11-01T10:45:00+07:00",
+  claimUntil: "2026-11-01T10:55:00+07:00",
   product: "Blox Fruits",
   item: { id: "Leopard Fruit", en: "Leopard Fruit" },
   account: "Builderman_01",
@@ -200,6 +201,8 @@ const sampleOrder: Order = {
   payment: "QRIS",
   total: 89047,
   uniqueCode: 47,
+  paymentStatus: "confirmed",
+  hasProof: false,
 };
 
 export function OrderSuccessDemo() {

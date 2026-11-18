@@ -81,7 +81,10 @@ Rules:
   `expires_at` expire on lookup. Lookups/creates are rate-limited per IP (`server/rate-limit.ts`,
   in-memory: one instance only). Dev sample orders: `npm run db:seed` (`MB-PEND2026`, `MB-PROC2026`,
   `MB-DONE2026`, `MB-FAIL2026`, WhatsApp `081234567890`), listed on /check-order in dev only.
-  `PAYMENTS_LIVE` stays false until roadmap step 4 (checkout still says no money is charged).
+  Payment: manual QRIS (`server/payments/provider.ts`, image + merchant in `data/payments.ts`
+  `manualQris`). After checkout and on Check Order a pending order shows `QrisPayment` (QR, exact
+  total, countdown, "Saya sudah bayar" + optional screenshot → payment `submitted`; only an admin
+  marks it paid). Proofs go to `UPLOAD_DIR` (default `storage/uploads`, git-ignored, never public).
 - Order IDs: `MB-` + 8 chars from an unambiguous alphabet (`lib/orders/order-id.ts`).
 - Server Components by default; `"use client"` only for interactivity. Motion via `LazyMotion` +
   `m.*` components, `MotionConfig reducedMotion="user"`.
@@ -127,6 +130,8 @@ Rules:
 - **Do not advertise "no password required" / "tanpa password"** — the client asked to remove it.
   (Safety hint "never share your password" and the FAQ answer are fine.)
 - Checkout always collects a WhatsApp number (normalized to `628…`).
+- Payment today = the store's own static QRIS only (merchant shown to buyers: "Kautsars, Gaming").
+  VA / Alfamart / Indomaret are hidden (`availability: "later"`) until a payment gateway exists.
 - Contacts: Discord https://discord.gg/5Y82ZH7GgP · WhatsApp 081211980741 ·
   WA group https://chat.whatsapp.com/KqW18a2Li0YDZjwQccxHRY (in `config/site.ts`).
 
