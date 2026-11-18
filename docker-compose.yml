@@ -1,0 +1,26 @@
+# Local development services. Start with `npm run db:up`, stop with `npm run db:down`.
+# Production gets its own compose file in the deploy step (app, worker, postgres, caddy).
+name: mosherblox
+
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: mosherblox
+      POSTGRES_PASSWORD: mosherblox
+      POSTGRES_DB: mosherblox
+      TZ: Asia/Jakarta
+    # Host port 5433 so it doesn't clash with a Postgres already installed on the machine (5432).
+    ports:
+      - "127.0.0.1:${DB_PORT:-5433}:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mosherblox -d mosherblox"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  db-data:

@@ -10,10 +10,12 @@ design kit, Figma foundations + components.
 
 Order of work (each step ends with `npm run check` and a browser test):
 
-1. **Repo hygiene** — `git init`, first commit, `.env` handling (`.env.example` up to date).
-2. **Database** — Postgres (local via Docker Compose), Drizzle schema + migrations:
+1. ✅ **Repo hygiene** — `git init`, first commit, `.env` handling (`.env.example` up to date).
+2. ✅ **Database** — Postgres (local via Docker Compose), Drizzle schema + migrations:
    `orders`, `order_events` (audit log / status history), `payments` (amount, unique code, proof,
    provider, provider event id), `settings` (prices, QRIS image, expiry), `users` (later), `admins`.
+   Done: `src/server/db/schema.ts`, `drizzle/0000_init.sql`. Guards in the DB: total =
+   subtotal + fee + unique code, no two _pending_ orders with the same total, robux/product fields.
 3. **Order domain** (`src/server/orders`) — create order (server-side price via
    `lib/robux-pricing.ts` + `lib/validation.ts`), status machine
    `pending → paid → processing → completed | failed | expired`, lookup by ID + WhatsApp.

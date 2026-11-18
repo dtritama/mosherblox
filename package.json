@@ -12,15 +12,23 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "check": "npm run typecheck && npm run lint && npm run build",
-    "tokens": "node scripts/export-tokens.mjs"
+    "tokens": "node scripts/export-tokens.mjs",
+    "db:up": "docker compose up -d --wait db",
+    "db:down": "docker compose down",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
     "clsx": "^2.1.1",
+    "drizzle-orm": "0.45.4",
     "lucide-react": "^1.64.0",
     "motion": "^14.7.1",
-    "next": "16.4.3",
+    "next": "16.4.6",
+    "postgres": "4.1.1",
     "react": "19.3.0",
     "react-dom": "19.3.0",
+    "server-only": "0.0.1",
     "simple-icons": "^16.36.0",
     "tailwind-merge": "^3.7.0"
   },
@@ -29,14 +37,15 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "drizzle-kit": "0.31.11",
     "eslint": "^9",
-    "eslint-config-next": "16.4.3",
+    "eslint-config-next": "16.4.6",
     "prettier": "^3.9.10",
     "prettier-plugin-tailwindcss": "^0.8.1",
     "tailwindcss": "^4",
     "typescript": "^5"
   },
-  "description": "MOSHERBLOX \u2014 game top-up store (frontend, phase 1)",
+  "description": "MOSHERBLOX — game top-up store (frontend, phase 1)",
   "engines": {
     "node": ">=20.9.0"
   }

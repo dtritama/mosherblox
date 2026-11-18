@@ -16,6 +16,10 @@ npm run dev          # http://localhost:3000 → redirects to /id
 npm run check        # typecheck + lint + build — run before saying a change is done
 npm run typecheck | lint | lint:fix | format | build
 npm run tokens       # regenerate design/tokens.json from src/app/globals.css
+npm run db:up        # local Postgres 17 in Docker on port 5433 (5432 is taken on Devan's Mac)
+npm run db:generate  # after editing src/server/db/schema.ts → new SQL file in drizzle/
+npm run db:migrate   # apply migrations (drizzle-kit reads .env.local via @next/env)
+npm run db:studio | db:down
 ```
 
 Node ≥ 20.9 (`.nvmrc` = 22). Must keep working on Windows and macOS (no bash-only npm scripts).
@@ -23,10 +27,10 @@ If CSS changes don't show up in dev, stop the server and delete `.next` (Turbopa
 
 ## Stack
 
-Next.js **16.4.3** (App Router, `src/`), React 19.3, TypeScript strict, Tailwind CSS v4 (tokens in
+Next.js **16.4.6** (App Router, `src/`), React 19.3, TypeScript strict, Tailwind CSS v4 (tokens in
 `@theme` inside `src/app/globals.css`, no tailwind.config), Motion 14 (`motion/react`), Poppins
 self-hosted with `next/font/local` (`src/app/fonts`), lucide-react icons, simple-icons for brand
-icons (Discord). Prettier + prettier-plugin-tailwindcss, ESLint 9 flat config.
+icons (Discord). PostgreSQL + Drizzle ORM (`postgres` driver, `drizzle-kit` migrations in `drizzle/`). Prettier + prettier-plugin-tailwindcss, ESLint 9 flat config.
 
 ### Next.js 16 specifics used here (not like older Next.js — read `node_modules/next/dist/docs/` first)
 
@@ -52,9 +56,12 @@ src/
   data/                ALL content lives here: products, gamepasses, banners, payments, robux pricing
   i18n/                id (default, source of truth) + en; dictionaries/*.ts
   lib/                 pure logic: validation, robux-pricing, catalog, contact, orders/*
+  server/db/           Drizzle schema + getDb() (server-only; import only from server code)
   proxy.ts
 design/                tokens.json, screens/*.png, README (Figma)
 scripts/export-tokens.mjs
+drizzle/               generated SQL migrations — commit them, never edit applied ones
+docker-compose.yml     local Postgres
 ```
 
 Rules:

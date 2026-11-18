@@ -43,11 +43,15 @@ cd mosherblox
 # 2. Install dependencies (first time only)
 npm install
 
-# 3. (optional) copy env file
+# 3. Copy the env file
 #    macOS:    cp .env.example .env.local
 #    Windows:  copy .env.example .env.local
 
-# 4. Start the dev server
+# 4. Start the database (needs Docker Desktop) and create the tables
+npm run db:up
+npm run db:migrate
+
+# 5. Start the dev server
 npm run dev
 ```
 
@@ -62,15 +66,20 @@ npm start
 
 ### Scripts
 
-| Script              | What it does                               |
-| ------------------- | ------------------------------------------ |
-| `npm run dev`       | Dev server with hot reload                 |
-| `npm run build`     | Production build                           |
-| `npm start`         | Serve the production build                 |
-| `npm run lint`      | ESLint (Next.js + TypeScript rules)        |
-| `npm run typecheck` | TypeScript check                           |
-| `npm run format`    | Prettier (+ Tailwind class sorting)        |
-| `npm run check`     | typecheck + lint + build (run before push) |
+| Script                | What it does                                   |
+| --------------------- | ---------------------------------------------- |
+| `npm run dev`         | Dev server with hot reload                     |
+| `npm run build`       | Production build                               |
+| `npm start`           | Serve the production build                     |
+| `npm run lint`        | ESLint (Next.js + TypeScript rules)            |
+| `npm run typecheck`   | TypeScript check                               |
+| `npm run format`      | Prettier (+ Tailwind class sorting)            |
+| `npm run check`       | typecheck + lint + build (run before push)     |
+| `npm run db:up`       | Start local Postgres in Docker (port 5433)     |
+| `npm run db:down`     | Stop it (data is kept in a Docker volume)      |
+| `npm run db:generate` | Write a SQL migration after editing the schema |
+| `npm run db:migrate`  | Apply pending migrations                       |
+| `npm run db:studio`   | Browse the database in Drizzle Studio          |
 
 ---
 
@@ -121,7 +130,7 @@ src/
 
 ## What's built in
 
-**Sections:** Hero (animated headline, 3D tilt order card, Robux count-up), Roblox experiences marquee, Robux section (slider + amount chips, Gamepass price helper, links into the Robux page with the amount pre-filled, plus a CTA to the Robux page), Roblox shop  (Premium, gift cards, game items with category filter + search + tilt cards), Flash Deals with live countdown, Why Us bento grid with cursor spotlight, How It Works + payment methods, FAQ accordion, CTA, footer.
+**Sections:** Hero (animated headline, 3D tilt order card, Robux count-up), Roblox experiences marquee, Robux section (slider + amount chips, Gamepass price helper, links into the Robux page with the amount pre-filled, plus a CTA to the Robux page), Roblox shop (Premium, gift cards, game items with category filter + search + tilt cards), Flash Deals with live countdown, Why Us bento grid with cursor spotlight, How It Works + payment methods, FAQ accordion, CTA, footer.
 
 **Robux page** (`/robux`, also `?method=gamepass&amount=1500`): the full buy panel — method cards, manual amount with −/+ and multiples-of-100 presets, live IDR price with tier hints, Gamepass price helper, username + WhatsApp, payment, sticky summary / mobile buy bar.
 
