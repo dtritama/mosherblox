@@ -1,0 +1,449 @@
+/**
+ * Bahasa Indonesia — the default locale and the source of truth for the dictionary shape.
+ * Every other locale must provide exactly the same keys (enforced by the `Dictionary` type).
+ * Placeholders like {amount} are filled with `interpolate()`.
+ */
+export const id = {
+  meta: {
+    title: "MOSHERBLOX — Toko Robux, Premium & Item Roblox",
+    description:
+      "MOSHERBLOX adalah toko khusus Roblox: Robux murah via Send Username (USN), Roblox Premium, gift card, dan item Blox Fruits, Grow a Garden, Adopt Me! dan lainnya.",
+    ogTitle: "MOSHERBLOX — Tempat top up Roblox kamu.",
+    keywords: [
+      "beli robux",
+      "robux murah",
+      "robux via username",
+      "robux usn",
+      "robux via gamepass",
+      "top up roblox",
+      "roblox premium",
+      "gift card roblox",
+      "blox fruits",
+      "grow a garden",
+      "adopt me",
+    ],
+  },
+  common: {
+    skipToContent: "Langsung ke konten",
+    backToTop: "Kembali ke atas",
+    close: "Tutup",
+    from: "mulai",
+    free: "Gratis",
+    perRobux: "per Robux",
+  },
+  language: {
+    label: "Bahasa",
+    switchTo: "Ganti bahasa ke {language}",
+    names: { id: "Indonesia", en: "English" },
+  },
+  nav: {
+    main: "Navigasi utama",
+    mobile: "Navigasi seluler",
+    home: "Beranda MOSHERBLOX",
+    openMenu: "Buka menu",
+    closeMenu: "Tutup menu",
+    buyRobux: "Beli Robux",
+    items: {
+      robux: "Robux",
+      gamepass: "Gamepass",
+      shop: "Toko",
+      deals: "Promo",
+      faq: "FAQ",
+      checkOrder: "Cek Pesanan",
+    },
+  },
+  hero: {
+    headline: ["Upgrade", "Roblox-mu", "bareng"],
+    highlight: "MOSHERBLOX",
+    description:
+      "Robux murah langsung ke username kamu (USN), juga via Gamepass, Roblox Premium, gift card, dan item langka untuk Blox Fruits, Grow a Garden, Adopt Me! dan lainnya.",
+    buyRobux: "Beli Robux",
+    browseItems: "Lihat item",
+    card: {
+      order: "Pesanan",
+      success: "Berhasil",
+      youReceived: "Kamu menerima",
+    },
+    cards: {
+      "send-username": {
+        product: "Robux via Send Username",
+        progress: ["Pembayaran dikonfirmasi", "Username diverifikasi", "Robux terkirim"],
+      },
+      gamepass: {
+        product: "Robux via Gamepass",
+        progress: ["Pembayaran dikonfirmasi", "Gamepass dibeli", "Robux terkirim (pending)"],
+      },
+    },
+  },
+  banners: {
+    label: "Banner promo",
+    previous: "Banner sebelumnya",
+    next: "Banner berikutnya",
+    goTo: "Lihat banner {index}",
+    slide: "{index} dari {total}",
+    pause: "Jeda slide otomatis",
+    play: "Putar slide otomatis",
+  },
+  marquee: {
+    label: "Game Roblox populer",
+    perks: ["Robux via Username", "Roblox Premium", "Gift Card", "Pet langka", "Buah permanen", "CS 24/7"],
+  },
+  robuxTeaser: {
+    eyebrow: "Top up Robux",
+    titleStart: "Pilih Robux-mu,",
+    titleHighlight: "harga langsung muncul",
+    description: "Robux via Send Username (USN): geser atau ketuk jumlahnya, Robux dikirim langsung ke username kamu.",
+    youGet: "Kamu dapat",
+    amountsLabel: "Jumlah Robux",
+    method: "Via Send Username",
+    buy: "Beli {amount} Robux",
+    howTitle: "Cara kerja Robux via Send Username",
+    steps: [
+      {
+        title: "Aktifkan 2-Step Verification",
+        description: "Wajib aktif di akun Roblox kamu (Settings → Security) supaya Robux bisa dikirim.",
+      },
+      {
+        title: "Masukkan username",
+        description: "Cukup username Roblox kamu — tidak perlu buat Gamepass.",
+      },
+      { title: "Robux terkirim", description: "Kami kirim Robux langsung ke akunmu begitu pembayaran terkonfirmasi." },
+    ],
+    notes: {
+      official: "Cukup username Roblox kamu — tanpa buat Gamepass.",
+      limit: "Limit {daily} Robux/hari dan {monthly} Robux/bulan per akun.",
+    },
+    cta: {
+      title: "Mau jumlah lebih besar atau via Gamepass?",
+      description: "Ketik jumlah Robux sendiri, pilih metode, dan checkout di halaman Robux.",
+      button: "Buka halaman Robux",
+    },
+  },
+  robux: {
+    metaTitle: "Beli Robux",
+    metaDescription:
+      "Beli Robux murah langsung ke username (USN) atau via Gamepass. Ketik jumlahnya, harga Rupiah langsung dihitung.",
+    eyebrow: "Top up Robux",
+    titleStart: "Beli Robux,",
+    titleHighlight: "semua di satu panel",
+    description:
+      "Pilih metode, ketik atau pilih jumlah Robux, dan harga dalam Rupiah langsung dihitung. Checkout tanpa pindah halaman.",
+    steps: { method: "Pilih metode", amount: "Jumlah Robux", account: "Data akun", payment: "Metode pembayaran" },
+    methods: {
+      gamepass: {
+        name: "Via Gamepass",
+        description: "Buat Gamepass, kami yang beli. Robux masuk sebagai Pending lalu dicairkan Roblox.",
+      },
+      popular: "Paling laris",
+      "send-username": {
+        name: "Via Send Username",
+        description: "Robux dikirim langsung ke username kamu — tanpa perlu buat Gamepass.",
+      },
+    },
+    fromRate: "mulai {price}/Robux",
+    amountLabel: "Jumlah Robux",
+    amountHint: "Min {min} · Maks {max} Robux",
+    decrease: "Kurangi {step} Robux",
+    increase: "Tambah {step} Robux",
+    presetsLabel: "Pilihan cepat jumlah Robux",
+    rate: "{price}/Robux",
+    nextTier: "Beli ≥ {amount} Robux untuk harga {price}/Robux",
+    requirements: {
+      title: "Syarat Via Send Username",
+      twoStep: "Akun Roblox wajib mengaktifkan 2-Step Verification (Settings → Security).",
+      limit: "Limit {daily} Robux per hari dan {monthly} Robux per bulan untuk setiap akun.",
+      confirm: "Saya sudah mengaktifkan 2-Step Verification di akun Roblox ini.",
+    },
+    gamepassHint:
+      "Atur harga Gamepass kamu ke {price} Robux — Roblox memotong 30%, jadi kamu tetap menerima {amount} penuh.",
+    summary: { method: "Metode", amount: "Jumlah", rate: "Harga per Robux", subtotal: "Subtotal" },
+    buy: "Beli {amount} Robux",
+    newOrder: "Buat pesanan baru",
+  },
+  shop: {
+    eyebrow: "Toko Roblox",
+    titleStart: "Premium, gift card &",
+    titleHighlight: "item game langka",
+    description: "Buah permanen, pet legendaris, Diamonds dan lainnya — dikirim ke username Roblox kamu.",
+    filterLabel: "Filter kategori",
+    categories: { all: "Semua", items: "Item Game", premium: "Premium", giftcard: "Gift Card" },
+    searchLabel: "Cari item",
+    searchPlaceholder: "Cari game atau item…",
+    clearSearch: "Hapus pencarian",
+    results: "{count} produk ditampilkan",
+    emptyTitle: "Tidak ada yang cocok dengan “{query}”.",
+    emptyHint: "Coba nama game atau item lain.",
+    more: "+{count} lagi",
+    tags: { Hot: "Hot", New: "Baru", Promo: "Promo", "Best value": "Paling hemat" },
+  },
+  deals: {
+    eyebrow: "Flash deal",
+    titleStart: "Promo hari ini,",
+    titleHighlight: "habis tengah malam",
+    description: "Harga terbatas untuk Robux, Premium dan item populer. Ambil sebelum waktunya habis.",
+    timerLabel: "Flash deal berakhir tengah malam",
+    units: { hours: "Jam", minutes: "Menit", seconds: "Detik" },
+  },
+  features: {
+    eyebrow: "Kenapa MOSHERBLOX",
+    titleStart: "Dibuat oleh pemain Roblox,",
+    titleHighlight: "untuk pemain Roblox",
+    description: "Aman untuk akunmu, ramah di dompet, dan cepat saat kamu butuh.",
+    items: [
+      {
+        title: "Akunmu tetap aman.",
+        description:
+          "Robux dikirim langsung ke username kamu dan item lewat trade di dalam game. Akunmu tetap milikmu.",
+      },
+      { title: "Robux termurah", description: "Harga per Robux yang adil plus promo setiap hari." },
+      { title: "Pengiriman cepat", description: "Pesanan langsung diproses begitu pembayaran terkonfirmasi." },
+      { title: "CS 24/7", description: "Tim asli siap bantu lewat WhatsApp dan email." },
+    ],
+    checklist: ["Cukup username", "Robux langsung ke username (USN)", "Trade di dalam game untuk item"],
+    waysToPay: "Metode pembayaran",
+    waysToPayDescription: "QRIS, e-wallet, virtual account & gerai retail",
+  },
+  how: {
+    eyebrow: "Cara kerja",
+    titleStart: "Empat langkah.",
+    titleHighlight: "Tanpa ribet.",
+    steps: [
+      { title: "Pilih", description: "Pilih jumlah Robux, Premium, gift card, atau item." },
+      { title: "Masukkan username", description: "Ketik username Roblox kamu." },
+      { title: "Bayar", description: "QRIS, e-wallet, transfer bank, atau gerai retail." },
+      { title: "Terima", description: "Robux langsung ke username, item via trade, kode via email." },
+    ],
+    payYourWay: "Bayar sesukamu",
+    methods: "{count} metode",
+  },
+  faq: {
+    eyebrow: "FAQ",
+    titleStart: "Ada pertanyaan?",
+    titleHighlight: "Terjawab.",
+    description: "Tidak menemukan jawabannya? Tim kami balas cepat, kapan saja.",
+    items: [
+      {
+        question: "Apakah kalian butuh password Roblox saya?",
+        answer:
+          "Tidak pernah. Robux dikirim langsung ke username kamu (atau lewat Gamepass), dan item lewat trade atau gift di dalam game — yang kami butuhkan cuma username. Siapa pun yang meminta password kamu bukan MOSHERBLOX.",
+      },
+      {
+        question: "Apa syarat beli Robux via Send Username (USN)?",
+        answer:
+          "Akun Roblox kamu wajib mengaktifkan 2-Step Verification (Settings → Security). Limitnya 5.000 Robux per hari dan 10.000 Robux per bulan untuk setiap akun. Butuh lebih banyak? Pakai metode Via Gamepass.",
+      },
+      {
+        question: "Kenapa Robux saya berstatus Pending?",
+        answer:
+          "Khusus metode Via Gamepass: Robux dari penjualan Gamepass ditahan Roblox sebagai Pending selama beberapa hari sebelum masuk ke saldo kamu. Ini kebijakan Roblox dan berlaku untuk semua penjual.",
+      },
+      {
+        question: "Kenapa harga Gamepass lebih tinggi dari Robux yang saya terima?",
+        answer:
+          "Roblox memotong 30% dari setiap penjualan Gamepass. Kami hitungkan harga Gamepass yang pas supaya Robux yang kamu terima sesuai dengan yang kamu bayar.",
+      },
+      {
+        question: "Bagaimana item game dikirim?",
+        answer:
+          "Setelah pembayaran, tim kami akan menambahkan kamu di dalam game lewat username, lalu mengirim item lewat trade, gift, atau mail tergantung game-nya. Pastikan kamu online saat kami hubungi.",
+      },
+      {
+        question: "Metode pembayaran apa saja yang tersedia?",
+        answer:
+          "QRIS, GoPay, OVO, DANA, ShopeePay, virtual account bank (BCA, Mandiri, BRI) dan gerai retail seperti Alfamart dan Indomaret.",
+      },
+    ],
+  },
+  gamepass: {
+    metaTitle: "Gamepass Roblox",
+    metaDescription:
+      "Beli gamepass Roblox murah untuk Blox Fruits, Pet Simulator 99, Murder Mystery 2 dan lainnya. Dikirim sebagai gift.",
+    metaGameTitle: "Gamepass {game}",
+    metaGameDescription: "Beli gamepass {game} murah di MOSHERBLOX. Dikirim sebagai gift ke akun Roblox kamu.",
+    eyebrow: "Gamepass",
+    titleStart: "Pilih game,",
+    titleHighlight: "ambil gamepass-nya",
+    description:
+      "Pilih game favoritmu untuk melihat semua gamepass yang tersedia. Dikirim sebagai gift — cukup username.",
+    gamesLabel: "Daftar game",
+    searchLabel: "Cari game",
+    searchPlaceholder: "Cari game atau gamepass…",
+    clearSearch: "Hapus pencarian",
+    passCount: "{count} gamepass",
+    emptyTitle: "Tidak ada game yang cocok dengan “{query}”.",
+    emptyHint: "Coba nama game atau gamepass lain.",
+    selected: "Dipilih",
+    selectPrompt: {
+      title: "Pilih game dulu",
+      description: "Ketuk salah satu game di atas untuk melihat semua gamepass-nya di sini.",
+    },
+    passesTitle: "Gamepass {game}",
+    passesDescription: "Dikirim sebagai gift ke akun Roblox kamu di dalam game.",
+    changeGame: "Ganti game",
+    inGamePrice: "Harga di game",
+    popular: "Populer",
+    buy: "Beli",
+  },
+  contact: {
+    discord: { title: "Discord", description: "Gabung server Discord kami" },
+    whatsapp: { title: "WhatsApp", description: "Chat langsung dengan CS" },
+    whatsappGroup: { title: "Grup WhatsApp", description: "Gabung grup komunitas MOSHERBLOX" },
+    whatsappMessage: "Halo MOSHERBLOX, saya mau tanya soal top up.",
+    newTab: "(membuka tab baru)",
+  },
+  cta: {
+    eyebrow: "Top up sekarang",
+    title: "Siap tambah Robux? Top up berikutnya cuma beberapa ketukan lagi.",
+    description: "Tanpa daftar akun. Masukkan username Roblox, bayar sesukamu, dan lanjut main.",
+    primary: "Beli Robux",
+    secondary: "Lihat flash deal",
+  },
+  footer: {
+    description: "Toko khusus Roblox: Robux murah langsung ke username, Roblox Premium, gift card dan item game.",
+    explore: "Jelajahi",
+    products: "Produk",
+    contact: "Kontak",
+    hours: "Setiap hari, 24 jam",
+    rights: "Hak cipta dilindungi.",
+    checkOrder: {
+      title: "Cek pesanan",
+      description: "Masukkan ID pesanan untuk melihat statusnya.",
+      label: "ID pesanan",
+      placeholder: "MB-XXXXXXXX",
+      submit: "Cek status",
+    },
+    disclaimer:
+      "Tidak berafiliasi atau didukung oleh Roblox Corporation. Roblox, Robux dan nama game adalah merek dagang milik pemiliknya masing-masing.",
+  },
+  checkout: {
+    steps: { account: "Akun", amount: "Pilih jumlah", gamepass: "Pilih gamepass", payment: "Metode pembayaran" },
+    amountLegend: "Jumlah",
+    accountFields: {
+      trade: {
+        label: "Username Roblox",
+        placeholder: "contoh: Builderman_01",
+        hint: "Kami akan kirim permintaan pertemanan lalu mengirim item di dalam game.",
+      },
+      gift: {
+        label: "Username Roblox",
+        placeholder: "contoh: Builderman_01",
+        hint: "Gamepass dikirim sebagai gift ke akun ini di dalam game.",
+      },
+      voucher: {
+        label: "Email untuk pengiriman kode",
+        placeholder: "kamu@contoh.com",
+        hint: "Kode redeem akan dikirim ke email ini.",
+      },
+    },
+    username: {
+      label: "Username Roblox",
+      placeholder: "contoh: Builderman_01",
+      hint: "Cukup username — jangan pernah bagikan password.",
+    },
+    whatsapp: {
+      label: "Nomor WhatsApp",
+      placeholder: "0812-3456-7890",
+      hint: "Untuk update status & cek pesanan.",
+    },
+    paymentGroups: {
+      QRIS: "QRIS",
+      "E-Wallet": "E-Wallet",
+      "Virtual Account": "Virtual Account",
+      Retail: "Gerai retail",
+    },
+    summary: {
+      title: "Ringkasan pesanan",
+      product: "Produk",
+      username: "Username",
+      email: "Email",
+      whatsapp: "WhatsApp",
+      item: "Item",
+      price: "Harga",
+      fee: "Biaya",
+      total: "Total",
+    },
+    buyNow: "Beli sekarang",
+    processing: "Memproses…",
+    secure: "Checkout aman & terenkripsi",
+    errors: {
+      invalidEmail: "Masukkan alamat email yang valid.",
+      invalidUsername: "Gunakan 3–20 huruf/angka (boleh satu garis bawah).",
+      invalidWhatsapp: "Masukkan nomor WhatsApp Indonesia yang valid (contoh 0812…).",
+      pickOption: "Pilih jumlahnya.",
+      pickPayment: "Pilih metode pembayaran.",
+      amountMin: "Minimal {min} Robux.",
+      confirm2sv: "Aktifkan 2-Step Verification dulu, lalu centang konfirmasinya.",
+      amountMax: "Maksimal {max} Robux.",
+    },
+    success: {
+      title: "Pesanan dibuat",
+      orderId: "ID Pesanan",
+      copy: "Salin ID pesanan",
+      copied: "Tersalin!",
+      saveHint: "Simpan ID ini untuk cek status pesananmu kapan saja.",
+      summary: "{item} untuk {account} via {payment} — {total}.",
+      demo: "Ini checkout demo. Pembayaran asli hadir di fase berikutnya — tidak ada uang yang ditagih.",
+      checkStatus: "Cek status pesanan",
+      done: "Selesai",
+    },
+  },
+  checkOrder: {
+    metaTitle: "Cek Pesanan",
+    metaDescription:
+      "Cek status pesanan MOSHERBLOX kamu dengan ID pesanan dan nomor WhatsApp — tanpa perlu menghubungi admin.",
+    eyebrow: "Cek pesanan",
+    titleStart: "Pantau pesananmu,",
+    titleHighlight: "tanpa tanya admin",
+    description: "Masukkan ID pesanan dan nomor WhatsApp yang kamu pakai saat checkout.",
+    orderId: { label: "ID Pesanan", placeholder: "contoh: MB-7F3K9Q2A" },
+    submit: "Cek status",
+    searching: "Mencari…",
+    errors: {
+      orderId: "Masukkan ID pesanan.",
+      notFound: "Pesanan tidak ditemukan. Periksa lagi ID pesanan dan nomor WhatsApp-nya.",
+    },
+    status: { pending: "Menunggu pembayaran", processing: "Diproses", completed: "Selesai", failed: "Gagal" },
+    statusDescription: {
+      pending: "Kami menunggu konfirmasi pembayaranmu.",
+      processing: "Pembayaran diterima. Pesananmu sedang kami proses.",
+      completed: "Pesanan sudah dikirim. Selamat bermain!",
+      failed: "Pesanan tidak dapat diproses. Hubungi CS kami dan sertakan ID pesananmu.",
+    },
+    timeline: ["Pesanan dibuat", "Pembayaran", "Diproses", "Selesai"],
+    details: {
+      title: "Detail pesanan",
+      date: "Tanggal",
+      product: "Produk",
+      item: "Item",
+      account: "Akun",
+      payment: "Pembayaran",
+      total: "Total",
+    },
+    help: "Butuh bantuan? Chat CS",
+    searchAgain: "Cek pesanan lain",
+    demo: {
+      title: "Mode demo",
+      description:
+        "Belum ada backend: pesanan yang kamu buat di situs ini tersimpan di browser ini. Coba juga contoh berikut dengan nomor {phone}:",
+    },
+  },
+  notFound: {
+    title: "Level ini tidak ada",
+    description: "Halaman yang kamu cari sudah dipindah atau tidak pernah ada.",
+    back: "Kembali ke beranda",
+  },
+  error: {
+    title: "Terjadi kesalahan",
+    description: "Silakan coba lagi. Kalau masih terjadi, hubungi CS kami.",
+    retry: "Coba lagi",
+  },
+};
+
+/** Recursively widens literal types so other locales can provide different strings. */
+type Widen<T> = T extends string
+  ? string
+  : T extends readonly (infer U)[]
+    ? Widen<U>[]
+    : { [K in keyof T]: Widen<T[K]> };
+
+export type Dictionary = Widen<typeof id>;

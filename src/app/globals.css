@@ -1,0 +1,177 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
+}
+
+@theme {
+  /* Brand: lime green sampled from the MOSHERBLOX logo (#a5e34a).
+     Lime is too light for white text, so 300–500 carry dark ink text; 700+ are deep enough for white text. */
+  --color-brand-50: #f7fdec;
+  --color-brand-100: #ecfbd2;
+  --color-brand-200: #d9f6a6;
+  --color-brand-300: #bdef6d;
+  --color-brand-400: #a5e34a;
+  --color-brand-500: #86c92b;
+  --color-brand-600: #5f9a17;
+  --color-brand-700: #4a7a12;
+  --color-brand-800: #3d6214;
+  --color-brand-900: #334f15;
+  --color-brand-950: #192c07;
+
+  /* Accent: soft pink (blush) */
+  --color-blush-50: #fff4f7;
+  --color-blush-100: #ffe6ee;
+  --color-blush-200: #ffcfdd;
+  --color-blush-300: #ffa9c2;
+  --color-blush-400: #fb7aa1;
+  --color-blush-500: #f04f82;
+  --color-blush-600: #d42d63;
+  --color-blush-700: #b0204f;
+  --color-blush-800: #921d45;
+  --color-blush-900: #7a1b3e;
+
+  /* Ink: near-black with a slight olive tint (like the logo outline) */
+  --color-ink-950: #10160a;
+  --color-ink-900: #1a2312;
+  --color-ink-700: #3e4934;
+  --color-ink-500: #66715b;
+  --color-ink-300: #adb6a3;
+
+  --animate-marquee: marquee 40s linear infinite;
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-drift: drift 7s ease-in-out infinite;
+  --animate-banner-progress: banner-progress var(--banner-interval, 5s) linear forwards;
+  --animate-underline: underline-in 0.9s 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+
+  @keyframes banner-progress {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: scaleX(1);
+    }
+  }
+
+  @keyframes marquee {
+    from {
+      transform: translate3d(0, 0, 0);
+    }
+    to {
+      transform: translate3d(-50%, 0, 0);
+    }
+  }
+
+  /* Hero order cards: slow float with a slight sway. */
+  @keyframes drift {
+    0%,
+    100% {
+      transform: translate3d(0, 0, 0) rotate(0deg);
+    }
+    50% {
+      transform: translate3d(0, -16px, 0) rotate(1.5deg);
+    }
+  }
+
+  @keyframes float {
+    0%,
+    100% {
+      transform: translate3d(0, 0, 0);
+    }
+    50% {
+      transform: translate3d(0, -10px, 0);
+    }
+  }
+
+  @keyframes underline-in {
+    from {
+      background-size: 0% 0.26em;
+    }
+    to {
+      background-size: 100% 0.26em;
+    }
+  }
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    @apply bg-white font-sans text-ink-900 antialiased;
+  }
+
+  section[id] {
+    scroll-margin-top: 4.5rem;
+  }
+
+  ::selection {
+    @apply bg-blush-200 text-ink-900;
+  }
+
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-brand-500;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+
+    *,
+    ::before,
+    ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@utility bg-grid {
+  background-image:
+    linear-gradient(to right, rgb(134 201 43 / 0.14) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(134 201 43 / 0.14) 1px, transparent 1px);
+  background-size: 44px 44px;
+}
+
+@utility bg-grid-dark {
+  background-image:
+    linear-gradient(to right, rgb(255 255 255 / 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(255 255 255 / 0.06) 1px, transparent 1px);
+  background-size: 44px 44px;
+}
+
+/* Accent words in headings: soft green text with a soft pink marker underline. */
+/* Accent words in headings, styled like the logo: lime fill, dark outline, soft pink marker underline. */
+@utility text-highlight {
+  color: var(--color-brand-400);
+  -webkit-text-stroke: 0.045em var(--color-ink-900);
+  paint-order: stroke fill;
+  text-shadow: 0 0.05em 0 var(--color-ink-900);
+  background-image: linear-gradient(var(--color-blush-200), var(--color-blush-200));
+  background-repeat: no-repeat;
+  background-position: 0 96%;
+  background-size: 100% 0.24em;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  padding-bottom: 0.04em;
+}
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Cursor-following highlight for cards (vars set from JS without re-rendering). */
+@utility spotlight {
+  background-image: radial-gradient(
+    420px circle at var(--spot-x, 50%) var(--spot-y, -200px),
+    rgb(251 122 161 / 0.16),
+    transparent 60%
+  );
+}
