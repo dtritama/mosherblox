@@ -411,7 +411,7 @@ export const en: Dictionary = {
     phoneHint:
       "Shopping on your phone? Save the QR image, open your e-wallet or banking app, tap Scan and pick it from your gallery.",
     steps: ["Scan the QR code", "Enter the exact amount", "Press “I've paid”"],
-    proofLabel: "Transfer screenshot (optional)",
+    proofLabel: "Transfer screenshot",
     proofHint: "JPG, PNG, or WebP screenshot, max 4 MB. Helps us check faster.",
     proofChoose: "Choose screenshot",
     removeProof: "Remove file",

@@ -216,7 +216,11 @@ export function RobuxPanel({ className }: { className?: string }) {
             {order ? (
               <OrderSuccess key="success" order={order} onDone={reset} doneLabel={t.newOrder} />
             ) : (
-              <m.div key="form" exit={{ opacity: 0, y: -12 }} className="grid lg:grid-cols-[1fr_21rem]">
+              <m.div
+                key="form"
+                exit={{ opacity: 0, y: -12 }}
+                className="grid grid-cols-[minmax(0,1fr)] lg:grid-cols-[minmax(0,1fr)_21rem]"
+              >
                 <form ref={formRef} id={formId} onSubmit={handleSubmit} noValidate className="grid gap-8 p-5 sm:p-8">
                   {/* 1 — Method */}
                   <Step number={1} title={t.steps.method}>

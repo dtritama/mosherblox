@@ -414,7 +414,7 @@ export const id = {
     saveQr: "Simpan gambar QR",
     phoneHint: "Belanja dari HP? Simpan gambar QR, buka e-wallet atau m-banking, pilih Scan, lalu ambil dari galeri.",
     steps: ["Scan kode QR", "Masukkan nominal persis", "Tekan “Saya sudah bayar”"],
-    proofLabel: "Bukti transfer (opsional)",
+    proofLabel: "Bukti transfer",
     proofHint: "Screenshot JPG, PNG, atau WebP, maks. 4 MB. Bikin pengecekan lebih cepat.",
     proofChoose: "Pilih screenshot",
     removeProof: "Hapus file",
