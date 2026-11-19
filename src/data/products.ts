@@ -126,17 +126,3 @@ export const products: readonly Product[] = [
 export type ShopCategory = Extract<ProductCategory, "items" | "premium" | "giftcard"> | "all";
 
 export const shopCategories: readonly ShopCategory[] = ["all", "items", "premium", "giftcard"];
-
-/** Popular Roblox experiences shown in the marquee (proper names, not translated). */
-export const experiences = [
-  "Blox Fruits",
-  "Grow a Garden",
-  "Adopt Me!",
-  "Pet Simulator 99",
-  "Brookhaven RP",
-  "Murder Mystery 2",
-  "Blade Ball",
-  "Da Hood",
-  "Fisch",
-  "Tower of Hell",
-] as const;

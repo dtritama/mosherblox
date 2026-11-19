@@ -82,10 +82,6 @@ export const en: Dictionary = {
     pause: "Pause autoplay",
     play: "Play autoplay",
   },
-  marquee: {
-    label: "Popular Roblox experiences",
-    perks: ["Robux via Username", "Roblox Premium", "Gift Cards", "Rare pets", "Permanent fruits", "24/7 support"],
-  },
   robuxTeaser: {
     eyebrow: "Robux top-up",
     titleStart: "Pick your Robux,",

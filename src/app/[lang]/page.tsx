@@ -1,5 +1,4 @@
 import { BannerCarousel } from "@/components/sections/banner-carousel";
-import { ExperienceMarquee } from "@/components/sections/experience-marquee";
 import { Faq } from "@/components/sections/faq";
 import { Features } from "@/components/sections/features";
 import { FlashSale } from "@/components/sections/flash-sale";
@@ -13,7 +12,6 @@ export default function HomePage() {
     <>
       <Hero />
       <BannerCarousel />
-      <ExperienceMarquee />
       <RobuxSection />
       <ShopSection />
       <FlashSale />

@@ -38,7 +38,6 @@
   --color-ink-500: #66715b;
   --color-ink-300: #adb6a3;
 
-  --animate-marquee: marquee 40s linear infinite;
   --animate-float: float 6s ease-in-out infinite;
   --animate-drift: drift 7s ease-in-out infinite;
   --animate-banner-progress: banner-progress var(--banner-interval, 5s) linear forwards;
@@ -50,15 +49,6 @@
     }
     to {
       transform: scaleX(1);
-    }
-  }
-
-  @keyframes marquee {
-    from {
-      transform: translate3d(0, 0, 0);
-    }
-    to {
-      transform: translate3d(-50%, 0, 0);
     }
   }
 

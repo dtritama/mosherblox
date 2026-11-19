@@ -114,7 +114,8 @@ Rules:
   an order whose buyer pressed "Saya sudah bayar") and `notify.discord` (retries with backoff).
   The web app only enqueues, via `after()` so a queue problem never slows or breaks a buyer's
   request. First "Saya sudah bayar" → Discord ping; `DISCORD_NOTIFY_NEW_ORDERS=1` adds new-order
-  pings. `DISCORD_WEBHOOK_URL` is a secret (only in `.env.local` / server env). The worker reuses
+  pings; `DISCORD_MENTION_USER_IDS` (comma-separated Discord user IDs) are tagged in the "Saya sudah
+  bayar" ping only. `DISCORD_WEBHOOK_URL` is a secret (only in `.env.local` / server env). The worker reuses
   `server-only` code, so it runs with Node's `--conditions=react-server` (tsx in dev, esbuild bundle
   in prod; `pg-boss` is in `serverExternalPackages`).
 - Order IDs: `MB-` + 8 chars from an unambiguous alphabet (`lib/orders/order-id.ts`).

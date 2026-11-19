@@ -85,10 +85,6 @@ export const id = {
     pause: "Jeda slide otomatis",
     play: "Putar slide otomatis",
   },
-  marquee: {
-    label: "Game Roblox populer",
-    perks: ["Robux via Username", "Roblox Premium", "Gift Card", "Pet langka", "Buah permanen", "CS 24/7"],
-  },
   robuxTeaser: {
     eyebrow: "Top up Robux",
     titleStart: "Pilih Robux-mu,",

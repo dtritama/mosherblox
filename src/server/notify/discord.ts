@@ -33,11 +33,23 @@ const adminUrl = (orderId: string) =>
 const LIME = 0xa5e34a;
 const PINK = 0xf04f82;
 
-export function paymentClaimedMessage(order: OrderSummary) {
+/** Discord user IDs to tag (DISCORD_MENTION_USER_IDS, comma-separated snowflakes). */
+export function mentionUserIds(): string[] {
+  return (process.env.DISCORD_MENTION_USER_IDS ?? "")
+    .split(",")
+    .map((id) => id.trim())
+    .filter((id) => /^\d{15,21}$/.test(id))
+    .slice(0, 10);
+}
+
+/** The ping that needs action: tags the configured people (and nobody else). */
+export function paymentClaimedMessage(order: OrderSummary, mentions: string[] = mentionUserIds()) {
   return {
     username: "MOSHERBLOX",
-    // Never ping @everyone/@here, whatever ends up in the text.
-    allowed_mentions: { parse: [] },
+    // Mentions appear only in `content` (embeds never notify anyone).
+    ...(mentions.length > 0 ? { content: mentions.map((id) => `<@${id}>`).join(" ") } : {}),
+    // Only these users may be pinged — never @everyone/@here or a role, whatever ends up in the text.
+    allowed_mentions: { parse: [], users: mentions },
     embeds: [
       {
         title: `Pembeli bilang sudah bayar · ${order.id}`,
