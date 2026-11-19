@@ -91,8 +91,9 @@ export const en: Dictionary = {
     titleStart: "Pick your Robux,",
     titleHighlight: "see the price instantly",
     description:
-      "Robux via Send Username (USN): slide or tap an amount and we send the Robux straight to your username.",
+      "Robux via Send Username (USN): slide, tap, or type an amount and we send the Robux straight to your username.",
     youGet: "You get",
+    sliderLabel: "Slide the Robux amount",
     amountsLabel: "Robux amounts",
     method: "Via Send Username",
     buy: "Buy {amount} Robux",

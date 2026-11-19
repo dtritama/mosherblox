@@ -1,6 +1,6 @@
 "use client";
 
-import { m, useSpring, useTransform } from "motion/react";
+import { m } from "motion/react";
 import { ArrowRight, Info, ShieldCheck, Zap } from "lucide-react";
 import Link from "next/link";
 import { useId, useState } from "react";
@@ -24,6 +24,8 @@ const LIMITS = getRobuxMethod(METHOD).limits;
 /** Only amounts one Send Username order can have (its daily limit). */
 const presets = robuxConfig.presets.filter((amount) => amount <= getRobuxMaxAmount(METHOD));
 const DEFAULT_INDEX = Math.max(0, presets.indexOf(robuxConfig.defaultAmount));
+/** Largest single Send Username order (its daily limit). */
+const MAX_AMOUNT = getRobuxMaxAmount(METHOD);
 
 /** Link into the Robux page with the amount (and method) already picked. */
 function robuxPageHref(locale: Parameters<typeof localeHref>[0], amount?: number, soldOut = false) {
@@ -35,21 +37,26 @@ function robuxPageHref(locale: Parameters<typeof localeHref>[0], amount?: number
 export function RobuxSection() {
   const { locale, dict } = useI18n();
   const t = dict.robuxTeaser;
-  const sliderId = useId();
-  const [index, setIndex] = useState(DEFAULT_INDEX);
-  const amountValue = presets[index];
+  const amountId = useId();
+  const hintId = useId();
+  // The amount can be typed freely; the slider and quick buttons set it to a preset.
+  const [amount, setAmount] = useState<number | null>(presets[DEFAULT_INDEX]);
   const { robuxRates: rates, soldOut } = useStoreSettings();
   const methodSoldOut = soldOut.robuxMethods.includes(METHOD);
-  const price = calculateRobuxPrice(METHOD, amountValue, rates);
+
+  const valid = amount !== null && amount >= robuxConfig.minAmount && amount <= MAX_AMOUNT;
+  const amountValue = amount ?? 0;
+  const price = valid ? calculateRobuxPrice(METHOD, amountValue, rates) : null;
   const { rate } = getRobuxTier(METHOD, amountValue, rates);
+  /** Slider position: the largest preset not above the typed amount. */
+  const index = Math.max(
+    0,
+    presets.findLastIndex((preset) => preset <= amountValue),
+  );
 
-  // Animated number: the spring is updated from the event handler, so no effect or re-render loop.
-  const amount = useSpring(amountValue, { stiffness: 140, damping: 22 });
-  const display = useTransform(amount, (value) => formatNumber(Math.round(value), locale));
-
-  const select = (next: number) => {
-    setIndex(next);
-    amount.set(presets[next]);
+  const setFromInput = (raw: string) => {
+    const digits = raw.replace(/\D/g, "").replace(/^0+/, "").slice(0, 6);
+    setAmount(digits ? Number(digits) : null);
   };
 
   return (
@@ -66,29 +73,55 @@ export function RobuxSection() {
           description={t.description}
         />
 
-        <div className="mt-10 grid gap-4 lg:grid-cols-[1.35fr_1fr]">
+        <div className="mt-10 grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
           <Reveal className="rounded-[2rem] border border-brand-100 bg-white p-5 shadow-xl shadow-brand-900/5 sm:p-8">
-            <label htmlFor={sliderId} className="text-sm font-semibold text-ink-500">
+            <label htmlFor={amountId} className="text-sm font-semibold text-ink-500">
               {t.youGet}
             </label>
-            <p className="mt-1 flex items-center gap-3 text-5xl font-extrabold tracking-tight text-ink-900 tabular-nums sm:text-6xl">
-              <span className="grid size-12 place-items-center rounded-2xl bg-brand-100 text-brand-700 sm:size-14">
+            <div className="mt-1 flex min-w-0 items-center gap-3">
+              <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-brand-100 text-brand-700 sm:size-14">
                 <RobuxIcon className="size-7 sm:size-8" aria-hidden="true" />
               </span>
-              <m.span>{display}</m.span>
-              <span className="text-xl font-bold text-ink-300 sm:text-2xl">Robux</span>
+              {/* Typeable amount: a dashed outline says "you can edit this"; it turns solid on focus. */}
+              <input
+                id={amountId}
+                inputMode="numeric"
+                autoComplete="off"
+                value={amount === null ? "" : formatNumber(amount, locale)}
+                onChange={(event) => setFromInput(event.target.value)}
+                placeholder={formatNumber(robuxConfig.minAmount, locale)}
+                aria-invalid={!valid}
+                aria-describedby={hintId}
+                // Grows with the number (1ch = one digit; the "." is narrower) + padding and border.
+                style={{
+                  width: `calc(${Math.max(2, amount === null ? 2 : formatNumber(amount, locale).length)}ch + 1.25rem)`,
+                }}
+                className={cn(
+                  "min-w-0 rounded-2xl border-2 border-dashed bg-transparent px-2 py-0.5 text-[clamp(2.25rem,12vw,3rem)] font-extrabold tracking-tight text-ink-900 tabular-nums transition-colors outline-none placeholder:text-ink-300 focus:border-solid sm:text-6xl",
+                  valid
+                    ? "border-brand-200 hover:border-brand-400 focus:border-brand-500"
+                    : "border-blush-400 focus:border-blush-500",
+                )}
+              />
+              <span className="shrink-0 text-xl font-bold text-ink-300 sm:text-2xl">Robux</span>
+            </div>
+            <p id={hintId} className={cn("mt-2 text-xs", valid ? "text-ink-500" : "font-medium text-blush-700")}>
+              {interpolate(dict.robux.amountHint, {
+                min: formatNumber(robuxConfig.minAmount, locale),
+                max: formatNumber(MAX_AMOUNT, locale),
+              })}
             </p>
 
             <input
-              id={sliderId}
               type="range"
               min={0}
               max={presets.length - 1}
               step={1}
               value={index}
-              onChange={(event) => select(Number(event.target.value))}
-              aria-valuetext={`${formatNumber(amountValue, locale)} Robux`}
-              className="mt-6 h-2 w-full cursor-pointer appearance-auto accent-brand-500"
+              onChange={(event) => setAmount(presets[Number(event.target.value)])}
+              aria-label={t.sliderLabel}
+              aria-valuetext={`${formatNumber(presets[index], locale)} Robux`}
+              className="mt-5 h-2 w-full cursor-pointer appearance-auto accent-brand-500"
             />
 
             <div
@@ -96,14 +129,14 @@ export function RobuxSection() {
               aria-label={t.amountsLabel}
               className="mt-5 grid grid-cols-4 gap-1.5 sm:grid-cols-6 sm:gap-2"
             >
-              {presets.map((preset, presetIndex) => {
-                const active = presetIndex === index;
+              {presets.map((preset) => {
+                const active = preset === amount;
                 return (
                   <button
                     key={preset}
                     type="button"
                     aria-pressed={active}
-                    onClick={() => select(presetIndex)}
+                    onClick={() => setAmount(preset)}
                     className={cn(
                       "rounded-xl border-2 px-1 py-2 text-xs font-bold transition-[border-color,background-color,color,transform] duration-150 active:scale-95 sm:px-2 sm:text-sm",
                       active
@@ -120,12 +153,13 @@ export function RobuxSection() {
             <div className="mt-6 grid gap-4 rounded-2xl bg-brand-50 p-4 sm:grid-cols-[1fr_auto] sm:items-center sm:p-5">
               <div>
                 <m.p
-                  key={price}
+                  key={price ?? "none"}
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
+                  aria-live="polite"
                   className="text-3xl font-extrabold text-ink-900"
                 >
-                  {formatIDR(price)}
+                  {price === null ? "—" : formatIDR(price)}
                 </m.p>
                 <p className="mt-1 text-xs text-ink-500">
                   {formatIDR(rate)} {dict.common.perRobux} · <strong className="text-brand-700">{t.method}</strong>
@@ -136,13 +170,27 @@ export function RobuxSection() {
                   ) : null}
                 </p>
               </div>
-              <Link
-                href={robuxPageHref(locale, amountValue, methodSoldOut)}
-                className={buttonVariants({ size: "lg", className: "w-full sm:w-auto" })}
-              >
-                <Zap className="size-4" aria-hidden="true" />
-                {interpolate(t.buy, { amount: formatNumber(amountValue, locale) })}
-              </Link>
+              {valid ? (
+                <Link
+                  href={robuxPageHref(locale, amountValue, methodSoldOut)}
+                  className={buttonVariants({ size: "lg", className: "w-full sm:w-auto" })}
+                >
+                  <Zap className="size-4" aria-hidden="true" />
+                  {interpolate(t.buy, { amount: formatNumber(amountValue, locale) })}
+                </Link>
+              ) : (
+                // Not a link while the amount is out of range (the hint above says why).
+                <span
+                  aria-disabled="true"
+                  className={buttonVariants({
+                    size: "lg",
+                    className: "pointer-events-none w-full opacity-50 sm:w-auto",
+                  })}
+                >
+                  <Zap className="size-4" aria-hidden="true" />
+                  {dict.checkout.buyNow}
+                </span>
+              )}
             </div>
           </Reveal>
 
