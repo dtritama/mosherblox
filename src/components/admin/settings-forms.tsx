@@ -121,7 +121,7 @@ export function RobuxRatesForm({ initial }: { initial: RobuxRates }) {
   return (
     <form action={action}>
       <input type="hidden" name="rates" value={JSON.stringify(rates)} />
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-2">
         {robuxConfig.methods.map(({ id }) => {
           const tiers = rates[id];
           const error = errors[id] ?? state.rateErrors?.[id];
@@ -129,7 +129,7 @@ export function RobuxRatesForm({ initial }: { initial: RobuxRates }) {
             <fieldset key={id} className="rounded-2xl border border-brand-100 p-4" aria-invalid={Boolean(error)}>
               <legend className="px-1 text-sm font-bold text-ink-900">{methodNames[id]}</legend>
               <div
-                className="grid grid-cols-[1fr_1fr_2.75rem] gap-2 text-xs font-medium text-ink-500"
+                className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_2.75rem] gap-2 text-xs font-medium text-ink-500"
                 aria-hidden="true"
               >
                 <span>
@@ -139,7 +139,7 @@ export function RobuxRatesForm({ initial }: { initial: RobuxRates }) {
               </div>
               <ol className="mt-1.5 grid gap-2">
                 {tiers.map((tier, index) => (
-                  <li key={index} className="grid grid-cols-[1fr_1fr_2.75rem] items-center gap-2">
+                  <li key={index} className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_2.75rem] items-center gap-2">
                     <input
                       inputMode="numeric"
                       aria-label={`${methodNames[id]} tier ${index + 1}: ${t.robux.from}`}
@@ -511,13 +511,13 @@ export function StockForm({ initial, items }: { initial: SoldOut; items: StockIt
           />
         ))}
       <p className="mb-4 text-sm font-medium text-ink-700">{interpolate(t.stock.summary, { count: off.size })}</p>
-      <div className="grid gap-5 lg:grid-cols-3">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-3">
         {groups.map(({ group, items: groupItems }) => (
           <fieldset key={group} className="min-w-0">
             <legend className="mb-2 text-xs font-semibold tracking-wider text-ink-500 uppercase">
               {t.stock[group]}
             </legend>
-            <ul className="grid gap-2">
+            <ul className="grid grid-cols-[minmax(0,1fr)] gap-2">
               {groupItems.map((item) => {
                 const available = !off.has(item.id);
                 return (

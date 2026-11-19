@@ -107,6 +107,12 @@
     scroll-margin-top: 4.5rem;
   }
 
+  /* Browsers give <fieldset> min-width: min-content, so one long label widens a whole form on
+     phones. Let fieldsets shrink like any other block. */
+  fieldset {
+    min-inline-size: 0;
+  }
+
   ::selection {
     @apply bg-blush-200 text-ink-900;
   }
