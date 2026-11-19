@@ -33,7 +33,8 @@ export interface RobuxMethod {
 }
 
 export const robuxConfig = {
-  minAmount: 100,
+  /** Smallest order (client request 2026-11-19: 10 Robux). */
+  minAmount: 10,
   maxAmount: 100_000,
   /** Step for the − / + buttons. */
   step: 100,

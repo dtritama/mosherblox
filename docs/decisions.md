@@ -25,7 +25,7 @@ What was decided, by whom, and why — so nobody re-litigates it. Newest first i
 ## Open questions for the client
 
 1. Real Robux rates / tiers per method (current values are placeholders in `src/data/robux.ts`).
-2. Min/max per order and whether any amount is allowed (currently min 100, Gamepass max 100.000, USN max 5.000).
+2. Min/max per order and whether any amount is allowed (currently min 10 — client asked 2026-11-19 —, Gamepass max 100.000, USN max 5.000).
 3. Delivery time difference between Gamepass and Send Username (to show on method cards).
 4. Golrox screenshot for the panel layout reference.
 5. Official Robux icon file (SVG preferred).
