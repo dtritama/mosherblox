@@ -4,16 +4,17 @@ import path from "node:path";
 import { orderConfig } from "@/data/orders";
 
 /**
- * Transfer screenshots ("bukti transfer"). Stored on disk OUTSIDE public/, so they are never
- * served directly; the admin panel (step 5) shows them through a logged-in route.
- * Folder: UPLOAD_DIR (default ./storage/uploads) — a Docker volume in production.
+ * Uploaded images, stored on disk OUTSIDE public/ in UPLOAD_DIR (default ./storage/uploads,
+ * a Docker volume in production):
+ * - proofs/  transfer screenshots ("bukti transfer"), shown to admins only via a logged-in route
+ * - qris/    the store's QRIS uploaded in /admin/settings, served publicly via /payments/qris/[file]
  */
 
 // The upload folder is only known at runtime: tell Turbopack not to trace it into the build.
 const uploadRoot = () => path.resolve(/*turbopackIgnore: true*/ process.env.UPLOAD_DIR || "storage/uploads");
 
 /** Real file type from the first bytes — the browser's MIME type and file name are not trusted. */
-function sniffImage(bytes: Uint8Array): { ext: string; type: string } | null {
+export function sniffImage(bytes: Uint8Array): { ext: string; type: string } | null {
   const startsWith = (...sig: number[]) => sig.every((byte, i) => bytes[i] === byte);
   if (startsWith(0xff, 0xd8, 0xff)) return { ext: "jpg", type: "image/jpeg" };
   if (startsWith(0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a)) return { ext: "png", type: "image/png" };
@@ -66,4 +67,26 @@ export async function readProof(relative: string): Promise<{ bytes: Uint8Array<A
   } catch {
     return null;
   }
+}
+
+/** QRIS file names we create: a UUID + image extension. Anything else is refused by the public route. */
+export const QRIS_FILE = /^[0-9a-f-]{36}\.(jpg|png|webp)$/;
+
+/** Saves a new QRIS image (admin settings). Returns the file name inside qris/. */
+export async function saveQrisImage(
+  file: File,
+): Promise<{ ok: true; file: string } | { ok: false; error: ProofError }> {
+  if (file.size === 0 || file.size > orderConfig.proofMaxBytes) return { ok: false, error: "tooBig" };
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  const kind = sniffImage(bytes);
+  if (!kind) return { ok: false, error: "notImage" };
+  const name = `${crypto.randomUUID()}.${kind.ext}`;
+  const absolute = path.join(/*turbopackIgnore: true*/ uploadRoot(), "qris", name);
+  await mkdir(path.dirname(absolute), { recursive: true });
+  await writeFile(absolute, bytes, { flag: "wx" });
+  return { ok: true, file: name };
+}
+
+export async function readQrisImage(file: string) {
+  return QRIS_FILE.test(file) ? readProof(`qris/${file}`) : null;
 }

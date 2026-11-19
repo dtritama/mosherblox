@@ -8,12 +8,14 @@ import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
 import { ScrollProgress } from "@/components/layout/scroll-progress";
 import { MotionProvider } from "@/components/providers/motion-provider";
+import { SettingsProvider } from "@/components/providers/settings-provider";
 import { TopUpProvider } from "@/components/topup/topup-provider";
 import { siteConfig } from "@/config/site";
 import { hasLocale, locales, ogLocales } from "@/i18n/config";
 import { getDictionaryFor } from "@/i18n/get-dictionary";
 import { localeAlternates } from "@/i18n/metadata";
 import { I18nProvider } from "@/i18n/i18n-provider";
+import { getSiteSettings } from "@/server/settings";
 
 import "../globals.css";
 
@@ -57,6 +59,8 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[la
   const { lang } = await params;
   if (!hasLocale(lang)) notFound();
   const dict = getDictionaryFor(lang);
+  // Admin-editable prices + QRIS (cached; refreshed right after a save in /admin/settings).
+  const { robuxRates, qris } = await getSiteSettings();
 
   return (
     <html lang={lang} className={poppins.variable} data-scroll-behavior="smooth">
@@ -71,13 +75,15 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[la
         </a>
         <I18nProvider locale={lang} dict={dict}>
           <MotionProvider>
-            <TopUpProvider>
-              <ScrollProgress />
-              <Navbar />
-              <main id="main" className="overflow-x-clip">{children}</main>
-              <Footer />
-              <BackToTop />
-            </TopUpProvider>
+            <SettingsProvider value={{ robuxRates, qris }}>
+              <TopUpProvider>
+                <ScrollProgress />
+                <Navbar />
+                <main id="main" className="overflow-x-clip">{children}</main>
+                <Footer />
+                <BackToTop />
+              </TopUpProvider>
+            </SettingsProvider>
           </MotionProvider>
         </I18nProvider>
       </body>

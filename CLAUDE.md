@@ -73,7 +73,15 @@ docker-compose.yml     local Postgres
 Rules:
 
 - **Content = data files.** Prices, products, banners, payment methods, Robux tiers/limits are edited
-  in `src/data/*`, never hard-coded in components.
+  in `src/data/*`, never hard-coded in components. **Exception — admin settings**
+  (`/admin/settings`, owner only) can override Robux tiers, the QRIS (image/merchant/NMID) and the
+  payment window: `lib/settings.ts` (types, defaults = `src/data/*`, validation),
+  `server/settings.ts` (`getSiteSettings()` = `"use cache"` + tag `settings` for pages,
+  `getFreshSettings()` for pricing/creating orders; DB down → defaults, so builds work without a DB).
+  The `[lang]` layout passes rates + QRIS to client components via `SettingsProvider` /
+  `useStoreSettings()`; pricing functions take `rates` as an optional last argument. Saves call
+  `updateTag("settings")`. Uploaded QRIS images live in `UPLOAD_DIR/qris`, served by
+  `app/payments/qris/[file]` (immutable cache). The QR is rendered `unoptimized` (exact pixels).
 - **Validation & pricing are pure functions** (`lib/validation.ts`, `lib/robux-pricing.ts`) so the
   phase-2 server reuses them. The server must recompute every price — never trust a client total.
 - **Orders go through `orderService`** (`lib/orders/service.ts`) → Server Actions

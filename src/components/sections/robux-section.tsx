@@ -10,6 +10,7 @@ import { Container } from "@/components/ui/container";
 import { Reveal } from "@/components/ui/reveal";
 import { RobuxIcon } from "@/components/ui/robux-icon";
 import { SectionHeading } from "@/components/ui/section-heading";
+import { useStoreSettings } from "@/components/providers/settings-provider";
 import { robuxConfig } from "@/data/robux";
 import { localeHref } from "@/i18n/config";
 import { formatIDR, formatNumber, interpolate } from "@/i18n/format";
@@ -36,8 +37,9 @@ export function RobuxSection() {
   const sliderId = useId();
   const [index, setIndex] = useState(DEFAULT_INDEX);
   const amountValue = presets[index];
-  const price = calculateRobuxPrice(METHOD, amountValue);
-  const { rate } = getRobuxTier(METHOD, amountValue);
+  const { robuxRates: rates } = useStoreSettings();
+  const price = calculateRobuxPrice(METHOD, amountValue, rates);
+  const { rate } = getRobuxTier(METHOD, amountValue, rates);
 
   // Animated number: the spring is updated from the event handler, so no effect or re-render loop.
   const amount = useSpring(amountValue, { stiffness: 140, damping: 22 });

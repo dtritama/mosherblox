@@ -13,6 +13,8 @@ import { quoteProductOrder, quoteRobuxOrder, type QuoteResult } from "@/server/o
 import { claimPayment, createOrder, findOrder } from "@/server/orders/service";
 import { deleteProof, saveProof } from "@/server/payments/proof-storage";
 import { rateLimit } from "@/server/rate-limit";
+import { getFreshSettings } from "@/server/settings";
+import type { SiteSettings } from "@/lib/settings";
 
 /**
  * Server Actions the checkout and Check Order page call (through `orderService`).
@@ -23,11 +25,11 @@ import { rateLimit } from "@/server/rate-limit";
 
 const str = (value: unknown, max = 300) => (typeof value === "string" ? value.slice(0, max) : "");
 
-async function create(quote: QuoteResult): Promise<CreateOrderResult> {
+async function create(quote: QuoteResult, settings: SiteSettings): Promise<CreateOrderResult> {
   if (!quote.ok) return { ok: false, error: "invalid", fields: quote.fields };
   if (!(await rateLimit("createOrder"))) return { ok: false, error: "rateLimited" };
   try {
-    return { ok: true, order: await createOrder(quote.quote) };
+    return { ok: true, order: await createOrder(quote.quote, { expiryMinutes: settings.orderExpiryMinutes }) };
   } catch (error) {
     console.error("[orders] create failed", error);
     return { ok: false, error: "unavailable" };
@@ -36,20 +38,27 @@ async function create(quote: QuoteResult): Promise<CreateOrderResult> {
 
 export async function createRobuxOrderAction(input: RobuxOrderInput): Promise<CreateOrderResult> {
   const raw = (input ?? {}) as Partial<Record<keyof RobuxOrderInput, unknown>>;
+  // Prices and expiry come from the admin settings, read fresh (never the cached copy the page used).
+  const settings = await getFreshSettings();
   return create(
-    quoteRobuxOrder({
-      method: str(raw.method, 32) as RobuxMethodId,
-      amount: typeof raw.amount === "number" ? raw.amount : Number.NaN,
-      account: str(raw.account),
-      whatsapp: str(raw.whatsapp, 32),
-      paymentId: str(raw.paymentId, 32),
-      confirmed2sv: raw.confirmed2sv === true,
-    }),
+    quoteRobuxOrder(
+      {
+        method: str(raw.method, 32) as RobuxMethodId,
+        amount: typeof raw.amount === "number" ? raw.amount : Number.NaN,
+        account: str(raw.account),
+        whatsapp: str(raw.whatsapp, 32),
+        paymentId: str(raw.paymentId, 32),
+        confirmed2sv: raw.confirmed2sv === true,
+      },
+      settings.robuxRates,
+    ),
+    settings,
   );
 }
 
 export async function createProductOrderAction(input: ProductOrderInput): Promise<CreateOrderResult> {
   const raw = (input ?? {}) as Partial<Record<keyof ProductOrderInput, unknown>>;
+  const settings = await getFreshSettings();
   return create(
     quoteProductOrder({
       productSlug: str(raw.productSlug, 100),
@@ -58,6 +67,7 @@ export async function createProductOrderAction(input: ProductOrderInput): Promis
       whatsapp: str(raw.whatsapp, 32),
       paymentId: str(raw.paymentId, 32),
     }),
+    settings,
   );
 }
 

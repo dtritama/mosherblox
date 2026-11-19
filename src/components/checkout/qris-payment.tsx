@@ -6,8 +6,8 @@ import Image from "next/image";
 import { useEffect, useId, useState, type FormEvent } from "react";
 
 import { SubmitError } from "@/components/checkout/submit-error";
+import { useStoreSettings } from "@/components/providers/settings-provider";
 import { Button } from "@/components/ui/button";
-import { manualQris } from "@/data/payments";
 import { orderConfig } from "@/data/orders";
 import { intlLocales } from "@/i18n/config";
 import { formatIDR, interpolate } from "@/i18n/format";
@@ -49,6 +49,8 @@ export function QrisPayment({ order, onChange }: { order: Order; onChange: (orde
   const proofId = useId();
   const proofHintId = useId();
   const now = useNow();
+  // The store's current QRIS (admin settings; default in src/data/payments.ts).
+  const { qris } = useStoreSettings();
 
   const [copied, setCopied] = useState(false);
   const [proof, setProof] = useState<File | null>(null);
@@ -152,7 +154,7 @@ export function QrisPayment({ order, onChange }: { order: Order; onChange: (orde
           {t.title}
         </h3>
         <p className="mt-1 text-sm text-ink-500">{t.apps}</p>
-        <p className="mt-1 text-sm text-ink-700">{interpolate(t.merchant, { name: manualQris.merchantName })}</p>
+        <p className="mt-1 text-sm text-ink-700">{interpolate(t.merchant, { name: qris.merchantName })}</p>
       </div>
       <div className="grid gap-6 p-5 pt-4 sm:p-6 sm:pt-5 md:grid-cols-[minmax(0,17rem)_minmax(0,1fr)] md:grid-rows-[auto_1fr] md:items-start">
         <div className="rounded-2xl bg-brand-50 p-4 md:col-start-2 md:row-start-1">
@@ -181,18 +183,19 @@ export function QrisPayment({ order, onChange }: { order: Order; onChange: (orde
         <div className="grid justify-items-center gap-3 md:col-start-1 md:row-span-2 md:row-start-1">
           <div className="w-full max-w-[17rem] overflow-hidden rounded-2xl border border-brand-100 bg-white">
             <Image
-              src={manualQris.image}
-              width={manualQris.width}
-              height={manualQris.height}
-              alt={interpolate(t.qrAlt, { name: manualQris.merchantName })}
-              sizes="(min-width: 768px) 272px, 80vw"
+              src={qris.image}
+              width={qris.width}
+              height={qris.height}
+              alt={interpolate(t.qrAlt, { name: qris.merchantName })}
+              // Exact pixels: re-compressing a QR code can make it harder to scan.
+              unoptimized
               className="h-auto w-full"
               priority
             />
           </div>
           <a
-            href={manualQris.image}
-            download={`qris-${order.id}.jpg`}
+            href={qris.image}
+            download={`qris-${order.id}.${qris.image.split(".").pop() ?? "jpg"}`}
             className="inline-flex h-11 w-full max-w-[17rem] items-center justify-center gap-2 rounded-2xl border border-brand-200 bg-white text-sm font-semibold text-ink-900 transition-colors hover:border-blush-300 active:scale-[0.97]"
           >
             <Download className="size-4 text-brand-600" aria-hidden="true" />

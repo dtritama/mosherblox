@@ -41,7 +41,14 @@ What was decided, by whom, and why — so nobody re-litigates it. Newest first i
   limits. Better Auth can still come for _customer_ login (phase 3) without touching this. Admin is
   Indonesian only. "Perlu dicek" (pending + buyer said paid, oldest first) is the default view.
   Marking paid requires ticking that the exact amount is in the GoPay merchant history; marking
-  failed requires a note. Settings page postponed (see roadmap step 5).
+  failed requires a note.
+- **Settings (2026-11-19, Devan: "build settings"):** owner-only page for Robux tiers, QRIS and
+  payment window. Stored as overrides in the `settings` table; `src/data/*` stay the defaults and
+  "Kembalikan ke bawaan" deletes the override. Pages read a cached copy (refreshed on save and
+  every minute); orders are always priced from a fresh read. A new QRIS is decoded in the admin's
+  browser first (checksum, static, merchant name → auto-filled); browsers without a QR reader
+  (Safari) ask the admin to confirm they scanned it with a phone. Product/gamepass prices are not
+  editable yet.
 
 - **Manual QRIS (step 4, 2026-11-19):** the client's static QRIS (`public/payments/qris.jpg`) was
   decoded and checksum-verified: GoPay merchant **"Kautsars, Gaming"** (Sukabumi), NMID

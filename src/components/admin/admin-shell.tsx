@@ -4,33 +4,54 @@ import type { ReactNode } from "react";
 
 import { adminCopy } from "@/app/admin/copy";
 import { Logo } from "@/components/ui/logo";
+import { cn } from "@/lib/utils";
 import type { AdminUser } from "@/server/auth/admin";
 import { logoutAction } from "@/server/admin/actions";
 
 const t = adminCopy.nav;
 
 /** Header + page frame for logged-in admin pages. */
-export function AdminShell({ admin, children }: { admin: AdminUser; children: ReactNode }) {
+export function AdminShell({
+  admin,
+  current,
+  children,
+}: {
+  admin: AdminUser;
+  current: "orders" | "settings";
+  children: ReactNode;
+}) {
   return (
     <>
       <header className="sticky top-0 z-20 border-b border-brand-100 bg-white/90 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4 sm:px-6">
           <Link
             href="/admin"
-            className="flex items-center gap-2 rounded-xl focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:outline-none"
+            className="flex min-h-11 items-center gap-2 rounded-xl focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:outline-none"
           >
             <Logo eager height={32} />
             <span className="hidden rounded-full bg-ink-900 px-2 py-0.5 text-[11px] font-bold tracking-wider text-white uppercase sm:inline">
               Admin
             </span>
           </Link>
-          <nav aria-label="Admin" className="ml-2 hidden sm:block">
-            <Link
-              href="/admin"
-              className="inline-flex h-11 items-center rounded-xl px-3 text-sm font-semibold text-ink-900 hover:bg-brand-50"
-            >
-              {t.orders}
-            </Link>
+          <nav aria-label="Admin" className="flex gap-1 sm:ml-2">
+            {(
+              [
+                ["orders", "/admin", t.orders],
+                ["settings", "/admin/settings", t.settings],
+              ] as const
+            ).map(([key, href, label]) => (
+              <Link
+                key={key}
+                href={href}
+                aria-current={current === key ? "page" : undefined}
+                className={cn(
+                  "inline-flex h-11 items-center rounded-xl px-2.5 text-sm font-semibold transition-colors sm:px-3",
+                  current === key ? "bg-brand-100 text-ink-900" : "text-ink-500 hover:bg-brand-50 hover:text-ink-900",
+                )}
+              >
+                {label}
+              </Link>
+            ))}
           </nav>
           <div className="ml-auto flex items-center gap-1">
             <a
@@ -51,7 +72,7 @@ export function AdminShell({ admin, children }: { admin: AdminUser; children: Re
                 className="inline-flex h-11 items-center gap-1.5 rounded-xl px-3 text-sm font-semibold text-ink-700 transition-colors hover:bg-blush-50 hover:text-blush-800 active:scale-[0.97]"
               >
                 <LogOut className="size-4" aria-hidden="true" />
-                {t.logout}
+                <span className="sr-only sm:not-sr-only">{t.logout}</span>
               </button>
             </form>
           </div>

@@ -51,7 +51,7 @@ async function Orders({ searchParams }: { searchParams: PageProps<"/admin">["sea
   const [{ items, total, pages }, counts] = await Promise.all([listOrders({ filter, q, page }), countByFilter()]);
 
   return (
-    <AdminShell admin={admin}>
+    <AdminShell admin={admin} current="orders">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-ink-900">{t.title}</h1>

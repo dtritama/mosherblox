@@ -21,6 +21,7 @@ import { useId, useMemo, useRef, useState, type FormEvent, type ReactNode } from
 import { Field, inputClass, Step, SummaryRow } from "@/components/checkout/form-parts";
 import { OrderSuccess } from "@/components/checkout/order-success";
 import { PaymentPicker } from "@/components/checkout/payment-picker";
+import { useStoreSettings } from "@/components/providers/settings-provider";
 import { SubmitError } from "@/components/checkout/submit-error";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
@@ -40,6 +41,7 @@ import {
   getRobuxMaxAmount,
   getRobuxMethod,
   getRobuxTier,
+  type RobuxRates,
 } from "@/lib/robux-pricing";
 import { cn } from "@/lib/utils";
 import {
@@ -77,8 +79,8 @@ function draftFromParams(params: URLSearchParams): RobuxOrderDraft {
 }
 
 /** Robux amount → price, only when the amount is inside the allowed range. */
-function priceFor(method: RobuxMethodId, amount: number | null) {
-  return amount !== null && !validateRobuxAmount(amount, method) ? calculateRobuxPrice(method, amount) : null;
+function priceFor(method: RobuxMethodId, amount: number | null, rates: RobuxRates) {
+  return amount !== null && !validateRobuxAmount(amount, method) ? calculateRobuxPrice(method, amount, rates) : null;
 }
 
 export function RobuxPanel({ className }: { className?: string }) {
@@ -89,6 +91,8 @@ export function RobuxPanel({ className }: { className?: string }) {
   const formId = useId();
   const amountHintId = useId();
 
+  // Admin-editable prices (falls back to src/data/robux.ts).
+  const { robuxRates: rates } = useStoreSettings();
   const searchParams = useSearchParams();
   const [draft, setDraft] = useState<RobuxOrderDraft>(() => draftFromParams(searchParams));
   const [touched, setTouched] = useState(false);
@@ -110,9 +114,9 @@ export function RobuxPanel({ className }: { className?: string }) {
       : undefined;
 
   const amount = draft.amount;
-  const subtotal = priceFor(draft.method, amount);
-  const tier = getRobuxTier(draft.method, amount ?? 0);
-  const upcomingTier = amount !== null ? getNextRobuxTier(draft.method, amount) : undefined;
+  const subtotal = priceFor(draft.method, amount, rates);
+  const tier = getRobuxTier(draft.method, amount ?? 0, rates);
+  const upcomingTier = amount !== null ? getNextRobuxTier(draft.method, amount, rates) : undefined;
   const nextTier = upcomingTier && upcomingTier.minAmount <= methodMax ? upcomingTier : undefined;
   const payment = getPaymentMethod(draft.paymentId);
   const total = subtotal !== null ? subtotal + (payment?.fee ?? 0) : null;
@@ -247,7 +251,7 @@ export function RobuxPanel({ className }: { className?: string }) {
                                 {t.methods[option.id].description}
                               </span>
                               <span className="mt-2 inline-block rounded-full bg-white px-2 py-0.5 text-xs font-semibold text-brand-700 ring-1 ring-brand-100">
-                                {interpolate(t.fromRate, { price: formatIDR(getLowestRobuxRate(option.id)) })}
+                                {interpolate(t.fromRate, { price: formatIDR(getLowestRobuxRate(option.id, rates)) })}
                               </span>
                             </span>
                           </label>
@@ -393,7 +397,7 @@ export function RobuxPanel({ className }: { className?: string }) {
                                 {n(preset)}
                               </span>
                               <span className="block text-xs text-ink-500 tabular-nums">
-                                {formatIDR(calculateRobuxPrice(draft.method, preset))}
+                                {formatIDR(calculateRobuxPrice(draft.method, preset, rates))}
                               </span>
                             </button>
                           );

@@ -31,7 +31,7 @@ async function OrderPage({ params }: { params: PageProps<"/admin/orders/[id]">["
   const order = await getOrderDetail(normalizeOrderId(id));
 
   return (
-    <AdminShell admin={admin}>
+    <AdminShell admin={admin} current="orders">
       <Link
         href="/admin"
         className="inline-flex h-11 items-center gap-1.5 rounded-xl pr-3 text-sm font-semibold text-ink-700 hover:text-ink-900"

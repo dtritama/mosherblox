@@ -7,7 +7,7 @@ import { id } from "@/i18n/dictionaries/id";
 import { formatNumber } from "@/i18n/format";
 import { getProductBySlug } from "@/lib/catalog";
 import type { ProductOrderInput, RobuxOrderInput } from "@/lib/orders/types";
-import { calculateRobuxPrice } from "@/lib/robux-pricing";
+import { calculateRobuxPrice, type RobuxRates } from "@/lib/robux-pricing";
 import { normalizeWhatsapp, validateOrder, validateRobuxOrder, type OrderErrorCode } from "@/lib/validation";
 
 /**
@@ -35,7 +35,8 @@ export type QuoteResult =
 const isRobuxMethod = (value: string): value is RobuxMethodId =>
   robuxConfig.methods.some((method) => method.id === value);
 
-export function quoteRobuxOrder(input: RobuxOrderInput): QuoteResult {
+/** `rates`: the tiers in effect (admin settings); defaults to src/data/robux.ts. */
+export function quoteRobuxOrder(input: RobuxOrderInput, rates?: RobuxRates): QuoteResult {
   if (!isRobuxMethod(input.method)) return { ok: false, fields: { amount: "amountMin" } };
   const amount = Number.isSafeInteger(input.amount) ? input.amount : null;
   const fields = validateRobuxOrder({ ...input, amount });
@@ -62,7 +63,7 @@ export function quoteRobuxOrder(input: RobuxOrderInput): QuoteResult {
       account: input.account.trim(),
       whatsapp,
       paymentMethod: payment.id,
-      subtotal: calculateRobuxPrice(input.method, amount),
+      subtotal: calculateRobuxPrice(input.method, amount, rates),
       fee: payment.fee,
     },
   };

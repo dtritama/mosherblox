@@ -77,7 +77,10 @@ function isUniqueViolation(error: unknown) {
   return typeof cause === "object" && cause !== null && "code" in cause && cause.code === "23505";
 }
 
-export async function createOrder(quote: OrderQuote): Promise<Order> {
+export async function createOrder(
+  quote: OrderQuote,
+  { expiryMinutes = orderConfig.expiryMinutes }: { expiryMinutes?: number } = {},
+): Promise<Order> {
   const db = getDb();
   const provider = providerFor(quote.paymentMethod);
   // The order ID and unique code are random; on the rare clash with another order, roll again.
@@ -94,7 +97,7 @@ export async function createOrder(quote: OrderQuote): Promise<Order> {
             ...quote,
             uniqueCode,
             total,
-            expiresAt: new Date(Date.now() + orderConfig.expiryMinutes * 60_000),
+            expiresAt: new Date(Date.now() + expiryMinutes * 60_000),
           })
           .returning();
         const [paymentRow] = await tx
