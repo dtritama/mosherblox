@@ -34,8 +34,11 @@ Order of work (each step ends with `npm run check` and a browser test):
    Settings (`/admin/settings`, owner only): Robux price tiers per method, QRIS image + merchant
    name + NMID (checked in the browser before saving), payment window in minutes, stock switches ("Stok habis") per Robux method / product. Product /
    gamepass prices are still edited in `src/data/*` (a later CMS step if the client needs it).
-6. **Notifications + jobs** — worker with pg-boss: expire unpaid orders, Discord webhook on new
+6. ✅ **Notifications + jobs** — worker with pg-boss: expire unpaid orders, Discord webhook on new
    paid order, (later) WhatsApp to the buyer.
+   Done: `src/worker` (`npm run worker`), expire job every minute, Discord ping when a buyer presses
+   "Saya sudah bayar" (optional ping for every new order). WhatsApp to the buyer is still later
+   (needs a WhatsApp API provider — cost/approval to decide with the client).
 7. **Deploy** — Dockerfile (Next.js `output: "standalone"`), docker-compose (app, worker, postgres,
    caddy), GitHub Actions build → GHCR → deploy on the VPS, Cloudflare DNS for mosherblox.com,
    nightly DB backup. Set `NEXT_PUBLIC_SITE_URL=https://mosherblox.com`.

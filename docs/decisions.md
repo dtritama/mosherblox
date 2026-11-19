@@ -36,6 +36,13 @@ What was decided, by whom, and why — so nobody re-litigates it. Newest first i
 
 ## Architecture decisions (phase 2)
 
+- **Jobs + notifications (step 6, 2026-11-19):** pg-boss 12.38.1 (pinned: the newest release
+  was only days old). Separate worker process; the web app only enqueues. Discord pings go to the
+  team's private channel when a buyer presses "Saya sudah bayar" (the moment someone must check
+  the money) — not on "paid", because an admin sets that themselves. The ping carries order ID,
+  item, total, screenshot yes/no and an admin link; no WhatsApp number or other contact data.
+  Pressing it again (e.g. adding a screenshot) doesn't ping twice. New-order pings are opt-in.
+
 - **Admin (step 5, 2026-11-19):** own small auth instead of Better Auth for now (admins only):
   scrypt password hashes (Node built-in), DB sessions with hashed tokens, 12-hour login, rate
   limits. Better Auth can still come for _customer_ login (phase 3) without touching this. Admin is

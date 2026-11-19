@@ -21,6 +21,8 @@ npm run db:generate  # after editing src/server/db/schema.ts → new SQL file in
 npm run db:migrate   # apply migrations (drizzle-kit reads .env.local via @next/env)
 npm run db:seed      # reset the 4 dev sample orders (refuses non-local databases)
 npm run admin:create -- --email you@example.com --name "Name" [--role owner|staff]  # asks password; resets if exists
+npm run worker       # background worker (expire unpaid orders, Discord pings) — run next to `npm run dev`
+npm run worker:build # bundle → dist/worker.mjs, run with: node --conditions=react-server dist/worker.mjs
 npm run db:studio | db:down
 ```
 
@@ -62,6 +64,9 @@ src/
   server/orders/       order domain: quote (server pricing), service (create/find/transition), actions
   server/auth/         admin login: scrypt hashes (password-hash.mjs, shared with scripts), DB sessions
   server/admin/        admin read models (orders list/detail) + admin server actions
+  server/jobs/         pg-boss queue names/options + enqueue() (web app only sends jobs)
+  server/notify/       Discord webhook messages (no buyer contact data)
+  worker/index.mts     background worker process (schedules + job handlers)
   app/admin/           admin panel (own root layout, Indonesian only, noindex, `instant = false`)
   proxy.ts
 design/                tokens.json, screens/*.png, README (Figma)
@@ -104,6 +109,14 @@ Rules:
   also update the payment (paid → confirmed + who, failed-from-pending → rejected). Proof images
   only via `/admin/proofs/[paymentId]` (no-store, nosniff, sandbox CSP). `/admin` is skipped by
   `proxy.ts` (no locale) and disallowed in robots. Copy lives in `app/admin/copy.ts`.
+- **Background jobs** (pg-boss in the `pgboss` schema of the same Postgres): the worker
+  (`src/worker/index.mts`) runs `orders.expire` every minute (`expireOverdueOrders()`; never expires
+  an order whose buyer pressed "Saya sudah bayar") and `notify.discord` (retries with backoff).
+  The web app only enqueues, via `after()` so a queue problem never slows or breaks a buyer's
+  request. First "Saya sudah bayar" → Discord ping; `DISCORD_NOTIFY_NEW_ORDERS=1` adds new-order
+  pings. `DISCORD_WEBHOOK_URL` is a secret (only in `.env.local` / server env). The worker reuses
+  `server-only` code, so it runs with Node's `--conditions=react-server` (tsx in dev, esbuild bundle
+  in prod; `pg-boss` is in `serverExternalPackages`).
 - Order IDs: `MB-` + 8 chars from an unambiguous alphabet (`lib/orders/order-id.ts`).
 - Server Components by default; `"use client"` only for interactivity. Motion via `LazyMotion` +
   `m.*` components, `MotionConfig reducedMotion="user"`.

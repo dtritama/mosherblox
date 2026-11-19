@@ -48,3 +48,6 @@ next-env.d.ts
 
 # uploaded files (payment proofs) — never commit
 /storage/
+
+# worker bundle (npm run worker:build)
+/dist/

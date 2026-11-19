@@ -42,6 +42,8 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   cacheComponents: true,
   partialPrefetching: true,
+  // pg-boss (job queue) talks to Postgres through `pg`; keep it a plain Node dependency.
+  serverExternalPackages: ["pg-boss"],
   experimental: {
     serverActions: {
       // Payment proof screenshots (max 4 MB, see src/data/orders.ts) + multipart overhead.

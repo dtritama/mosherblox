@@ -14,6 +14,8 @@ import { claimPayment, createOrder, findOrder } from "@/server/orders/service";
 import { deleteProof, saveProof } from "@/server/payments/proof-storage";
 import { rateLimit } from "@/server/rate-limit";
 import { getFreshSettings } from "@/server/settings";
+import { notifyTeam } from "@/server/jobs/queue";
+import { after } from "next/server";
 import { isProductSoldOut, isRobuxMethodSoldOut, type SiteSettings } from "@/lib/settings";
 
 /**
@@ -36,7 +38,10 @@ async function create(quote: QuoteResult, settings: SiteSettings): Promise<Creat
   if (soldOut) return { ok: false, error: "soldOut" };
   if (!(await rateLimit("createOrder"))) return { ok: false, error: "rateLimited" };
   try {
-    return { ok: true, order: await createOrder(quote.quote, { expiryMinutes: settings.orderExpiryMinutes }) };
+    const order = await createOrder(quote.quote, { expiryMinutes: settings.orderExpiryMinutes });
+    // Optional ping for every new order (DISCORD_NOTIFY_NEW_ORDERS=1); after the response is sent.
+    if (process.env.DISCORD_NOTIFY_NEW_ORDERS === "1") after(() => notifyTeam({ kind: "newOrder", orderId: order.id }));
+    return { ok: true, order };
   } catch (error) {
     console.error("[orders] create failed", error);
     return { ok: false, error: "unavailable" };
@@ -110,8 +115,13 @@ export async function claimPaymentAction(formData: FormData): Promise<ClaimPayme
       proofPath = saved.path;
     }
     const result = await claimPayment(orderId, phone, proofPath);
-    if (!result.ok && proofPath) await deleteProof(proofPath);
-    return result;
+    if (!result.ok) {
+      if (proofPath) await deleteProof(proofPath);
+      return result;
+    }
+    // The team's to-do: check the money. Queued after the response, so it never slows the buyer down.
+    if (result.firstClaim) after(() => notifyTeam({ kind: "paymentClaimed", orderId: result.order.id }));
+    return { ok: true, order: result.order };
   } catch (error) {
     if (proofPath) await deleteProof(proofPath).catch(() => undefined);
     console.error("[orders] claim payment failed", error);

@@ -1,5 +1,5 @@
 import "server-only";
-import { and, desc, eq, inArray } from "drizzle-orm";
+import { and, desc, eq, inArray, lt, notExists, sql } from "drizzle-orm";
 import { getPaymentMethod } from "@/data/payments";
 import { orderConfig } from "@/data/orders";
 import { getDb, schema } from "@/server/db";
@@ -214,7 +214,7 @@ export async function claimPayment(
   rawId: string,
   whatsapp: string,
   proofPath: string | null,
-): Promise<{ ok: true; order: Order } | { ok: false; error: ClaimError }> {
+): Promise<{ ok: true; order: Order; firstClaim: boolean } | { ok: false; error: ClaimError }> {
   const id = normalizeOrderId(rawId);
   if (!id) return { ok: false, error: "notFound" };
   return getDb().transaction(async (tx) => {
@@ -247,6 +247,58 @@ export async function claimPayment(
       actor: "buyer",
       note: proofPath ? "Dengan bukti transfer" : "Tanpa bukti transfer",
     });
-    return { ok: true, order: toOrder(row, updated) } as const;
+    // firstClaim: only the first "Saya sudah bayar" pings the team (adding a screenshot later doesn't).
+    return { ok: true, order: toOrder(row, updated), firstClaim: payment.status === "pending" } as const;
   });
+}
+
+/**
+ * Worker job: expire every unpaid order past its window + grace, except those whose buyer said
+ * they paid (an admin must check those). Returns how many were expired.
+ */
+export async function expireOverdueOrders(limit = 200): Promise<number> {
+  const cutoff = new Date(Date.now() - graceMs);
+  const candidates = await getDb()
+    .select({ id: orders.id })
+    .from(orders)
+    .where(
+      and(
+        eq(orders.status, "pending"),
+        lt(orders.expiresAt, cutoff),
+        notExists(
+          getDb()
+            .select({ one: sql`1` })
+            .from(payments)
+            .where(and(eq(payments.orderId, orders.id), eq(payments.status, "submitted"))),
+        ),
+      ),
+    )
+    .limit(limit);
+  let expired = 0;
+  for (const { id } of candidates) {
+    try {
+      await transitionOrder(id, "expired", { actor: "system", note: "Tidak dibayar sampai batas waktu" });
+      expired++;
+    } catch (error) {
+      // Changed meanwhile (paid by an admin, or the buyer pressed "Saya sudah bayar"): leave it.
+      if (!(error instanceof OrderTransitionError)) throw error;
+    }
+  }
+  return expired;
+}
+
+/** What a team notification shows about an order (no buyer contact data). */
+export async function getOrderSummary(orderId: string) {
+  const [row] = await getDb().select().from(orders).where(eq(orders.id, orderId)).limit(1);
+  if (!row) return null;
+  const payment = await latestPayment(getDb(), orderId);
+  return {
+    id: row.id,
+    status: row.status,
+    item: row.itemLabel.id,
+    productName: row.productName,
+    total: row.total,
+    hasProof: Boolean(payment?.proofPath),
+    paymentStatus: payment?.status ?? null,
+  };
 }
