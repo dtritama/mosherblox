@@ -12,13 +12,14 @@ import { robuxConfig, type RobuxMethodId, type RobuxRateTier } from "@/data/robu
 import { formatIDR, formatNumber, interpolate } from "@/i18n/format";
 import { parseQris, type QrisInfo } from "@/lib/qris";
 import { calculateRobuxPrice, type RobuxRates } from "@/lib/robux-pricing";
-import { SETTING_LIMITS, validateTiers, type QrisSetting } from "@/lib/settings";
+import { SETTING_LIMITS, validateTiers, type QrisSetting, type SoldOut } from "@/lib/settings";
 import { cn } from "@/lib/utils";
 import {
   resetSettingAction,
   saveExpiryAction,
   saveQrisAction,
   saveRobuxRatesAction,
+  saveSoldOutAction,
   type SettingsState,
 } from "@/server/admin/settings-actions";
 
@@ -62,7 +63,7 @@ function SaveRow({ state, pending, disabled }: { state: SettingsState; pending: 
 }
 
 /** Small separate form: remove the override for one setting. */
-export function ResetButton({ field }: { field: "robuxRates" | "orderExpiryMinutes" | "qris" }) {
+export function ResetButton({ field }: { field: "robuxRates" | "orderExpiryMinutes" | "qris" | "soldOut" }) {
   const [state, action, pending] = useActionState<SettingsState, FormData>(resetSettingAction, {});
   useRefreshOnSave(state);
   return (
@@ -467,6 +468,105 @@ export function QrisForm({ initial }: { initial: QrisSetting }) {
         </Field>
         <SaveRow state={state} pending={pending} disabled={blocked} />
       </div>
+    </form>
+  );
+}
+
+/* ------------------------------------------------- Stock ------------------------------------------------- */
+
+export interface StockItem {
+  id: string;
+  name: string;
+  group: "robux" | "shop" | "gamepass";
+}
+
+/** One switch per Robux method / product. ON = available; OFF = "Stok habis" (can't be bought). */
+export function StockForm({ initial, items }: { initial: SoldOut; items: StockItem[] }) {
+  const [state, action, pending] = useActionState<SettingsState, FormData>(saveSoldOutAction, {});
+  useRefreshOnSave(state);
+  const [off, setOff] = useState(() => new Set<string>([...initial.robuxMethods, ...initial.products]));
+  const toggle = (id: string) =>
+    setOff((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+
+  const groups = (["robux", "shop", "gamepass"] as const).map((group) => ({
+    group,
+    items: items.filter((item) => item.group === group),
+  }));
+
+  return (
+    <form action={action}>
+      {items
+        .filter((item) => off.has(item.id))
+        .map((item) => (
+          <input
+            key={item.id}
+            type="hidden"
+            name={item.group === "robux" ? "robuxMethods" : "products"}
+            value={item.id}
+          />
+        ))}
+      <p className="mb-4 text-sm font-medium text-ink-700">{interpolate(t.stock.summary, { count: off.size })}</p>
+      <div className="grid gap-5 lg:grid-cols-3">
+        {groups.map(({ group, items: groupItems }) => (
+          <fieldset key={group} className="min-w-0">
+            <legend className="mb-2 text-xs font-semibold tracking-wider text-ink-500 uppercase">
+              {t.stock[group]}
+            </legend>
+            <ul className="grid gap-2">
+              {groupItems.map((item) => {
+                const available = !off.has(item.id);
+                return (
+                  <li key={item.id}>
+                    <label
+                      className={cn(
+                        "flex min-h-11 cursor-pointer items-center justify-between gap-3 rounded-xl border px-3 py-2 transition-colors has-focus-visible:ring-2 has-focus-visible:ring-brand-400",
+                        available
+                          ? "border-brand-100 bg-white hover:border-brand-300"
+                          : "border-ink-300/40 bg-ink-300/10",
+                      )}
+                    >
+                      <span className="min-w-0 truncate text-sm font-medium text-ink-900">{item.name}</span>
+                      <span className="flex shrink-0 items-center gap-2">
+                        <span className={cn("text-xs font-semibold", available ? "text-brand-700" : "text-ink-700")}>
+                          {available ? t.stock.available : t.stock.soldOut}
+                        </span>
+                        <input
+                          type="checkbox"
+                          role="switch"
+                          aria-label={`${item.name}: ${t.stock.available}`}
+                          checked={available}
+                          onChange={() => toggle(item.id)}
+                          className="peer sr-only"
+                        />
+                        <span
+                          aria-hidden="true"
+                          className={cn(
+                            "relative h-6 w-11 rounded-full transition-colors",
+                            available ? "bg-brand-400" : "bg-ink-300",
+                          )}
+                        >
+                          <span
+                            className={cn(
+                              "absolute top-0.5 left-0.5 size-5 rounded-full bg-white shadow transition-transform",
+                              available && "translate-x-5",
+                            )}
+                          />
+                        </span>
+                      </span>
+                    </label>
+                  </li>
+                );
+              })}
+            </ul>
+          </fieldset>
+        ))}
+      </div>
+      <SaveRow state={state} pending={pending} />
     </form>
   );
 }

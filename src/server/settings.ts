@@ -2,6 +2,7 @@ import "server-only";
 import { eq, inArray } from "drizzle-orm";
 import { cacheLife, cacheTag } from "next/cache";
 import { getDb, schema } from "@/server/db";
+import { getAllCheckoutProducts } from "@/lib/catalog";
 import { defaultSettings, mergeSettings, SETTING_KEYS, type SiteSettings } from "@/lib/settings";
 
 /**
@@ -25,7 +26,10 @@ async function readFromDb(): Promise<SiteSettings> {
     .where(inArray(schema.settings.key, Object.values(SETTING_KEYS)));
   const stored: Partial<Record<keyof SiteSettings, unknown>> = {};
   for (const row of rows) if (keyOf[row.key]) stored[keyOf[row.key]] = row.value;
-  return mergeSettings(stored);
+  return mergeSettings(
+    stored,
+    getAllCheckoutProducts().map((product) => product.slug),
+  );
 }
 
 export async function getSiteSettings(): Promise<SiteSettings> {

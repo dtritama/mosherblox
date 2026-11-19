@@ -25,6 +25,7 @@ export const id = {
   },
   common: {
     skipToContent: "Langsung ke konten",
+    soldOut: "Stok habis",
     backToTop: "Kembali ke atas",
     close: "Tutup",
     from: "mulai",
@@ -141,6 +142,8 @@ export const id = {
       },
     },
     fromRate: "mulai {price}/Robux",
+    soldOutMethod: "Stok habis. Pilih metode lain atau cek lagi nanti.",
+    allSoldOut: "Robux sedang habis untuk semua metode. Cek lagi nanti, atau chat CS kami.",
     amountLabel: "Jumlah Robux",
     amountHint: "Min {min} · Maks {max} Robux",
     decrease: "Kurangi {step} Robux",
@@ -363,6 +366,7 @@ export const id = {
       total: "Total",
     },
     buyNow: "Beli sekarang",
+    soldOutNotice: "Produk ini sedang habis. Cek lagi nanti, atau chat CS kami untuk info stok.",
     processing: "Memproses…",
     secure: "Checkout aman & terenkripsi",
     errors: {
@@ -379,6 +383,7 @@ export const id = {
       invalid: "Ada data yang belum pas. Cek lagi isian di atas, lalu coba lagi.",
       rateLimited: "Terlalu banyak percobaan. Tunggu beberapa menit, lalu coba lagi.",
       unavailable: "Pesanan belum bisa dibuat sekarang. Coba lagi sebentar lagi, atau chat CS kami.",
+      soldOut: "Maaf, stoknya baru saja habis. Pilih yang lain atau cek lagi nanti.",
     },
     success: {
       title: "Pesanan dibuat",

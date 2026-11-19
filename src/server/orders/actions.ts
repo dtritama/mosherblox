@@ -14,7 +14,7 @@ import { claimPayment, createOrder, findOrder } from "@/server/orders/service";
 import { deleteProof, saveProof } from "@/server/payments/proof-storage";
 import { rateLimit } from "@/server/rate-limit";
 import { getFreshSettings } from "@/server/settings";
-import type { SiteSettings } from "@/lib/settings";
+import { isProductSoldOut, isRobuxMethodSoldOut, type SiteSettings } from "@/lib/settings";
 
 /**
  * Server Actions the checkout and Check Order page call (through `orderService`).
@@ -27,6 +27,13 @@ const str = (value: unknown, max = 300) => (typeof value === "string" ? value.sl
 
 async function create(quote: QuoteResult, settings: SiteSettings): Promise<CreateOrderResult> {
   if (!quote.ok) return { ok: false, error: "invalid", fields: quote.fields };
+  // Out of stock (admin settings), checked on the server whatever the page showed.
+  const { kind, robuxMethod, productSlug } = quote.quote;
+  const soldOut =
+    kind === "robux"
+      ? robuxMethod !== null && isRobuxMethodSoldOut(settings.soldOut, robuxMethod)
+      : productSlug !== null && isProductSoldOut(settings.soldOut, productSlug);
+  if (soldOut) return { ok: false, error: "soldOut" };
   if (!(await rateLimit("createOrder"))) return { ok: false, error: "rateLimited" };
   try {
     return { ok: true, order: await createOrder(quote.quote, { expiryMinutes: settings.orderExpiryMinutes }) };

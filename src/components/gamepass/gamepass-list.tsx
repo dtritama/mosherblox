@@ -2,6 +2,7 @@
 
 import { ArrowUp, Flame, ShieldCheck, Sparkles, Zap } from "lucide-react";
 
+import { useStoreSettings } from "@/components/providers/settings-provider";
 import { useTopUp } from "@/components/topup/topup-provider";
 import { Button } from "@/components/ui/button";
 import { ProductArt } from "@/components/ui/product-art";
@@ -21,8 +22,10 @@ export function GamepassList({ slug }: { slug: string }) {
   const { locale, dict } = useI18n();
   const { openTopUp } = useTopUp();
   const t = dict.gamepass;
+  const { soldOut } = useStoreSettings();
   const game = getGamepassGame(slug);
   if (!game) return null;
+  const isSoldOut = soldOut.products.includes(`${GAMEPASS_SLUG_PREFIX}${game.slug}`);
 
   // Unique per game: with Cache Components, recently visited routes stay mounted (hidden),
   // so a shared id like "passes" would exist several times in the DOM.
@@ -90,10 +93,16 @@ export function GamepassList({ slug }: { slug: string }) {
                     <p className="text-xs text-ink-300 line-through">{formatIDR(pass.originalPrice)}</p>
                   ) : null}
                 </div>
-                <Button size="sm" onClick={() => openTopUp(`${GAMEPASS_SLUG_PREFIX}${game.slug}`, pass.id)}>
-                  <Zap className="size-4" aria-hidden="true" />
-                  {t.buy}
-                </Button>
+                {isSoldOut ? (
+                  <span className="inline-flex h-9 items-center rounded-2xl bg-ink-900 px-4 text-sm font-semibold text-white">
+                    {dict.common.soldOut}
+                  </span>
+                ) : (
+                  <Button size="sm" onClick={() => openTopUp(`${GAMEPASS_SLUG_PREFIX}${game.slug}`, pass.id)}>
+                    <Zap className="size-4" aria-hidden="true" />
+                    {t.buy}
+                  </Button>
+                )}
               </div>
             </article>
           </StaggerItem>

@@ -7,12 +7,13 @@ import { useSelectedLayoutSegment } from "next/navigation";
 import { useDeferredValue, useMemo, useState } from "react";
 
 import { passesSectionId } from "@/components/gamepass/gamepass-list";
+import { useStoreSettings } from "@/components/providers/settings-provider";
 import { ProductArt } from "@/components/ui/product-art";
 import { Reveal } from "@/components/ui/reveal";
 import { localeHref } from "@/i18n/config";
 import { formatIDR, interpolate } from "@/i18n/format";
 import { useI18n } from "@/i18n/i18n-provider";
-import { filterGamepassGames, getGamepassStartingPrice } from "@/lib/catalog";
+import { filterGamepassGames, gamepassProductSlug, getGamepassStartingPrice } from "@/lib/catalog";
 import { cn } from "@/lib/utils";
 
 /**
@@ -23,6 +24,7 @@ export function GameGrid() {
   const { locale, dict } = useI18n();
   const t = dict.gamepass;
   const selected = useSelectedLayoutSegment();
+  const { soldOut } = useStoreSettings();
   const [query, setQuery] = useState("");
   const deferredQuery = useDeferredValue(query);
   const games = useMemo(() => filterGamepassGames(deferredQuery), [deferredQuery]);
@@ -58,6 +60,7 @@ export function GameGrid() {
         <ul aria-label={t.gamesLabel} className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-6">
           {games.map((game, index) => {
             const active = game.slug === selected;
+            const isSoldOut = soldOut.products.includes(gamepassProductSlug(game.slug));
             return (
               <m.li
                 key={game.slug}
@@ -80,7 +83,7 @@ export function GameGrid() {
                   <ProductArt
                     icon={game.icon}
                     accent={game.accent}
-                    className="grid aspect-[4/3] w-full place-items-center"
+                    className={cn("grid aspect-[4/3] w-full place-items-center", isSoldOut && "grayscale")}
                     iconClassName="relative size-10 text-white drop-shadow-md transition-transform duration-500 group-hover:scale-110 group-hover:-rotate-6 sm:size-12"
                   />
                   {active ? (
@@ -88,7 +91,12 @@ export function GameGrid() {
                       <Check className="size-3.5" aria-hidden="true" />
                       {t.selected}
                     </span>
-                  ) : game.tag ? (
+                  ) : null}
+                  {isSoldOut ? (
+                    <span className="absolute top-2.5 left-2.5 rounded-full bg-ink-900 px-2 py-0.5 text-[11px] font-bold text-white shadow-sm">
+                      {dict.common.soldOut}
+                    </span>
+                  ) : game.tag && !active ? (
                     <span className="absolute top-2.5 left-2.5 rounded-full bg-white/90 px-2 py-0.5 text-[11px] font-bold text-ink-900 shadow-sm">
                       {dict.shop.tags[game.tag]}
                     </span>

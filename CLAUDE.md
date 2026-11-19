@@ -74,8 +74,8 @@ Rules:
 
 - **Content = data files.** Prices, products, banners, payment methods, Robux tiers/limits are edited
   in `src/data/*`, never hard-coded in components. **Exception — admin settings**
-  (`/admin/settings`, owner only) can override Robux tiers, the QRIS (image/merchant/NMID) and the
-  payment window: `lib/settings.ts` (types, defaults = `src/data/*`, validation),
+  (`/admin/settings`, owner only) can override Robux tiers, the QRIS (image/merchant/NMID), the
+  payment window and **stock** (sold-out Robux methods / products): `lib/settings.ts` (types, defaults = `src/data/*`, validation),
   `server/settings.ts` (`getSiteSettings()` = `"use cache"` + tag `settings` for pages,
   `getFreshSettings()` for pricing/creating orders; DB down → defaults, so builds work without a DB).
   The `[lang]` layout passes rates + QRIS to client components via `SettingsProvider` /
@@ -149,6 +149,10 @@ Rules:
 - **Do not advertise "no password required" / "tanpa password"** — the client asked to remove it.
   (Safety hint "never share your password" and the FAQ answer are fine.)
 - Checkout always collects a WhatsApp number (normalized to `628…`).
+- **Stock:** the owner can mark a Robux method or a product / gamepass game "Stok habis" in
+  /admin/settings. It stays visible with a badge, can't be selected or bought, flash deals hide it,
+  and the server refuses the order (`soldOut` error) even from a stale page. Shop "Blox Fruits"
+  items and the "Blox Fruits" gamepass game are separate switches.
 - Payment today = the store's own static QRIS only (merchant shown to buyers: "Kautsars, Gaming").
   VA / Alfamart / Indomaret are hidden (`availability: "later"`) until a payment gateway exists.
 - Contacts: Discord https://discord.gg/5Y82ZH7GgP · WhatsApp 081211980741 ·

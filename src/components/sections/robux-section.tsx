@@ -26,8 +26,9 @@ const presets = robuxConfig.presets.filter((amount) => amount <= getRobuxMaxAmou
 const DEFAULT_INDEX = Math.max(0, presets.indexOf(robuxConfig.defaultAmount));
 
 /** Link into the Robux page with the amount (and method) already picked. */
-function robuxPageHref(locale: Parameters<typeof localeHref>[0], amount?: number) {
-  const query = amount ? `?method=${METHOD}&amount=${amount}` : "";
+function robuxPageHref(locale: Parameters<typeof localeHref>[0], amount?: number, soldOut = false) {
+  // Sold out: open the Robux page without a method, so it starts on one that is available.
+  const query = amount ? (soldOut ? `?amount=${amount}` : `?method=${METHOD}&amount=${amount}`) : "";
   return `${localeHref(locale, "/robux")}${query}`;
 }
 
@@ -37,7 +38,8 @@ export function RobuxSection() {
   const sliderId = useId();
   const [index, setIndex] = useState(DEFAULT_INDEX);
   const amountValue = presets[index];
-  const { robuxRates: rates } = useStoreSettings();
+  const { robuxRates: rates, soldOut } = useStoreSettings();
+  const methodSoldOut = soldOut.robuxMethods.includes(METHOD);
   const price = calculateRobuxPrice(METHOD, amountValue, rates);
   const { rate } = getRobuxTier(METHOD, amountValue, rates);
 
@@ -127,10 +129,15 @@ export function RobuxSection() {
                 </m.p>
                 <p className="mt-1 text-xs text-ink-500">
                   {formatIDR(rate)} {dict.common.perRobux} · <strong className="text-brand-700">{t.method}</strong>
+                  {methodSoldOut ? (
+                    <span className="ml-2 inline-block rounded-full bg-ink-900 px-2 py-0.5 text-[11px] font-semibold text-white">
+                      {dict.common.soldOut}
+                    </span>
+                  ) : null}
                 </p>
               </div>
               <Link
-                href={robuxPageHref(locale, amountValue)}
+                href={robuxPageHref(locale, amountValue, methodSoldOut)}
                 className={buttonVariants({ size: "lg", className: "w-full sm:w-auto" })}
               >
                 <Zap className="size-4" aria-hidden="true" />

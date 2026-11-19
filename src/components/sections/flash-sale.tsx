@@ -3,6 +3,7 @@
 import { Flame, Zap } from "lucide-react";
 
 import { Countdown } from "@/components/sections/countdown";
+import { useStoreSettings } from "@/components/providers/settings-provider";
 import { useTopUp } from "@/components/topup/topup-provider";
 import { Container } from "@/components/ui/container";
 import { ProductArt } from "@/components/ui/product-art";
@@ -19,6 +20,10 @@ export function FlashSale() {
   const { openTopUp } = useTopUp();
   const { locale, dict } = useI18n();
   const t = dict.deals;
+  // Sold-out products (admin settings) are left out of the deals.
+  const { soldOut } = useStoreSettings();
+  const available = deals.filter(({ product }) => !soldOut.products.includes(product.slug));
+  if (available.length === 0) return null;
 
   return (
     <section
@@ -54,7 +59,7 @@ export function FlashSale() {
         </div>
 
         <Stagger className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {deals.map(({ product, option }) => (
+          {available.map(({ product, option }) => (
             <StaggerItem key={option.id}>
               <button
                 type="button"

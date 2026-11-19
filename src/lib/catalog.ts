@@ -37,6 +37,13 @@ export function getProductBySlug(slug: string) {
   return products.find((product) => product.slug === slug) ?? gamepassProducts.find((product) => product.slug === slug);
 }
 
+/** Everything that can be bought through the checkout dialog: shop products + gamepass games. */
+export function getAllCheckoutProducts(): readonly Product[] {
+  return [...products, ...gamepassProducts];
+}
+
+export const gamepassProductSlug = (gameSlug: string) => `${GAMEPASS_SLUG_PREFIX}${gameSlug}`;
+
 export function getGamepassGame(slug: string) {
   return gamepassGames.find((game) => game.slug === slug);
 }

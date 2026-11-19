@@ -92,9 +92,16 @@ export function RobuxPanel({ className }: { className?: string }) {
   const amountHintId = useId();
 
   // Admin-editable prices (falls back to src/data/robux.ts).
-  const { robuxRates: rates } = useStoreSettings();
+  const { robuxRates: rates, soldOut } = useStoreSettings();
+  const isSoldOut = (id: RobuxMethodId) => soldOut.robuxMethods.includes(id);
+  const available = robuxConfig.methods.filter((item) => !isSoldOut(item.id));
+  const allSoldOut = available.length === 0;
   const searchParams = useSearchParams();
-  const [draft, setDraft] = useState<RobuxOrderDraft>(() => draftFromParams(searchParams));
+  const [draft, setDraft] = useState<RobuxOrderDraft>(() => {
+    const fromUrl = draftFromParams(searchParams);
+    // A sold-out method (e.g. from an old link) starts on the first method that is available.
+    return isSoldOut(fromUrl.method) && available[0] ? { ...fromUrl, method: available[0].id } : fromUrl;
+  });
   const [touched, setTouched] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [order, setOrder] = useState<Order | null>(null);
@@ -148,6 +155,10 @@ export function RobuxPanel({ className }: { className?: string }) {
     const result = validateRobuxOrder(draft);
     const whatsapp = normalizeWhatsapp(draft.whatsapp);
     setSubmitError(null);
+    if (isSoldOut(draft.method)) {
+      setSubmitError("soldOut");
+      return;
+    }
     if (Object.keys(result).length > 0 || draft.amount === null || !whatsapp || !payment) {
       const firstInvalid = formRef.current?.querySelector<HTMLElement>("[aria-invalid='true']");
       firstInvalid?.focus({ preventScroll: true });
@@ -215,19 +226,25 @@ export function RobuxPanel({ className }: { className?: string }) {
                         const Icon = methodIcons[option.id];
                         const selected = draft.method === option.id;
                         const featured = "featured" in option && option.featured;
+                        const out = isSoldOut(option.id);
                         return (
                           <label
                             key={option.id}
                             className={cn(
-                              "relative flex cursor-pointer gap-3 rounded-2xl border-2 p-4 transition-[border-color,background-color] duration-150 has-focus-visible:ring-2 has-focus-visible:ring-brand-400",
-                              selected ? "border-brand-500 bg-brand-50" : "border-brand-100 hover:border-brand-300",
+                              "relative flex gap-3 rounded-2xl border-2 p-4 transition-[border-color,background-color] duration-150 has-focus-visible:ring-2 has-focus-visible:ring-brand-400",
+                              out
+                                ? "cursor-not-allowed border-dashed border-brand-100 bg-ink-300/10"
+                                : selected
+                                  ? "cursor-pointer border-brand-500 bg-brand-50"
+                                  : "cursor-pointer border-brand-100 hover:border-brand-300",
                             )}
                           >
                             <input
                               type="radio"
                               name="robux-method"
                               value={option.id}
-                              checked={selected}
+                              checked={selected && !out}
+                              disabled={out}
                               onChange={() => selectMethod(option.id)}
                               className="sr-only"
                             />
@@ -250,14 +267,27 @@ export function RobuxPanel({ className }: { className?: string }) {
                               <span className="mt-0.5 block text-xs text-ink-500">
                                 {t.methods[option.id].description}
                               </span>
-                              <span className="mt-2 inline-block rounded-full bg-white px-2 py-0.5 text-xs font-semibold text-brand-700 ring-1 ring-brand-100">
-                                {interpolate(t.fromRate, { price: formatIDR(getLowestRobuxRate(option.id, rates)) })}
-                              </span>
+                              {out ? (
+                                <span className="mt-2 inline-block rounded-full bg-ink-900 px-2 py-0.5 text-xs font-semibold text-white">
+                                  {dict.common.soldOut}
+                                </span>
+                              ) : (
+                                <span className="mt-2 inline-block rounded-full bg-white px-2 py-0.5 text-xs font-semibold text-brand-700 ring-1 ring-brand-100">
+                                  {interpolate(t.fromRate, { price: formatIDR(getLowestRobuxRate(option.id, rates)) })}
+                                </span>
+                              )}
                             </span>
                           </label>
                         );
                       })}
                     </fieldset>
+                    {allSoldOut ? (
+                      <p role="status" className="mt-3 rounded-xl bg-ink-300/15 px-4 py-3 text-sm text-ink-700">
+                        {t.allSoldOut}
+                      </p>
+                    ) : soldOut.robuxMethods.length > 0 ? (
+                      <p className="mt-2 text-xs text-ink-500">{t.soldOutMethod}</p>
+                    ) : null}
 
                     <AnimatePresence initial={false}>
                       {method.requires2sv && method.limits ? (
@@ -512,7 +542,13 @@ export function RobuxPanel({ className }: { className?: string }) {
                       <Total value={total} />
                     </div>
                     <SubmitError message={submitError ? c.submitErrors[submitError] : null} className="mt-4" />
-                    <Button type="submit" form={formId} size="lg" className="mt-5 w-full" disabled={submitting}>
+                    <Button
+                      type="submit"
+                      form={formId}
+                      size="lg"
+                      className="mt-5 w-full"
+                      disabled={submitting || allSoldOut}
+                    >
                       <Zap className="size-4" aria-hidden="true" />
                       {submitting ? c.processing : buyLabel}
                     </Button>
@@ -533,7 +569,7 @@ export function RobuxPanel({ className }: { className?: string }) {
                       </p>
                       <Total value={total} />
                     </div>
-                    <Button type="submit" form={formId} disabled={submitting}>
+                    <Button type="submit" form={formId} disabled={submitting || allSoldOut}>
                       <Zap className="size-4" aria-hidden="true" />
                       {submitting ? c.processing : c.buyNow}
                     </Button>

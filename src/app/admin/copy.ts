@@ -167,6 +167,17 @@ export const adminCopy = {
         amountRange: "Jumlah Robux tidak valid.",
       },
     },
+    stock: {
+      title: "Stok",
+      description:
+        "Matikan yang sedang habis. Pembeli tetap bisa melihatnya dengan tanda “Stok habis”, tapi tidak bisa membelinya.",
+      robux: "Robux",
+      shop: "Produk toko",
+      gamepass: "Gamepass game",
+      available: "Tersedia",
+      soldOut: "Stok habis",
+      summary: "{count} sedang habis",
+    },
     expiry: {
       title: "Batas waktu bayar",
       description:

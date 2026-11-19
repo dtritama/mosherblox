@@ -60,8 +60,9 @@ export interface ProductOrderInput {
  * - invalid:     the input failed server-side validation (`fields` says where)
  * - rateLimited: too many attempts from this connection — wait a few minutes
  * - unavailable: something went wrong on our side (database down…) — try again later
+ * - soldOut:     the Robux method or product is out of stock (admin settings)
  */
-export type OrderFailure = "invalid" | "rateLimited" | "unavailable";
+export type OrderFailure = "invalid" | "rateLimited" | "unavailable" | "soldOut";
 
 export type CreateOrderResult =
   { ok: true; order: Order } | { ok: false; error: OrderFailure; fields?: Partial<Record<string, OrderErrorCode>> };
@@ -72,7 +73,10 @@ export type CreateOrderResult =
  */
 export type ClaimPaymentResult =
   | { ok: true; order: Order }
-  | { ok: false; error: Exclude<OrderFailure, "invalid"> | "notFound" | "tooLate" | "notPending" | "badProof" };
+  | {
+      ok: false;
+      error: Exclude<OrderFailure, "invalid" | "soldOut"> | "notFound" | "tooLate" | "notPending" | "badProof";
+    };
 
 export type FindOrderResult =
-  { ok: true; order: Order | null } | { ok: false; error: Exclude<OrderFailure, "invalid"> };
+  { ok: true; order: Order | null } | { ok: false; error: Exclude<OrderFailure, "invalid" | "soldOut"> };

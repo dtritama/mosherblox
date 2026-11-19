@@ -4,6 +4,7 @@ import { m } from "motion/react";
 import { ArrowUpRight } from "lucide-react";
 import { memo } from "react";
 
+import { useStoreSettings } from "@/components/providers/settings-provider";
 import { ProductArt } from "@/components/ui/product-art";
 import { useTilt } from "@/hooks/use-tilt";
 import { getStartingPrice } from "@/lib/catalog";
@@ -29,6 +30,7 @@ export const ProductCard = memo(function ProductCard({
   const { locale, dict } = useI18n();
   const tilt = useTilt(8);
   const from = formatIDR(getStartingPrice(product));
+  const isSoldOut = useStoreSettings().soldOut.products.includes(product.slug);
 
   return (
     <m.button
@@ -38,13 +40,13 @@ export const ProductCard = memo(function ProductCard({
       onPointerMove={tilt.onPointerMove}
       onPointerLeave={tilt.onPointerLeave}
       whileTap={{ scale: 0.97 }}
-      aria-label={`${product.name}, ${dict.common.from} ${from}`}
+      aria-label={`${product.name}, ${isSoldOut ? dict.common.soldOut : `${dict.common.from} ${from}`}`}
       className="group relative flex w-full flex-col overflow-hidden rounded-3xl border border-brand-100 bg-white text-left shadow-sm transition-[box-shadow,border-color] duration-300 will-change-transform hover:border-brand-200 hover:shadow-2xl hover:shadow-brand-300/30"
     >
       <ProductArt
         icon={product.icon}
         accent={product.accent}
-        className="grid aspect-[16/10] w-full place-items-center lg:aspect-[2/1]"
+        className={cn("grid aspect-[16/10] w-full place-items-center lg:aspect-[2/1]", isSoldOut && "grayscale")}
         iconClassName="relative size-12 text-white drop-shadow-md transition-transform duration-500 group-hover:scale-110 group-hover:-rotate-6 sm:size-14"
       />
       {/* Shine sweep on hover */}
@@ -52,7 +54,11 @@ export const ProductCard = memo(function ProductCard({
         aria-hidden="true"
         className="pointer-events-none absolute inset-y-0 -left-full w-1/2 -skew-x-12 bg-linear-to-r from-transparent via-white/40 to-transparent transition-[left] duration-700 group-hover:left-[150%]"
       />
-      {product.tag ? (
+      {isSoldOut ? (
+        <span className="absolute top-3 left-3 rounded-full bg-ink-900 px-2.5 py-1 text-[11px] font-bold text-white shadow-sm">
+          {dict.common.soldOut}
+        </span>
+      ) : product.tag ? (
         <span
           className={cn(
             "absolute top-3 left-3 rounded-full px-2.5 py-1 text-[11px] font-bold shadow-sm",

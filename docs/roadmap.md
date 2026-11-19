@@ -32,7 +32,7 @@ Order of work (each step ends with `npm run check` and a browser test):
    Done: `/admin` (login, order list with "Perlu dicek" to-do filter + search, order detail with
    proof screenshot, history and status changes with notes), `npm run admin:create`.
    Settings (`/admin/settings`, owner only): Robux price tiers per method, QRIS image + merchant
-   name + NMID (checked in the browser before saving), payment window in minutes. Product /
+   name + NMID (checked in the browser before saving), payment window in minutes, stock switches ("Stok habis") per Robux method / product. Product /
    gamepass prices are still edited in `src/data/*` (a later CMS step if the client needs it).
 6. **Notifications + jobs** — worker with pg-boss: expire unpaid orders, Discord webhook on new
    paid order, (later) WhatsApp to the buyer.

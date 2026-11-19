@@ -1,8 +1,16 @@
 "use server";
 
 import { updateTag } from "next/cache";
-import { isValidExpiry, parseRobuxRates, SETTING_LIMITS, type RatesError, type SiteSettings } from "@/lib/settings";
+import {
+  isValidExpiry,
+  parseRobuxRates,
+  parseSoldOut,
+  SETTING_LIMITS,
+  type RatesError,
+  type SiteSettings,
+} from "@/lib/settings";
 import type { RobuxMethodId } from "@/data/robux";
+import { getAllCheckoutProducts } from "@/lib/catalog";
 import { requireAdmin, type AdminUser } from "@/server/auth/admin";
 import { saveQrisImage } from "@/server/payments/proof-storage";
 import { getFreshSettings, resetSetting, saveSetting, SETTINGS_TAG } from "@/server/settings";
@@ -97,7 +105,22 @@ export async function saveQrisAction(_prev: SettingsState, formData: FormData): 
   });
 }
 
-const RESETTABLE: readonly (keyof SiteSettings)[] = ["robuxRates", "orderExpiryMinutes", "qris"];
+/** Sold-out switches: the form sends the ids that are OFF (out of stock). */
+export async function saveSoldOutAction(_prev: SettingsState, formData: FormData): Promise<SettingsState> {
+  return run(async (admin) => {
+    const soldOut = parseSoldOut(
+      {
+        robuxMethods: formData.getAll("robuxMethods").slice(0, 10),
+        products: formData.getAll("products").slice(0, 200),
+      },
+      getAllCheckoutProducts().map((product) => product.slug),
+    );
+    await saveSetting("soldOut", soldOut, admin.id);
+    return { ok: true };
+  });
+}
+
+const RESETTABLE: readonly (keyof SiteSettings)[] = ["robuxRates", "orderExpiryMinutes", "qris", "soldOut"];
 
 /** Remove the override: back to the value in src/data/*. */
 export async function resetSettingAction(_prev: SettingsState, formData: FormData): Promise<SettingsState> {

@@ -4,7 +4,18 @@ import { Suspense, type ReactNode } from "react";
 
 import { adminCopy } from "@/app/admin/copy";
 import { AdminShell } from "@/components/admin/admin-shell";
-import { ExpiryForm, QrisForm, ResetButton, RobuxRatesForm } from "@/components/admin/settings-forms";
+import {
+  ExpiryForm,
+  QrisForm,
+  ResetButton,
+  RobuxRatesForm,
+  StockForm,
+  type StockItem,
+} from "@/components/admin/settings-forms";
+import { products } from "@/data/products";
+import { robuxConfig } from "@/data/robux";
+import { gamepassGames } from "@/data/gamepasses";
+import { gamepassProductSlug } from "@/lib/catalog";
 import { formatAdminDate } from "@/components/admin/status-badge";
 import { interpolate } from "@/i18n/format";
 import type { SiteSettings } from "@/lib/settings";
@@ -14,6 +25,19 @@ import { getFreshSettings, getSettingsMeta, type SettingMeta } from "@/server/se
 export const metadata: Metadata = { title: adminCopy.settings.title };
 
 const t = adminCopy.settings;
+
+const robuxMethodNames = { "send-username": "Via Send Username", gamepass: "Via Gamepass" } as const;
+
+/** Everything that can be switched off, in the order buyers see it. */
+const stockItems: StockItem[] = [
+  ...robuxConfig.methods.map((method) => ({
+    id: method.id,
+    name: `Robux ${robuxMethodNames[method.id]}`,
+    group: "robux" as const,
+  })),
+  ...products.map((product) => ({ id: product.slug, name: product.name, group: "shop" as const })),
+  ...gamepassGames.map((game) => ({ id: gamepassProductSlug(game.slug), name: game.name, group: "gamepass" as const })),
+];
 
 export default function AdminSettingsPage() {
   return (
@@ -41,6 +65,15 @@ async function Settings() {
 
       {/* Staff see the values but can't change them (the server refuses too). */}
       <fieldset disabled={!isOwner} className="mt-6 grid gap-5 disabled:opacity-60">
+        <Section
+          field="soldOut"
+          title={t.stock.title}
+          description={t.stock.description}
+          meta={meta.soldOut}
+          owner={isOwner}
+        >
+          <StockForm initial={settings.soldOut} items={stockItems} />
+        </Section>
         <Section
           field="robuxRates"
           title={t.robux.title}

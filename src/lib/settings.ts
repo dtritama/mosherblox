@@ -19,16 +19,25 @@ export interface QrisSetting {
   nmid: string;
 }
 
+/** What can't be bought right now (out of stock). Everything else is available. */
+export interface SoldOut {
+  robuxMethods: RobuxMethodId[];
+  /** Product slugs from src/data/products.ts and gamepass games as `gamepass-<game>`. */
+  products: string[];
+}
+
 export interface SiteSettings {
   robuxRates: RobuxRates;
   orderExpiryMinutes: number;
   qris: QrisSetting;
+  soldOut: SoldOut;
 }
 
 export const defaultSettings: SiteSettings = {
   robuxRates: defaultRobuxRates,
   orderExpiryMinutes: orderConfig.expiryMinutes,
   qris: { ...manualQris },
+  soldOut: { robuxMethods: [], products: [] },
 };
 
 /** Keys in the `settings` table. */
@@ -36,6 +45,7 @@ export const SETTING_KEYS = {
   robuxRates: "robux.rates",
   orderExpiryMinutes: "orders.expiryMinutes",
   qris: "payment.qris",
+  soldOut: "stock.soldOut",
 } as const satisfies Record<keyof SiteSettings, string>;
 
 export const SETTING_LIMITS = {
@@ -84,8 +94,32 @@ export function isValidExpiry(value: unknown): value is number {
   return isInt(value) && value >= SETTING_LIMITS.expiryMin && value <= SETTING_LIMITS.expiryMax;
 }
 
+const robuxMethodIds = robuxConfig.methods.map((method) => method.id) as readonly string[];
+
+/** Keeps only known ids (unknown slugs from an old setting are dropped). */
+export function parseSoldOut(input: unknown, productSlugs: readonly string[]): SoldOut {
+  const value = (input ?? {}) as Partial<Record<keyof SoldOut, unknown>>;
+  const pick = (list: unknown, allowed: readonly string[]) =>
+    Array.isArray(list) ? [...new Set(list.filter((item): item is string => allowed.includes(item as string)))] : [];
+  return {
+    robuxMethods: pick(value.robuxMethods, robuxMethodIds) as RobuxMethodId[],
+    products: pick(value.products, productSlugs),
+  };
+}
+
+export function isRobuxMethodSoldOut(soldOut: SoldOut, method: RobuxMethodId) {
+  return soldOut.robuxMethods.includes(method);
+}
+
+export function isProductSoldOut(soldOut: SoldOut, slug: string) {
+  return soldOut.products.includes(slug);
+}
+
 /** Merges stored values over the defaults, ignoring anything malformed (never breaks the shop). */
-export function mergeSettings(stored: Partial<Record<keyof SiteSettings, unknown>>): SiteSettings {
+export function mergeSettings(
+  stored: Partial<Record<keyof SiteSettings, unknown>>,
+  productSlugs: readonly string[] = [],
+): SiteSettings {
   const rates = stored.robuxRates !== undefined ? parseRobuxRates(stored.robuxRates) : null;
   const qris = stored.qris as Partial<QrisSetting> | undefined;
   const validQris =
@@ -110,5 +144,6 @@ export function mergeSettings(stored: Partial<Record<keyof SiteSettings, unknown
           nmid: typeof qris.nmid === "string" ? qris.nmid : "",
         }
       : defaultSettings.qris,
+    soldOut: stored.soldOut !== undefined ? parseSoldOut(stored.soldOut, productSlugs) : defaultSettings.soldOut,
   };
 }

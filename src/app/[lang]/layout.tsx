@@ -60,7 +60,7 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[la
   if (!hasLocale(lang)) notFound();
   const dict = getDictionaryFor(lang);
   // Admin-editable prices + QRIS (cached; refreshed right after a save in /admin/settings).
-  const { robuxRates, qris } = await getSiteSettings();
+  const { robuxRates, qris, soldOut } = await getSiteSettings();
 
   return (
     <html lang={lang} className={poppins.variable} data-scroll-behavior="smooth">
@@ -75,7 +75,7 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[la
         </a>
         <I18nProvider locale={lang} dict={dict}>
           <MotionProvider>
-            <SettingsProvider value={{ robuxRates, qris }}>
+            <SettingsProvider value={{ robuxRates, qris, soldOut }}>
               <TopUpProvider>
                 <ScrollProgress />
                 <Navbar />

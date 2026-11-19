@@ -49,6 +49,12 @@ What was decided, by whom, and why — so nobody re-litigates it. Newest first i
   browser first (checksum, static, merchant name → auto-filled); browsers without a QR reader
   (Safari) ask the admin to confirm they scanned it with a phone. Product/gamepass prices are not
   editable yet.
+- **Stock switches (2026-11-19, Devan: "flag gamepass out of stock"):** one setting with the
+  sold-out Robux methods and product slugs (shop products + `gamepass-<game>`). Sold-out things
+  stay visible with "Stok habis" (no surprise disappearance), can't be chosen, and the server
+  refuses them. A Robux link to a sold-out method opens on the first available one. Flash deals of
+  a sold-out product are hidden (if every deal is sold out the section disappears, and the "Promo"
+  nav link then has nothing to jump to).
 
 - **Manual QRIS (step 4, 2026-11-19):** the client's static QRIS (`public/payments/qris.jpg`) was
   decoded and checksum-verified: GoPay merchant **"Kautsars, Gaming"** (Sukabumi), NMID

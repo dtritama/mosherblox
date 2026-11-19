@@ -22,6 +22,7 @@ export const en: Dictionary = {
   },
   common: {
     skipToContent: "Skip to content",
+    soldOut: "Sold out",
     backToTop: "Back to top",
     close: "Close",
     from: "from",
@@ -139,6 +140,8 @@ export const en: Dictionary = {
       },
     },
     fromRate: "from {price}/Robux",
+    soldOutMethod: "Sold out. Pick another method or check back later.",
+    allSoldOut: "Robux is sold out for every method right now. Check back later, or chat with support.",
     amountLabel: "Robux amount",
     amountHint: "Min {min} · Max {max} Robux",
     decrease: "Remove {step} Robux",
@@ -359,6 +362,7 @@ export const en: Dictionary = {
       total: "Total",
     },
     buyNow: "Buy now",
+    soldOutNotice: "This product is sold out right now. Check back later, or chat with support about stock.",
     processing: "Processing…",
     secure: "Secure, encrypted checkout",
     errors: {
@@ -375,6 +379,7 @@ export const en: Dictionary = {
       invalid: "Something in the form isn't right. Check the fields above and try again.",
       rateLimited: "Too many attempts. Wait a few minutes, then try again.",
       unavailable: "We couldn't create your order right now. Try again shortly, or chat with support.",
+      soldOut: "Sorry, this just sold out. Pick something else or check back later.",
     },
     success: {
       title: "Order created",
