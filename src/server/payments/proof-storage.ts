@@ -1,5 +1,5 @@
 import "server-only";
-import { mkdir, rm, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { orderConfig } from "@/data/orders";
 
@@ -48,4 +48,22 @@ export async function saveProof(
 /** Removes a saved proof again (when the database update that should reference it failed). */
 export async function deleteProof(relative: string) {
   await rm(path.join(/*turbopackIgnore: true*/ uploadRoot(), relative), { force: true });
+}
+
+const contentTypes: Record<string, string> = { jpg: "image/jpeg", png: "image/png", webp: "image/webp" };
+
+/**
+ * Reads a stored proof for the admin proof route. The path comes from our own database, but it is
+ * still resolved and checked to stay inside UPLOAD_DIR.
+ */
+export async function readProof(relative: string): Promise<{ bytes: Uint8Array<ArrayBuffer>; type: string } | null> {
+  const root = uploadRoot();
+  const absolute = path.resolve(/*turbopackIgnore: true*/ root, relative);
+  const type = contentTypes[path.extname(absolute).slice(1).toLowerCase()];
+  if (!type || !absolute.startsWith(root + path.sep)) return null;
+  try {
+    return { bytes: Uint8Array.from(await readFile(absolute)), type };
+  } catch {
+    return null;
+  }
 }

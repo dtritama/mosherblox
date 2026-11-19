@@ -1,24 +1,14 @@
 "use client";
 
 import { AnimatePresence, m } from "motion/react";
-import {
-  BadgeCheck,
-  Check,
-  CircleAlert,
-  Clock,
-  Hourglass,
-  Loader2,
-  MessageCircle,
-  PackageCheck,
-  Search,
-  X,
-} from "lucide-react";
+import { Check, Loader2, MessageCircle, Search, X } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useRef, useState, type FormEvent } from "react";
 
 import { Field, inputClass, SummaryRow } from "@/components/checkout/form-parts";
 import { QrisPayment } from "@/components/checkout/qris-payment";
 import { SubmitError } from "@/components/checkout/submit-error";
+import { statusStyles } from "@/components/orders/status-styles";
 import { Button } from "@/components/ui/button";
 import { siteConfig } from "@/config/site";
 import { intlLocales } from "@/i18n/config";
@@ -30,15 +20,6 @@ import { orderService } from "@/lib/orders/service";
 import type { Order, OrderStatus } from "@/lib/orders/types";
 import { cn } from "@/lib/utils";
 import { LIMITS, normalizeWhatsapp, sanitizeWhatsapp } from "@/lib/validation";
-
-export const statusStyles: Record<OrderStatus, { badge: string; icon: typeof Clock }> = {
-  pending: { badge: "bg-amber-100 text-amber-800", icon: Clock },
-  paid: { badge: "bg-brand-100 text-brand-800", icon: BadgeCheck },
-  processing: { badge: "bg-sky-100 text-sky-800", icon: Loader2 },
-  completed: { badge: "bg-brand-100 text-brand-800", icon: PackageCheck },
-  failed: { badge: "bg-blush-100 text-blush-800", icon: CircleAlert },
-  expired: { badge: "bg-ink-300/25 text-ink-700", icon: Hourglass },
-};
 
 /** Index of the timeline step the order is currently on (0 created · 1 payment · 2 processing · 3 done). */
 const currentStep: Record<OrderStatus, number> = {

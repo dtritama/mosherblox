@@ -7,7 +7,7 @@ import { Field, inputClass, Step, SummaryRow } from "@/components/checkout/form-
 import { OrderSuccess } from "@/components/checkout/order-success";
 import { PaymentPicker } from "@/components/checkout/payment-picker";
 import { KitNote } from "@/components/design-kit/kit-frame";
-import { statusStyles } from "@/components/orders/check-order";
+import { statusStyles } from "@/components/orders/status-styles";
 import { OrderCard } from "@/components/sections/hero";
 import { ProductCard } from "@/components/topup/product-card";
 import { useTopUp } from "@/components/topup/topup-provider";

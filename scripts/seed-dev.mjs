@@ -105,7 +105,7 @@ try {
         amount: row.total,
         unique_code: order.unique_code,
       })}`;
-      await tx`INSERT INTO order_events ${tx({ order_id: order.id, to_status: order.status, actor: "system", note: "Sample order (db:seed)" })}`;
+      await tx`INSERT INTO order_events ${tx({ order_id: order.id, to_status: order.status, actor: "system", note: "Pesanan contoh (db:seed)" })}`;
     }
   });
   console.log(`Seeded ${orders.length} sample orders (WhatsApp 081234567890).`);

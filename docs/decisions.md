@@ -36,6 +36,13 @@ What was decided, by whom, and why — so nobody re-litigates it. Newest first i
 
 ## Architecture decisions (phase 2)
 
+- **Admin (step 5, 2026-11-19):** own small auth instead of Better Auth for now (admins only):
+  scrypt password hashes (Node built-in), DB sessions with hashed tokens, 12-hour login, rate
+  limits. Better Auth can still come for _customer_ login (phase 3) without touching this. Admin is
+  Indonesian only. "Perlu dicek" (pending + buyer said paid, oldest first) is the default view.
+  Marking paid requires ticking that the exact amount is in the GoPay merchant history; marking
+  failed requires a note. Settings page postponed (see roadmap step 5).
+
 - **Manual QRIS (step 4, 2026-11-19):** the client's static QRIS (`public/payments/qris.jpg`) was
   decoded and checksum-verified: GoPay merchant **"Kautsars, Gaming"** (Sukabumi), NMID
   ID1026552374492, criteria **UMI (usaha mikro)** → 0% MDR up to Rp 500.000 (half of open question 6

@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
-import localFont from "next/font/local";
 import { notFound } from "next/navigation";
+
+import { poppins } from "@/app/fonts/poppins";
 
 import { BackToTop } from "@/components/layout/back-to-top";
 import { Footer } from "@/components/layout/footer";
@@ -15,20 +16,6 @@ import { localeAlternates } from "@/i18n/metadata";
 import { I18nProvider } from "@/i18n/i18n-provider";
 
 import "../globals.css";
-
-// Poppins is self-hosted (SIL OFL, see ../fonts/OFL.txt): no request to Google at build or run time.
-const poppins = localFont({
-  src: [
-    { path: "../fonts/poppins-latin-400-normal.woff2", weight: "400", style: "normal" },
-    { path: "../fonts/poppins-latin-500-normal.woff2", weight: "500", style: "normal" },
-    { path: "../fonts/poppins-latin-600-normal.woff2", weight: "600", style: "normal" },
-    { path: "../fonts/poppins-latin-700-normal.woff2", weight: "700", style: "normal" },
-    { path: "../fonts/poppins-latin-800-normal.woff2", weight: "800", style: "normal" },
-  ],
-  display: "swap",
-  variable: "--font-poppins",
-  fallback: ["ui-sans-serif", "system-ui", "sans-serif"],
-});
 
 /** Pre-render every locale at build time (/id and /en are fully static). */
 export function generateStaticParams() {

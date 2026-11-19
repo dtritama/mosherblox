@@ -70,6 +70,26 @@ export const admins = pgTable("admins", {
   updatedAt: updatedAt(),
 });
 
+/**
+ * Admin login sessions. The cookie holds a random token; only its SHA-256 hash is stored, so a
+ * database leak doesn't hand out live sessions. Deleting a row logs that device out.
+ */
+export const adminSessions = pgTable(
+  "admin_sessions",
+  {
+    /** SHA-256 (hex) of the session token. */
+    id: text("id").primaryKey(),
+    adminId: uuid("admin_id")
+      .notNull()
+      .references(() => admins.id, { onDelete: "cascade" }),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    ip: text("ip"),
+    userAgent: text("user_agent"),
+    createdAt: createdAt(),
+  },
+  (t) => [index("admin_sessions_admin_idx").on(t.adminId), index("admin_sessions_expires_idx").on(t.expiresAt)],
+);
+
 // ---------------------------------------------------------------------------------------------
 // Orders
 // ---------------------------------------------------------------------------------------------
@@ -203,6 +223,7 @@ export const settings = pgTable("settings", {
 });
 
 export type AdminRow = typeof admins.$inferSelect;
+export type AdminSessionRow = typeof adminSessions.$inferSelect;
 export type OrderRow = typeof orders.$inferSelect;
 export type NewOrderRow = typeof orders.$inferInsert;
 export type OrderEventRow = typeof orderEvents.$inferSelect;

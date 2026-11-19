@@ -119,11 +119,12 @@ export async function createOrder(quote: OrderQuote): Promise<Order> {
 export async function transitionOrder(
   orderId: string,
   to: OrderStatus,
-  by: { actor: Actor; adminId?: string; note?: string },
+  by: { actor: Actor; adminId?: string; note?: string; expectedFrom?: OrderStatus },
 ): Promise<Order> {
   const [row, payment] = await getDb().transaction(async (tx) => {
     const [current] = await tx.select().from(orders).where(eq(orders.id, orderId)).for("update");
-    if (!current || !canTransition(current.status, to)) {
+    const stale = by.expectedFrom !== undefined && current?.status !== by.expectedFrom;
+    if (!current || stale || !canTransition(current.status, to)) {
       throw new OrderTransitionError(orderId, current?.status ?? null, to);
     }
     const now = new Date();
@@ -136,11 +137,17 @@ export async function transitionOrder(
       })
       .where(eq(orders.id, orderId))
       .returning();
+    // Keep the payment in step with the order.
+    const open = and(eq(payments.orderId, orderId), inArray(payments.status, ["pending", "submitted"]));
     if (to === "expired") {
+      await tx.update(payments).set({ status: "expired" }).where(open);
+    } else if (to === "paid" || (to === "completed" && current.status === "pending")) {
       await tx
         .update(payments)
-        .set({ status: "expired" })
-        .where(and(eq(payments.orderId, orderId), inArray(payments.status, ["pending", "submitted"])));
+        .set({ status: "confirmed", confirmedBy: by.adminId ?? null, confirmedAt: now })
+        .where(open);
+    } else if (to === "failed" && current.status === "pending") {
+      await tx.update(payments).set({ status: "rejected" }).where(open);
     }
     await tx.insert(orderEvents).values({
       orderId,
@@ -182,7 +189,7 @@ export async function findOrder(rawId: string, whatsapp: string): Promise<Order 
   const payment = await latestPayment(db, row.id);
   if (shouldExpire(row, payment)) {
     try {
-      return await transitionOrder(row.id, "expired", { actor: "system", note: "Not paid before expiry" });
+      return await transitionOrder(row.id, "expired", { actor: "system", note: "Tidak dibayar sampai batas waktu" });
     } catch (error) {
       // Someone else changed it at the same moment (e.g. admin marked it paid) — show that instead.
       if (!(error instanceof OrderTransitionError)) throw error;
@@ -235,7 +242,7 @@ export async function claimPayment(
       fromStatus: "pending",
       toStatus: "pending",
       actor: "buyer",
-      note: proofPath ? "Buyer says paid (screenshot attached)" : "Buyer says paid",
+      note: proofPath ? "Dengan bukti transfer" : "Tanpa bukti transfer",
     });
     return { ok: true, order: toOrder(row, updated) } as const;
   });

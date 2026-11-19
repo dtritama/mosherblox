@@ -17,7 +17,8 @@ export function getDictionaryFor(locale: Locale): Dictionary {
  * if imported into a Client Component — those use `useI18n()` instead.)
  */
 export async function getI18n() {
-  const locale = await lang();
+  // undefined outside the [lang] tree (e.g. the /admin root layout).
+  const locale = (await lang()) ?? "";
   if (!hasLocale(locale)) notFound();
   return { locale, dict: dictionaries[locale] };
 }

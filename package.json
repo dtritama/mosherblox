@@ -18,7 +18,8 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
-    "db:seed": "node scripts/seed-dev.mjs"
+    "db:seed": "node scripts/seed-dev.mjs",
+    "admin:create": "node scripts/create-admin.mjs"
   },
   "dependencies": {
     "clsx": "^2.1.1",

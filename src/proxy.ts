@@ -8,12 +8,16 @@ const gamepassSlugs = new Set(gamepassGames.map((game) => game.slug));
 /**
  * 1. Locale routing: every page lives under /id or /en. A path without a locale (e.g. "/") is
  *    redirected to the visitor's saved language (cookie set by the switcher) or Bahasa Indonesia.
+ *    /admin is left alone (no locale; it checks the admin session itself).
  * 2. Unknown games (/id/gamepass/does-not-exist) are rewritten to the catch-all route so they
  *    return a real 404 status instead of a streamed 200 page.
  */
 export function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
   const [, firstSegment = "", section, slug, ...rest] = pathname.split("/");
+
+  // The admin panel has no locale (Indonesian only) and does its own auth checks.
+  if (firstSegment === "admin") return NextResponse.next();
 
   if (hasLocale(firstSegment)) {
     if (section === "gamepass" && slug && (rest.length > 0 || !gamepassSlugs.has(slug))) {

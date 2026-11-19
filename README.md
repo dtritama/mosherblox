@@ -67,21 +67,22 @@ npm start
 
 ### Scripts
 
-| Script                | What it does                                   |
-| --------------------- | ---------------------------------------------- |
-| `npm run dev`         | Dev server with hot reload                     |
-| `npm run build`       | Production build                               |
-| `npm start`           | Serve the production build                     |
-| `npm run lint`        | ESLint (Next.js + TypeScript rules)            |
-| `npm run typecheck`   | TypeScript check                               |
-| `npm run format`      | Prettier (+ Tailwind class sorting)            |
-| `npm run check`       | typecheck + lint + build (run before push)     |
-| `npm run db:up`       | Start local Postgres in Docker (port 5433)     |
-| `npm run db:down`     | Stop it (data is kept in a Docker volume)      |
-| `npm run db:generate` | Write a SQL migration after editing the schema |
-| `npm run db:migrate`  | Apply pending migrations                       |
-| `npm run db:seed`     | Add the 4 sample orders (local database only)  |
-| `npm run db:studio`   | Browse the database in Drizzle Studio          |
+| Script                 | What it does                                    |
+| ---------------------- | ----------------------------------------------- |
+| `npm run dev`          | Dev server with hot reload                      |
+| `npm run build`        | Production build                                |
+| `npm start`            | Serve the production build                      |
+| `npm run lint`         | ESLint (Next.js + TypeScript rules)             |
+| `npm run typecheck`    | TypeScript check                                |
+| `npm run format`       | Prettier (+ Tailwind class sorting)             |
+| `npm run check`        | typecheck + lint + build (run before push)      |
+| `npm run db:up`        | Start local Postgres in Docker (port 5433)      |
+| `npm run db:down`      | Stop it (data is kept in a Docker volume)       |
+| `npm run db:generate`  | Write a SQL migration after editing the schema  |
+| `npm run db:migrate`   | Apply pending migrations                        |
+| `npm run db:seed`      | Add the 4 sample orders (local database only)   |
+| `npm run admin:create` | Create an admin login (`-- --email … --name …`) |
+| `npm run db:studio`    | Browse the database in Drizzle Studio           |
 
 ---
 

@@ -20,6 +20,7 @@ npm run db:up        # local Postgres 17 in Docker on port 5433 (5432 is taken o
 npm run db:generate  # after editing src/server/db/schema.ts → new SQL file in drizzle/
 npm run db:migrate   # apply migrations (drizzle-kit reads .env.local via @next/env)
 npm run db:seed      # reset the 4 dev sample orders (refuses non-local databases)
+npm run admin:create -- --email you@example.com --name "Name" [--role owner|staff]  # asks password; resets if exists
 npm run db:studio | db:down
 ```
 
@@ -59,6 +60,9 @@ src/
   lib/                 pure logic: validation, robux-pricing, catalog, contact, orders/*
   server/db/           Drizzle schema + getDb() (server-only; import only from server code)
   server/orders/       order domain: quote (server pricing), service (create/find/transition), actions
+  server/auth/         admin login: scrypt hashes (password-hash.mjs, shared with scripts), DB sessions
+  server/admin/        admin read models (orders list/detail) + admin server actions
+  app/admin/           admin panel (own root layout, Indonesian only, noindex, `instant = false`)
   proxy.ts
 design/                tokens.json, screens/*.png, README (Figma)
 scripts/export-tokens.mjs
@@ -85,6 +89,13 @@ Rules:
   `manualQris`). After checkout and on Check Order a pending order shows `QrisPayment` (QR, exact
   total, countdown, "Saya sudah bayar" + optional screenshot → payment `submitted`; only an admin
   marks it paid). Proofs go to `UPLOAD_DIR` (default `storage/uploads`, git-ignored, never public).
+- **Admin panel** (`/admin`): every page, action and route calls `requireAdmin()` / `getAdmin()`
+  itself (DAL pattern). Sessions: random token in an httpOnly cookie (`__Host-mb_admin` in prod),
+  only its SHA-256 stored in `admin_sessions` (12 h). Login rate-limited per IP and per email.
+  Status changes go through `transitionOrder()` with `expectedFrom` (stale clicks are refused) and
+  also update the payment (paid → confirmed + who, failed-from-pending → rejected). Proof images
+  only via `/admin/proofs/[paymentId]` (no-store, nosniff, sandbox CSP). `/admin` is skipped by
+  `proxy.ts` (no locale) and disallowed in robots. Copy lives in `app/admin/copy.ts`.
 - Order IDs: `MB-` + 8 chars from an unambiguous alphabet (`lib/orders/order-id.ts`).
 - Server Components by default; `"use client"` only for interactivity. Motion via `LazyMotion` +
   `m.*` components, `MotionConfig reducedMotion="user"`.
