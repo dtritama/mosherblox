@@ -28,7 +28,8 @@ What was decided, by whom, and why — so nobody re-litigates it. Newest first i
 2. Min/max per order and whether any amount is allowed (currently min 10 — client asked 2026-11-19 —, Gamepass max 100.000, USN max 5.000).
 3. Delivery time difference between Gamepass and Send Username (to show on method cards).
 4. Golrox screenshot for the panel layout reference.
-5. Official Robux icon file (SVG preferred).
+5. ~~Official Robux icon file~~ → done 2026-11-21: Robux symbol from Wikimedia Commons (public-domain
+   shape, trademark of Roblox), used only to label Robux amounts.
 6. ~~QRIS image + usaha mikro~~ → received; registered as UMI. Still to confirm: is "Kautsars, Gaming"
    the right merchant for MOSHERBLOX, or will a QRIS in the store's own name follow?
 7. Unpaid-order expiry time (30 or 60 min?).

@@ -138,8 +138,9 @@ Rules:
   `m.*` components, `MotionConfig reducedMotion="user"`.
 - Shared checkout pieces in `components/checkout/` (Step, Field, SummaryRow, PaymentPicker,
   OrderSuccess) are used by both the Robux panel and the product dialog — reuse them.
-- Robux icon comes from one component: `components/ui/robux-icon.tsx` (still lucide `Coins`;
-  waiting for the official Robux icon file from the client — don't hand-draw Roblox logos).
+- Robux icon comes from one component: `components/ui/robux-icon.tsx` — the official Robux symbol
+  (Wikimedia Commons "Robux 2019 Logo gold.svg", public-domain shape, Roblox trademark). `tone="gold"`
+  (default, Roblox's gradient) or `tone="ink"` (currentColor) on lime buttons/panels. Don't redraw it.
 
 ## i18n
 

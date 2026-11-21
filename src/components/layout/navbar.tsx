@@ -116,7 +116,7 @@ export function Navbar() {
             href={localeHref(locale, "/robux")}
             className={buttonVariants({ size: "sm", className: "hidden sm:inline-flex" })}
           >
-            <RobuxIcon className="size-4" aria-hidden="true" />
+            <RobuxIcon tone="ink" className="size-4" aria-hidden="true" />
             {dict.nav.buyRobux}
           </Link>
           <button
@@ -169,7 +169,7 @@ export function Navbar() {
                 onClick={() => setOpen(false)}
                 className={buttonVariants({ className: "mt-2 w-full" })}
               >
-                <RobuxIcon className="size-4" aria-hidden="true" />
+                <RobuxIcon tone="ink" className="size-4" aria-hidden="true" />
                 {dict.nav.buyRobux}
               </Link>
             </Container>

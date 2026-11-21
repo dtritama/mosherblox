@@ -258,7 +258,7 @@ export function RobuxSection() {
         >
           <div className="flex items-center gap-4">
             <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-brand-400 text-ink-900 shadow-lg shadow-brand-500/30">
-              <RobuxIcon className="size-6" aria-hidden="true" />
+              <RobuxIcon tone="ink" className="size-6" aria-hidden="true" />
             </span>
             <div>
               <p className="font-bold text-ink-900">{t.cta.title}</p>

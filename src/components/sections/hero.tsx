@@ -88,7 +88,7 @@ export function Hero() {
               className="mt-7 flex flex-wrap justify-center gap-3"
             >
               <ButtonLink href="#robux" size="lg">
-                <RobuxIcon className="size-5" aria-hidden="true" />
+                <RobuxIcon tone="ink" className="size-5" aria-hidden="true" />
                 {hero.buyRobux}
                 <ArrowRight className="size-4 transition-transform group-hover/btn:translate-x-1" aria-hidden="true" />
               </ButtonLink>
