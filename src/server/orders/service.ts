@@ -299,7 +299,7 @@ export async function expireOverdueOrders(limit = 200): Promise<number> {
   return expired;
 }
 
-/** What a team notification shows about an order (no buyer contact data). */
+/** What a team notification shows about an order (Roblox account for delivery; no WhatsApp number). */
 export async function getOrderSummary(orderId: string) {
   const [row] = await getDb().select().from(orders).where(eq(orders.id, orderId)).limit(1);
   if (!row) return null;
@@ -307,9 +307,19 @@ export async function getOrderSummary(orderId: string) {
   return {
     id: row.id,
     status: row.status,
+    kind: row.kind,
     item: row.itemLabel.id,
     productName: row.productName,
+    robuxAmount: row.robuxAmount,
+    robuxMethod: row.robuxMethod,
+    // The buyer's Roblox account (needed by the team to deliver). No WhatsApp number.
+    account: row.account,
+    robloxUserId: row.robloxUserId,
+    robloxDisplayName: row.robloxDisplayName,
+    subtotal: row.subtotal + row.fee,
+    uniqueCode: row.uniqueCode,
     total: row.total,
+    createdAt: row.createdAt.toISOString(),
     hasProof: Boolean(payment?.proofPath),
     paymentStatus: payment?.status ?? null,
   };

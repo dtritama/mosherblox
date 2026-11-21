@@ -19,6 +19,7 @@ const { QUEUES, QUEUE_OPTIONS } = await import("@/server/jobs/queue");
 const { expireOverdueOrders, getOrderSummary } = await import("@/server/orders/service");
 const { discordWebhookUrl, newOrderMessage, paymentClaimedMessage, postToDiscord } =
   await import("@/server/notify/discord");
+const { fetchAvatarUrls } = await import("@/server/roblox/users");
 type NotifyJob = import("@/server/jobs/queue").NotifyJob;
 
 const log = (...args: unknown[]) => console.log(new Date().toISOString(), "[worker]", ...args);
@@ -52,7 +53,13 @@ await boss.work<NotifyJob>(QUEUES.notify, async ([job]) => {
   // The order may have moved on since the job was queued (e.g. an admin already handled it).
   if (job.data.kind === "paymentClaimed" && !(order.status === "pending" && order.paymentStatus === "submitted"))
     return;
-  const message = job.data.kind === "paymentClaimed" ? paymentClaimedMessage(order) : newOrderMessage(order);
+  // Buyer's Roblox avatar for the message thumbnail; a Roblox hiccup just means no picture.
+  const avatarUrl = order.robloxUserId
+    ? ((await fetchAvatarUrls([order.robloxUserId]).catch(() => ({}) as Record<number, string>))[order.robloxUserId] ??
+      null)
+    : null;
+  const message =
+    job.data.kind === "paymentClaimed" ? paymentClaimedMessage(order, avatarUrl) : newOrderMessage(order, avatarUrl);
   await postToDiscord(webhook, message); // throws → pg-boss retries with backoff
   log(`notified Discord: ${job.data.kind} ${order.id}`);
 });

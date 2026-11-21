@@ -1,17 +1,29 @@
 import "server-only";
-import { formatIDR } from "@/i18n/format";
+import { formatIDR, formatNumber } from "@/i18n/format";
 
 /**
  * Discord webhook messages for the store team's private channel.
- * Only what the team needs to act — no WhatsApp numbers or other buyer data leave our server.
- * The full details are one click away in the admin panel.
+ * What the team needs to act: the Roblox account to deliver to (with avatar), what was bought and
+ * the exact amount to find in the bank history. No WhatsApp number or other contact data leaves
+ * our server; the full details are one click away in the admin panel.
  */
 
 export interface OrderSummary {
   id: string;
+  kind: "robux" | "product";
   item: string;
   productName: string;
+  robuxAmount: number | null;
+  robuxMethod: "send-username" | "gamepass" | null;
+  /** Roblox username (or email for voucher products). */
+  account: string;
+  robloxUserId: number | null;
+  robloxDisplayName: string | null;
+  /** Price + fee, before the unique code. */
+  subtotal: number;
+  uniqueCode: number;
   total: number;
+  createdAt: string;
   hasProof: boolean;
 }
 
@@ -33,54 +45,114 @@ const adminUrl = (orderId: string) =>
 const LIME = 0xa5e34a;
 const PINK = 0xf04f82;
 
-/** Discord user IDs to tag (DISCORD_MENTION_USER_IDS, comma-separated snowflakes). */
-export function mentionUserIds(): string[] {
-  return (process.env.DISCORD_MENTION_USER_IDS ?? "")
+const snowflakes = (value: string | undefined) =>
+  (value ?? "")
     .split(",")
     .map((id) => id.trim())
     .filter((id) => /^\d{15,21}$/.test(id))
     .slice(0, 10);
+
+export interface Mentions {
+  users: string[];
+  roles: string[];
+}
+
+/**
+ * Who the "Saya sudah bayar" ping tags: DISCORD_MENTION_ROLE_IDS (roles) and/or
+ * DISCORD_MENTION_USER_IDS (people), both comma-separated snowflakes.
+ */
+export function mentionTargets(): Mentions {
+  return {
+    users: snowflakes(process.env.DISCORD_MENTION_USER_IDS),
+    roles: snowflakes(process.env.DISCORD_MENTION_ROLE_IDS),
+  };
+}
+
+/** Text from buyers/catalog shown in Discord markdown: escape anything that would format it. */
+const md = (text: string) => text.replace(/[\\*_~`|>[\]()#-]/g, (c) => `\\${c}`);
+
+const METHOD_LABEL = { "send-username": "Send Username", gamepass: "Via Gamepass" } as const;
+
+/** The order card both pings share: Roblox avatar, account, what was bought, money, proof. */
+function orderEmbed(
+  order: OrderSummary,
+  options: { heading: string; description: string; color: number; avatarUrl: string | null },
+) {
+  const isRobux = order.kind === "robux" && order.robuxAmount !== null;
+  const robux = isRobux ? `${formatNumber(order.robuxAmount!, "id")} Robux` : null;
+  const account = order.robloxDisplayName
+    ? `**${md(order.robloxDisplayName)}** (@${md(order.account)})${order.robloxUserId ? `\nID ${order.robloxUserId}` : ""}`
+    : `**${md(order.account)}**`;
+  const fields = [
+    { name: "Akun Roblox", value: account, inline: true },
+    isRobux
+      ? {
+          name: "Jumlah",
+          value: `**${robux}**\n${METHOD_LABEL[order.robuxMethod ?? "send-username"]}`,
+          inline: true,
+        }
+      : { name: "Item", value: `**${md(order.item)}**\n${md(order.productName)}`, inline: true },
+    {
+      name: "Total bayar",
+      value: `**${formatIDR(order.total)}**\n${formatIDR(order.subtotal)} + kode unik ${order.uniqueCode}`,
+      inline: true,
+    },
+    { name: "Bukti transfer", value: order.hasProof ? "Ada, lihat di admin" : "Tidak ada", inline: true },
+    { name: "Pesanan", value: `\`${order.id}\``, inline: true },
+  ];
+  return {
+    author: { name: options.heading },
+    title: isRobux
+      ? `${robux} untuk ${order.robloxDisplayName ?? order.account}`
+      : `${order.item} · ${order.productName}`,
+    url: adminUrl(order.id),
+    description: options.description,
+    color: options.color,
+    ...(options.avatarUrl ? { thumbnail: { url: options.avatarUrl } } : {}),
+    fields,
+    footer: { text: "MOSHERBLOX · klik judul untuk membuka pesanan di admin" },
+    timestamp: order.createdAt,
+  };
 }
 
 /** The ping that needs action: tags the configured people (and nobody else). */
-export function paymentClaimedMessage(order: OrderSummary, mentions: string[] = mentionUserIds()) {
+export function paymentClaimedMessage(
+  order: OrderSummary,
+  avatarUrl: string | null = null,
+  mentions: Mentions = mentionTargets(),
+) {
   return {
     username: "MOSHERBLOX",
     // Mentions appear only in `content` (embeds never notify anyone).
-    ...(mentions.length > 0 ? { content: mentions.map((id) => `<@${id}>`).join(" ") } : {}),
-    // Only these users may be pinged — never @everyone/@here or a role, whatever ends up in the text.
-    allowed_mentions: { parse: [], users: mentions },
+    content: [
+      ...mentions.roles.map((id) => `<@&${id}>`),
+      ...mentions.users.map((id) => `<@${id}>`),
+      `Pembayaran perlu dicek: \`${order.id}\``,
+    ].join(" "),
+    // Only these roles/users may be pinged — never @everyone/@here, whatever ends up in the text.
+    allowed_mentions: { parse: [], roles: mentions.roles, users: mentions.users },
     embeds: [
-      {
-        title: `Pembeli bilang sudah bayar · ${order.id}`,
+      orderEmbed(order, {
+        heading: "Pembeli bilang sudah bayar",
         description: `Cek mutasi GoPay merchant: harus ada uang masuk **tepat ${formatIDR(order.total)}**.`,
-        url: adminUrl(order.id),
         color: PINK,
-        fields: [
-          { name: "Item", value: `${order.item} (${order.productName})`, inline: true },
-          { name: "Total", value: formatIDR(order.total), inline: true },
-          { name: "Bukti transfer", value: order.hasProof ? "Ada" : "Tidak ada", inline: true },
-        ],
-      },
+        avatarUrl,
+      }),
     ],
   };
 }
 
-export function newOrderMessage(order: OrderSummary) {
+export function newOrderMessage(order: OrderSummary, avatarUrl: string | null = null) {
   return {
     username: "MOSHERBLOX",
     allowed_mentions: { parse: [] },
     embeds: [
-      {
-        title: `Pesanan baru · ${order.id}`,
-        description: "Menunggu pembayaran.",
-        url: adminUrl(order.id),
+      orderEmbed(order, {
+        heading: "Pesanan baru",
+        description: "Menunggu pembayaran dari pembeli.",
         color: LIME,
-        fields: [
-          { name: "Item", value: `${order.item} (${order.productName})`, inline: true },
-          { name: "Total", value: formatIDR(order.total), inline: true },
-        ],
-      },
+        avatarUrl,
+      }),
     ],
   };
 }

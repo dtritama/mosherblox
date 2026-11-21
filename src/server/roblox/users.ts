@@ -33,11 +33,11 @@ async function robloxFetch(url: string, init?: RequestInit) {
 const safeAvatar = (url: unknown) =>
   typeof url === "string" && /^https:\/\/tr\.rbxcdn\.com\/[\w./-]+$/.test(url) ? url : null;
 
-/** Headshot URLs for up to 100 users per call. Missing / not-ready avatars are left out. */
-export async function getAvatarUrls(ids: readonly number[]): Promise<Record<number, string>> {
-  "use cache";
-  cacheLife("hours");
-  cacheTag("roblox-avatars");
+/**
+ * Headshot URLs for up to 100 users per call (uncached). Missing / not-ready avatars are left out.
+ * The worker uses this directly (it runs outside Next.js, where "use cache" doesn't apply).
+ */
+export async function fetchAvatarUrls(ids: readonly number[]): Promise<Record<number, string>> {
   const unique = [...new Set(ids)].filter((id) => Number.isSafeInteger(id) && id > 0).slice(0, 100);
   if (unique.length === 0) return {};
   const json = (await robloxFetch(
@@ -49,6 +49,14 @@ export async function getAvatarUrls(ids: readonly number[]): Promise<Record<numb
     if (url && typeof item.targetId === "number") out[item.targetId] = url;
   }
   return out;
+}
+
+/** Cached version for pages (leaderboard, reviews, checkout preview). */
+export async function getAvatarUrls(ids: readonly number[]): Promise<Record<number, string>> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("roblox-avatars");
+  return fetchAvatarUrls(ids);
 }
 
 /** Looks a username up. null = no such (non-banned) account. Throws when Roblox can't be reached. */

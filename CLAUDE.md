@@ -65,7 +65,7 @@ src/
   server/auth/         admin login: scrypt hashes (password-hash.mjs, shared with scripts), DB sessions
   server/admin/        admin read models (orders list/detail) + admin server actions
   server/jobs/         pg-boss queue names/options + enqueue() (web app only sends jobs)
-  server/notify/       Discord webhook messages (no buyer contact data)
+  server/notify/       Discord webhook messages (Roblox account + avatar, amount; no WhatsApp/contact data)
   worker/index.mts     background worker process (schedules + job handlers)
   app/admin/           admin panel (own root layout, Indonesian only, noindex, `instant = false`)
   proxy.ts
@@ -114,7 +114,7 @@ Rules:
   an order whose buyer pressed "Saya sudah bayar") and `notify.discord` (retries with backoff).
   The web app only enqueues, via `after()` so a queue problem never slows or breaks a buyer's
   request. First "Saya sudah bayar" → Discord ping; `DISCORD_NOTIFY_NEW_ORDERS=1` adds new-order
-  pings; `DISCORD_MENTION_USER_IDS` (comma-separated Discord user IDs) are tagged in the "Saya sudah
+  pings; `DISCORD_MENTION_ROLE_IDS` / `DISCORD_MENTION_USER_IDS` (comma-separated Discord role / user IDs) are tagged in the "Saya sudah
   bayar" ping only. `DISCORD_WEBHOOK_URL` is a secret (only in `.env.local` / server env). The worker reuses
   `server-only` code, so it runs with Node's `--conditions=react-server` (tsx in dev, esbuild bundle
   in prod; `pg-boss` is in `serverExternalPackages`).
