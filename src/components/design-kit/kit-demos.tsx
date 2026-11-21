@@ -203,6 +203,7 @@ const sampleOrder: Order = {
   uniqueCode: 47,
   paymentStatus: "confirmed",
   hasProof: false,
+  hasReview: false,
 };
 
 export function OrderSuccessDemo() {

@@ -47,6 +47,10 @@ export async function clientIp(): Promise<string> {
 export const RATE_LIMITS = {
   /** Check Order: ID + WhatsApp guesses. */
   lookup: { limit: 20, windowMs: 10 * 60_000 },
+  /** Roblox username preview while typing (debounced in the browser). */
+  robloxLookup: { limit: 60, windowMs: 10 * 60_000 },
+  /** Writing a review. */
+  review: { limit: 5, windowMs: 10 * 60_000 },
   /** New orders from one connection. */
   createOrder: { limit: 10, windowMs: 10 * 60_000 },
   /** "Saya sudah bayar" (with uploads). */

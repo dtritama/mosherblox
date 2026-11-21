@@ -3,6 +3,7 @@
 import { updateTag } from "next/cache";
 import {
   isValidExpiry,
+  isValidStock,
   parseRobuxRates,
   parseSoldOut,
   SETTING_LIMITS,
@@ -57,6 +58,16 @@ export async function saveRobuxRatesAction(_prev: SettingsState, formData: FormD
     const parsed = parseRobuxRates(input);
     if (!parsed.ok) return { error: "invalid", rateErrors: parsed.errors };
     await saveSetting("robuxRates", parsed.rates, admin.id);
+    return { ok: true };
+  });
+}
+
+/** Robux in stock (whole number). Completed Robux orders subtract from it automatically. */
+export async function saveRobuxStockAction(_prev: SettingsState, formData: FormData): Promise<SettingsState> {
+  return run(async (admin) => {
+    const amount = Number(str(formData.get("amount"), 12).replace(/\D/g, ""));
+    if (!isValidStock(amount)) return { error: "invalid" };
+    await saveSetting("robuxStock", amount, admin.id);
     return { ok: true };
   });
 }
@@ -120,7 +131,13 @@ export async function saveSoldOutAction(_prev: SettingsState, formData: FormData
   });
 }
 
-const RESETTABLE: readonly (keyof SiteSettings)[] = ["robuxRates", "orderExpiryMinutes", "qris", "soldOut"];
+const RESETTABLE: readonly (keyof SiteSettings)[] = [
+  "robuxRates",
+  "orderExpiryMinutes",
+  "qris",
+  "soldOut",
+  "robuxStock",
+];
 
 /** Remove the override: back to the value in src/data/*. */
 export async function resetSettingAction(_prev: SettingsState, formData: FormData): Promise<SettingsState> {

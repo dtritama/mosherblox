@@ -7,6 +7,7 @@ import { useId, useMemo, useRef, useState, type FormEvent } from "react";
 import { Field, inputClass, Step, SummaryRow } from "@/components/checkout/form-parts";
 import { OrderSuccess } from "@/components/checkout/order-success";
 import { PaymentPicker } from "@/components/checkout/payment-picker";
+import { RobloxAccountCheck } from "@/components/checkout/roblox-account-check";
 import { SubmitError } from "@/components/checkout/submit-error";
 import { useStoreSettings } from "@/components/providers/settings-provider";
 import { Button } from "@/components/ui/button";
@@ -56,6 +57,7 @@ export function TopUpDialog({ product, initialOptionId, onClose }: TopUpDialogPr
     whatsapp: "",
     optionId: initialOptionId ?? "",
     paymentId: defaultPaymentId,
+    confirmedAccount: false,
   });
   const [touched, setTouched] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -100,6 +102,7 @@ export function TopUpDialog({ product, initialOptionId, onClose }: TopUpDialogPr
         account: draft.account,
         whatsapp,
         paymentId: payment.id,
+        confirmedAccount: draft.confirmedAccount,
       });
       if (created.ok) setOrder(created.order);
       else setSubmitError(created.error);
@@ -189,12 +192,30 @@ export function TopUpDialog({ product, initialOptionId, onClose }: TopUpDialogPr
                         placeholder={field.placeholder}
                         value={draft.account}
                         onChange={(e) =>
-                          update("account", isEmail ? sanitizeEmail(e.target.value) : sanitizeUsername(e.target.value))
+                          // A different username needs a fresh "ini akun saya" confirmation.
+                          setDraft((prev) => ({
+                            ...prev,
+                            account: isEmail ? sanitizeEmail(e.target.value) : sanitizeUsername(e.target.value),
+                            confirmedAccount: false,
+                          }))
                         }
                         className={inputClass(Boolean(errors.account))}
                       />
                     )}
                   </Field>
+                  {!isEmail && !errors.account ? (
+                    <RobloxAccountCheck
+                      username={draft.account}
+                      confirmed={draft.confirmedAccount}
+                      onConfirmedChange={(value) => update("confirmedAccount", value)}
+                      invalid={Boolean(errors.confirmAccount)}
+                    />
+                  ) : null}
+                  {errors.confirmAccount ? (
+                    <p role="alert" className="mt-1.5 text-xs font-medium text-blush-700">
+                      {errorText(errors.confirmAccount)}
+                    </p>
+                  ) : null}
                   <p className="mt-2 flex items-center gap-1.5 text-xs text-ink-500">
                     <Lock className="size-3.5 shrink-0 text-brand-600" aria-hidden="true" />
                     {field.hint}

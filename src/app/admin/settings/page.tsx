@@ -9,6 +9,7 @@ import {
   QrisForm,
   ResetButton,
   RobuxRatesForm,
+  RobuxStockForm,
   StockForm,
   type StockItem,
 } from "@/components/admin/settings-forms";
@@ -65,6 +66,15 @@ async function Settings() {
 
       {/* Staff see the values but can't change them (the server refuses too). */}
       <fieldset disabled={!isOwner} className="mt-6 grid gap-5 disabled:opacity-60">
+        <Section
+          field="robuxStock"
+          title={t.robuxStock.title}
+          description={t.robuxStock.description}
+          meta={meta.robuxStock}
+          owner={isOwner}
+        >
+          <RobuxStockForm initial={settings.robuxStock} />
+        </Section>
         <Section
           field="soldOut"
           title={t.stock.title}

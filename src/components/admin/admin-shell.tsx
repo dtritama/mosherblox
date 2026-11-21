@@ -17,7 +17,7 @@ export function AdminShell({
   children,
 }: {
   admin: AdminUser;
-  current: "orders" | "settings";
+  current: "orders" | "reviews" | "settings";
   children: ReactNode;
 }) {
   return (
@@ -37,6 +37,7 @@ export function AdminShell({
             {(
               [
                 ["orders", "/admin", t.orders],
+                ["reviews", "/admin/reviews", t.reviews],
                 ["settings", "/admin/settings", t.settings],
               ] as const
             ).map(([key, href, label]) => (

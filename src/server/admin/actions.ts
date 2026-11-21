@@ -1,6 +1,9 @@
 "use server";
 
+import { updateTag } from "next/cache";
 import { redirect } from "next/navigation";
+import { STATS_TAG } from "@/server/stats";
+import { moderateReview, REVIEWS_TAG } from "@/server/reviews";
 import { checkCredentials, endSession, requireAdmin, startSession } from "@/server/auth/admin";
 import { hit, rateLimit } from "@/server/rate-limit";
 import { canTransition } from "@/lib/orders/status";
@@ -65,10 +68,36 @@ export async function setOrderStatusAction(_prev: StatusState, formData: FormDat
       note: note || undefined,
       expectedFrom: from,
     });
+    // A completed order changes the Robux stock, the success counter and the leaderboard.
+    if (to === "completed") {
+      updateTag("settings");
+      updateTag(STATS_TAG);
+    }
     return { ok: true };
   } catch (error) {
     if (error instanceof OrderTransitionError) return { error: "notAllowed" };
     console.error("[admin] status change failed", error);
+    return { error: "unavailable" };
+  }
+}
+
+export type ReviewModerationState = { ok?: boolean; error?: "notFound" | "unavailable" };
+
+/** Approve (show on the site) or reject a buyer review. */
+export async function moderateReviewAction(
+  _prev: ReviewModerationState,
+  formData: FormData,
+): Promise<ReviewModerationState> {
+  const admin = await requireAdmin();
+  const id = str(formData.get("reviewId"), 40);
+  const decision = str(formData.get("decision"), 10);
+  if (decision !== "approved" && decision !== "rejected") return { error: "notFound" };
+  try {
+    if (!(await moderateReview(id, decision, admin.id))) return { error: "notFound" };
+    updateTag(REVIEWS_TAG);
+    return { ok: true };
+  } catch (error) {
+    console.error("[admin] review moderation failed", error);
     return { error: "unavailable" };
   }
 }

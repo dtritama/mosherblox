@@ -13,8 +13,9 @@ export const orderConfig = {
   /**
    * Each order gets a random unique code from 1 to this value added to its total
    * (Rp 120.000 → Rp 120.047) so a manual QRIS transfer can be matched to the right order.
+   * Kept under 100 (client request 2026-11-21): at most 99 unpaid orders can share one price.
    */
-  uniqueCodeMax: 499,
+  uniqueCodeMax: 99,
   /** Optional transfer screenshot: max size and allowed types. */
   proofMaxBytes: 4 * 1024 * 1024,
   proofTypes: ["image/jpeg", "image/png", "image/webp"],

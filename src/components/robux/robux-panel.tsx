@@ -2,17 +2,18 @@
 
 import { AnimatePresence, m } from "motion/react";
 import {
+  BadgeCheck,
   BadgePercent,
   Check,
   Flame,
   Gamepad2,
   Info,
   KeyRound,
-  Lock,
   Minus,
   Plus,
   Send,
   ShieldCheck,
+  UserCheck,
   Zap,
 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
@@ -21,6 +22,7 @@ import { useId, useMemo, useRef, useState, type FormEvent, type ReactNode } from
 import { Field, inputClass, Step, SummaryRow } from "@/components/checkout/form-parts";
 import { OrderSuccess } from "@/components/checkout/order-success";
 import { PaymentPicker } from "@/components/checkout/payment-picker";
+import { RobloxAccountCheck } from "@/components/checkout/roblox-account-check";
 import { useStoreSettings } from "@/components/providers/settings-provider";
 import { SubmitError } from "@/components/checkout/submit-error";
 import { Button } from "@/components/ui/button";
@@ -67,6 +69,7 @@ const initialDraft: RobuxOrderDraft = {
   whatsapp: "",
   paymentId: defaultPaymentId,
   confirmed2sv: false,
+  confirmedAccount: false,
 };
 
 /** `/robux?method=gamepass&amount=1500` pre-fills the panel (used by the home-page section). */
@@ -92,8 +95,9 @@ export function RobuxPanel({ className }: { className?: string }) {
   const amountHintId = useId();
 
   // Admin-editable prices (falls back to src/data/robux.ts).
-  const { robuxRates: rates, soldOut } = useStoreSettings();
-  const isSoldOut = (id: RobuxMethodId) => soldOut.robuxMethods.includes(id);
+  const { robuxRates: rates, soldOut, robuxStock, stats } = useStoreSettings();
+  // No Robux left in stock = every method is sold out.
+  const isSoldOut = (id: RobuxMethodId) => robuxStock === 0 || soldOut.robuxMethods.includes(id);
   const available = robuxConfig.methods.filter((item) => !isSoldOut(item.id));
   const allSoldOut = available.length === 0;
   const searchParams = useSearchParams();
@@ -159,6 +163,10 @@ export function RobuxPanel({ className }: { className?: string }) {
       setSubmitError("soldOut");
       return;
     }
+    if (robuxStock !== null && draft.amount !== null && draft.amount > robuxStock) {
+      setSubmitError("notEnoughStock");
+      return;
+    }
     if (Object.keys(result).length > 0 || draft.amount === null || !whatsapp || !payment) {
       const firstInvalid = formRef.current?.querySelector<HTMLElement>("[aria-invalid='true']");
       firstInvalid?.focus({ preventScroll: true });
@@ -175,6 +183,7 @@ export function RobuxPanel({ className }: { className?: string }) {
         whatsapp,
         paymentId: payment.id,
         confirmed2sv: draft.confirmed2sv,
+        confirmedAccount: draft.confirmedAccount,
       });
       if (!result.ok) {
         setSubmitError(result.error);
@@ -280,6 +289,12 @@ export function RobuxPanel({ className }: { className?: string }) {
                                   {interpolate(t.fromRate, { price: formatIDR(getLowestRobuxRate(option.id, rates)) })}
                                 </span>
                               )}
+                              {option.id === "send-username" && stats.sendUsernameCompleted !== null ? (
+                                <span className="mt-1.5 flex items-center gap-1 text-xs font-medium text-ink-700">
+                                  <BadgeCheck className="size-3.5 shrink-0 text-brand-600" aria-hidden="true" />
+                                  {interpolate(t.successCount, { count: n(stats.sendUsernameCompleted) })}
+                                </span>
+                              ) : null}
                             </span>
                           </label>
                         );
@@ -359,7 +374,12 @@ export function RobuxPanel({ className }: { className?: string }) {
                   </Step>
 
                   {/* 2 — Amount */}
-                  <Step number={2} title={t.steps.amount} error={errorText(errors.amount)}>
+                  <Step
+                    number={2}
+                    title={t.steps.amount}
+                    error={errorText(errors.amount)}
+                    aside={robuxStock !== null ? interpolate(t.stock, { amount: n(robuxStock) }) : undefined}
+                  >
                     <div className="flex items-stretch gap-2">
                       <AmountButton
                         label={interpolate(t.decrease, { step: n(step) })}
@@ -471,31 +491,53 @@ export function RobuxPanel({ className }: { className?: string }) {
                   {/* 3 — Account */}
                   <Step number={3} title={t.steps.account}>
                     <div className="grid gap-4 sm:grid-cols-2">
-                      <Field
-                        label={c.username.label}
-                        error={errorText(errors.account)}
-                        hint={
-                          <>
-                            <Lock className="size-3.5 shrink-0 text-brand-600" aria-hidden="true" />
-                            {c.username.hint}
-                          </>
-                        }
-                      >
-                        {(props) => (
-                          <input
-                            {...props}
-                            type="text"
-                            autoComplete="username"
-                            autoCapitalize="off"
-                            spellCheck={false}
-                            maxLength={LIMITS.usernameMax}
-                            placeholder={c.username.placeholder}
-                            value={draft.account}
-                            onChange={(e) => update("account", sanitizeUsername(e.target.value))}
-                            className={inputClass(Boolean(errors.account))}
+                      <div className="min-w-0">
+                        <Field
+                          label={c.username.label}
+                          error={errorText(errors.account)}
+                          hint={
+                            <>
+                              <UserCheck className="size-3.5 shrink-0 text-brand-600" aria-hidden="true" />
+                              {c.username.hint}
+                            </>
+                          }
+                        >
+                          {(props) => (
+                            <input
+                              {...props}
+                              type="text"
+                              autoComplete="username"
+                              autoCapitalize="off"
+                              spellCheck={false}
+                              maxLength={LIMITS.usernameMax}
+                              placeholder={c.username.placeholder}
+                              value={draft.account}
+                              onChange={(e) =>
+                                // A different username needs a fresh "ini akun saya" confirmation.
+                                setDraft((prev) => ({
+                                  ...prev,
+                                  account: sanitizeUsername(e.target.value),
+                                  confirmedAccount: false,
+                                }))
+                              }
+                              className={inputClass(Boolean(errors.account))}
+                            />
+                          )}
+                        </Field>
+                        {!errors.account ? (
+                          <RobloxAccountCheck
+                            username={draft.account}
+                            confirmed={draft.confirmedAccount}
+                            onConfirmedChange={(value) => update("confirmedAccount", value)}
+                            invalid={Boolean(errors.confirmAccount)}
                           />
-                        )}
-                      </Field>
+                        ) : null}
+                        {errors.confirmAccount ? (
+                          <p role="alert" className="mt-1.5 text-xs font-medium text-blush-700">
+                            {errorText(errors.confirmAccount)}
+                          </p>
+                        ) : null}
+                      </div>
                       <Field label={c.whatsapp.label} error={errorText(errors.whatsapp)} hint={c.whatsapp.hint}>
                         {(props) => (
                           <input

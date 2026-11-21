@@ -43,6 +43,12 @@ Order of work (each step ends with `npm run check` and a browser test):
    caddy), GitHub Actions build → GHCR → deploy on the VPS, Cloudflare DNS for mosherblox.com,
    nightly DB backup. Set `NEXT_PUBLIC_SITE_URL=https://mosherblox.com`.
 
+## Phase 2.5 — Trust & social features ✅ (2026-11-21)
+
+Roblox account check at checkout (display name + avatar, "ini akun saya"), Robux stock (admin,
+auto-decreasing), real "pesanan berhasil" counter, buyer reviews (after completion, admin-approved),
+all-time leaderboard per category (masked names). Later: weekly/monthly leaderboard periods.
+
 ## Phase 3 — Growth
 
 - Payment gateway (Duitku or Midtrans) as a second `PaymentProvider`, signed + idempotent webhooks.

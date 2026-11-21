@@ -116,6 +116,12 @@ export const orders = pgTable(
     // Buyer
     /** Roblox username, or email for voucher products. */
     account: text("account").notNull(),
+    /**
+     * Roblox account the buyer confirmed at checkout (looked up on the server from `account`).
+     * Null for voucher (email) products and for orders placed while Roblox couldn't be reached.
+     */
+    robloxUserId: bigint("roblox_user_id", { mode: "number" }),
+    robloxDisplayName: text("roblox_display_name"),
     /** Normalised 628xxxxxxxxx. Needed together with the ID to look an order up. */
     whatsapp: text("whatsapp").notNull(),
     /** Payment method id from src/data/payments.ts (e.g. "qris"). */
@@ -137,6 +143,8 @@ export const orders = pgTable(
   (t) => [
     index("orders_whatsapp_idx").on(t.whatsapp),
     index("orders_status_created_idx").on(t.status, t.createdAt),
+    // Leaderboard: completed orders grouped by buyer account.
+    index("orders_completed_account_idx").on(t.status, t.kind, t.account),
     // Two unpaid orders must never share a total, otherwise a QRIS transfer can't be matched.
     uniqueIndex("orders_pending_total_unique")
       .on(t.total)
@@ -222,6 +230,35 @@ export const settings = pgTable("settings", {
   updatedAt: updatedAt(),
 });
 
+// ---------------------------------------------------------------------------------------------
+// Reviews (one per completed order, written by the buyer, shown after an admin approves it)
+// ---------------------------------------------------------------------------------------------
+
+export const reviewStatus = pgEnum("review_status", ["pending", "approved", "rejected"]);
+
+export const reviews = pgTable(
+  "reviews",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    /** One review per order. */
+    orderId: text("order_id")
+      .notNull()
+      .unique()
+      .references(() => orders.id, { onDelete: "cascade" }),
+    rating: integer("rating").notNull(),
+    body: text("body").notNull(),
+    status: reviewStatus("status").notNull().default("pending"),
+    moderatedBy: uuid("moderated_by").references(() => admins.id, { onDelete: "set null" }),
+    moderatedAt: timestamp("moderated_at", { withTimezone: true }),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    index("reviews_status_created_idx").on(t.status, t.createdAt),
+    check("reviews_rating_check", sql`${t.rating} BETWEEN 1 AND 5`),
+    check("reviews_body_check", sql`char_length(${t.body}) BETWEEN 3 AND 500`),
+  ],
+);
+
 export type AdminRow = typeof admins.$inferSelect;
 export type AdminSessionRow = typeof adminSessions.$inferSelect;
 export type OrderRow = typeof orders.$inferSelect;
@@ -230,3 +267,4 @@ export type OrderEventRow = typeof orderEvents.$inferSelect;
 export type PaymentRow = typeof payments.$inferSelect;
 export type NewPaymentRow = typeof payments.$inferInsert;
 export type SettingRow = typeof settings.$inferSelect;
+export type ReviewRow = typeof reviews.$inferSelect;

@@ -12,13 +12,14 @@ import { robuxConfig, type RobuxMethodId, type RobuxRateTier } from "@/data/robu
 import { formatIDR, formatNumber, interpolate } from "@/i18n/format";
 import { parseQris, type QrisInfo } from "@/lib/qris";
 import { calculateRobuxPrice, type RobuxRates } from "@/lib/robux-pricing";
-import { SETTING_LIMITS, validateTiers, type QrisSetting, type SoldOut } from "@/lib/settings";
+import { SETTING_LIMITS, validateTiers, type QrisSetting, type SiteSettings, type SoldOut } from "@/lib/settings";
 import { cn } from "@/lib/utils";
 import {
   resetSettingAction,
   saveExpiryAction,
   saveQrisAction,
   saveRobuxRatesAction,
+  saveRobuxStockAction,
   saveSoldOutAction,
   type SettingsState,
 } from "@/server/admin/settings-actions";
@@ -63,7 +64,7 @@ function SaveRow({ state, pending, disabled }: { state: SettingsState; pending: 
 }
 
 /** Small separate form: remove the override for one setting. */
-export function ResetButton({ field }: { field: "robuxRates" | "orderExpiryMinutes" | "qris" | "soldOut" }) {
+export function ResetButton({ field }: { field: keyof SiteSettings }) {
   const [state, action, pending] = useActionState<SettingsState, FormData>(resetSettingAction, {});
   useRefreshOnSave(state);
   return (
@@ -212,6 +213,47 @@ export function RobuxRatesForm({ initial }: { initial: RobuxRates }) {
 }
 
 /* ------------------------------------------------ Expiry ------------------------------------------------ */
+
+/** Robux in stock. Shown on the site; completed Robux orders subtract from it automatically. */
+export function RobuxStockForm({ initial }: { initial: number | null }) {
+  const [state, action, pending] = useActionState<SettingsState, FormData>(saveRobuxStockAction, {});
+  useRefreshOnSave(state);
+  const [value, setValue] = useState(initial === null ? "" : String(initial));
+  const id = useId();
+  const amount = value === "" ? null : Number(value);
+  const valid = amount !== null && Number.isSafeInteger(amount) && amount >= 0 && amount <= 100_000_000;
+  return (
+    <form action={action}>
+      <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-ink-700">
+        {t.robuxStock.amount}
+      </label>
+      <div className="flex max-w-xs items-center gap-2">
+        <input
+          id={id}
+          name="amount"
+          inputMode="numeric"
+          value={value === "" ? "" : formatNumber(Number(value), "id")}
+          onChange={(event) =>
+            setValue(
+              event.target.value
+                .replace(/\D/g, "")
+                .replace(/^0+(?=\d)/, "")
+                .slice(0, 9),
+            )
+          }
+          placeholder="0"
+          aria-describedby={`${id}-hint`}
+          className={cn(numberInput, "border-brand-100 hover:border-brand-300")}
+        />
+        <span className="text-sm font-semibold text-ink-500">Robux</span>
+      </div>
+      <p id={`${id}-hint`} className="mt-1.5 text-xs text-ink-500">
+        {initial === null ? t.robuxStock.notTracked : t.robuxStock.hint}
+      </p>
+      <SaveRow state={state} pending={pending} disabled={!valid} />
+    </form>
+  );
+}
 
 export function ExpiryForm({ initial }: { initial: number }) {
   const [state, action, pending] = useActionState<SettingsState, FormData>(saveExpiryAction, {});

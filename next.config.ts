@@ -12,7 +12,8 @@ const contentSecurityPolicy = [
   "default-src 'self'",
   `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob:",
+  // Roblox avatar headshots (buyer's account preview, leaderboard, reviews).
+  "img-src 'self' data: blob: https://tr.rbxcdn.com",
   "font-src 'self'",
   `connect-src 'self'${isDev ? " ws: wss:" : ""}`,
   "object-src 'none'",

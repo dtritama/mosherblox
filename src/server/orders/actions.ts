@@ -17,6 +17,9 @@ import { getFreshSettings } from "@/server/settings";
 import { notifyTeam } from "@/server/jobs/queue";
 import { after } from "next/server";
 import { isProductSoldOut, isRobuxMethodSoldOut, type SiteSettings } from "@/lib/settings";
+import { getProductBySlug } from "@/lib/catalog";
+import { lookupRobloxUser } from "@/server/roblox/users";
+import { hasReview } from "@/server/reviews";
 
 /**
  * Server Actions the checkout and Check Order page call (through `orderService`).
@@ -36,9 +39,30 @@ async function create(quote: QuoteResult, settings: SiteSettings): Promise<Creat
       ? robuxMethod !== null && isRobuxMethodSoldOut(settings.soldOut, robuxMethod)
       : productSlug !== null && isProductSoldOut(settings.soldOut, productSlug);
   if (soldOut) return { ok: false, error: "soldOut" };
+  if (kind === "robux" && settings.robuxStock !== null && (quote.quote.robuxAmount ?? 0) > settings.robuxStock) {
+    return { ok: false, error: "notEnoughStock" };
+  }
   if (!(await rateLimit("createOrder"))) return { ok: false, error: "rateLimited" };
+
+  // The Roblox account the order is for: looked up here, whatever the browser showed.
+  const deliversToUsername =
+    kind === "robux" || (productSlug !== null && getProductBySlug(productSlug)?.delivery !== "voucher");
+  let roblox: Pick<typeof quote.quote, "account" | "robloxUserId" | "robloxDisplayName"> = {
+    account: quote.quote.account,
+  };
+  if (deliversToUsername) {
+    try {
+      const user = await lookupRobloxUser(quote.quote.account.toLowerCase());
+      if (!user) return { ok: false, error: "invalid", fields: { account: "robloxNotFound" } };
+      roblox = { account: user.name, robloxUserId: user.id, robloxDisplayName: user.displayName };
+    } catch (error) {
+      // Roblox down: don't block sales; the admin sees the order without a Roblox ID.
+      console.warn("[orders] Roblox lookup failed, continuing:", error instanceof Error ? error.message : error);
+    }
+  }
+
   try {
-    const order = await createOrder(quote.quote, { expiryMinutes: settings.orderExpiryMinutes });
+    const order = await createOrder({ ...quote.quote, ...roblox }, { expiryMinutes: settings.orderExpiryMinutes });
     // Optional ping for every new order (DISCORD_NOTIFY_NEW_ORDERS=1); after the response is sent.
     if (process.env.DISCORD_NOTIFY_NEW_ORDERS === "1") after(() => notifyTeam({ kind: "newOrder", orderId: order.id }));
     return { ok: true, order };
@@ -61,6 +85,7 @@ export async function createRobuxOrderAction(input: RobuxOrderInput): Promise<Cr
         whatsapp: str(raw.whatsapp, 32),
         paymentId: str(raw.paymentId, 32),
         confirmed2sv: raw.confirmed2sv === true,
+        confirmedAccount: raw.confirmedAccount === true,
       },
       settings.robuxRates,
     ),
@@ -78,6 +103,7 @@ export async function createProductOrderAction(input: ProductOrderInput): Promis
       account: str(raw.account),
       whatsapp: str(raw.whatsapp, 32),
       paymentId: str(raw.paymentId, 32),
+      confirmedAccount: raw.confirmedAccount === true,
     }),
     settings,
   );
@@ -88,7 +114,10 @@ export async function findOrderAction(id: string, whatsapp: string): Promise<Fin
   const phone = normalizeWhatsapp(str(whatsapp, 32));
   if (!phone) return { ok: true, order: null };
   try {
-    return { ok: true, order: await findOrder(str(id, 32), phone) };
+    const order = await findOrder(str(id, 32), phone);
+    // Completed orders can be reviewed once: tell Check Order whether that already happened.
+    if (order?.status === "completed") order.hasReview = await hasReview(order.id);
+    return { ok: true, order };
   } catch (error) {
     console.error("[orders] lookup failed", error);
     return { ok: false, error: "unavailable" };

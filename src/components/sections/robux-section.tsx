@@ -1,7 +1,7 @@
 "use client";
 
 import { m } from "motion/react";
-import { ArrowRight, Info, ShieldCheck, Zap } from "lucide-react";
+import { ArrowRight, BadgeCheck, Info, ShieldCheck, Zap } from "lucide-react";
 import Link from "next/link";
 import { useId, useState } from "react";
 
@@ -41,8 +41,8 @@ export function RobuxSection() {
   const hintId = useId();
   // The amount can be typed freely; the slider and quick buttons set it to a preset.
   const [amount, setAmount] = useState<number | null>(presets[DEFAULT_INDEX]);
-  const { robuxRates: rates, soldOut } = useStoreSettings();
-  const methodSoldOut = soldOut.robuxMethods.includes(METHOD);
+  const { robuxRates: rates, soldOut, robuxStock, stats } = useStoreSettings();
+  const methodSoldOut = robuxStock === 0 || soldOut.robuxMethods.includes(METHOD);
 
   const valid = amount !== null && amount >= robuxConfig.minAmount && amount <= MAX_AMOUNT;
   const amountValue = amount ?? 0;
@@ -75,6 +75,23 @@ export function RobuxSection() {
 
         <div className="mt-10 grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
           <Reveal className="rounded-[2rem] border border-brand-100 bg-white p-5 shadow-xl shadow-brand-900/5 sm:p-8">
+            {/* Live numbers: Robux in stock (admin) and delivered Send Username orders (real count). */}
+            {robuxStock !== null || stats.sendUsernameCompleted !== null ? (
+              <ul className="mb-4 flex flex-wrap gap-2 text-xs font-semibold">
+                {robuxStock !== null ? (
+                  <li className="inline-flex items-center gap-1.5 rounded-full bg-brand-50 px-3 py-1.5 text-brand-800 ring-1 ring-brand-100">
+                    <RobuxIcon className="size-3.5" aria-hidden="true" />
+                    {interpolate(dict.robux.stock, { amount: formatNumber(robuxStock, locale) })}
+                  </li>
+                ) : null}
+                {stats.sendUsernameCompleted !== null ? (
+                  <li className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-ink-700 ring-1 ring-brand-100">
+                    <BadgeCheck className="size-3.5 text-brand-600" aria-hidden="true" />
+                    {interpolate(dict.robux.successCount, { count: formatNumber(stats.sendUsernameCompleted, locale) })}
+                  </li>
+                ) : null}
+              </ul>
+            ) : null}
             <label htmlFor={amountId} className="text-sm font-semibold text-ink-500">
               {t.youGet}
             </label>

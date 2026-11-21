@@ -9,6 +9,7 @@ import { canTransition } from "@/lib/orders/status";
 import type { Order, OrderStatus } from "@/lib/orders/types";
 import type { OrderQuote } from "@/server/orders/quote";
 import { providerFor } from "@/server/payments/provider";
+import { SETTING_KEYS } from "@/lib/settings";
 
 /**
  * Order domain: create, look up and move orders through the status machine, and record the
@@ -52,6 +53,7 @@ export function toOrder(row: OrderRow, payment?: PaymentRow | null): Order {
     uniqueCode: row.uniqueCode,
     paymentStatus: payment?.status ?? null,
     hasProof: Boolean(payment?.proofPath),
+    hasReview: false,
   };
 }
 
@@ -84,7 +86,8 @@ export async function createOrder(
   const db = getDb();
   const provider = providerFor(quote.paymentMethod);
   // The order ID and unique code are random; on the rare clash with another order, roll again.
-  for (let attempt = 0; attempt < 8; attempt++) {
+  // With 99 possible codes, re-roll generously before giving up.
+  for (let attempt = 0; attempt < 20; attempt++) {
     const uniqueCode = randomUniqueCode();
     const id = createOrderId();
     const total = quote.subtotal + quote.fee + uniqueCode;
@@ -151,6 +154,15 @@ export async function transitionOrder(
         .where(open);
     } else if (to === "failed" && current.status === "pending") {
       await tx.update(payments).set({ status: "rejected" }).where(open);
+    }
+    // Delivered Robux leave the store's stock (only if the owner tracks stock; never below 0).
+    if (to === "completed" && current.kind === "robux" && current.robuxAmount) {
+      await tx
+        .update(schema.settings)
+        .set({ value: sql`to_jsonb(GREATEST((${schema.settings.value})::text::int - ${current.robuxAmount}, 0))` })
+        .where(
+          and(eq(schema.settings.key, SETTING_KEYS.robuxStock), sql`jsonb_typeof(${schema.settings.value}) = 'number'`),
+        );
     }
     await tx.insert(orderEvents).values({
       orderId,

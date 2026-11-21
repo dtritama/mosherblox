@@ -20,7 +20,7 @@ export const adminCopy = {
       unavailable: "Server sedang bermasalah. Coba lagi sebentar lagi.",
     },
   },
-  nav: { orders: "Pesanan", settings: "Pengaturan", logout: "Keluar", site: "Lihat toko" },
+  nav: { orders: "Pesanan", reviews: "Ulasan", settings: "Pengaturan", logout: "Keluar", site: "Lihat toko" },
   orders: {
     title: "Pesanan",
     description: "Cocokkan pembayaran QRIS di mutasi GoPay merchant, lalu ubah status pesanannya.",
@@ -133,6 +133,19 @@ export const adminCopy = {
       noteRequired: "Tulis alasan kenapa pesanan ini gagal.",
     },
   },
+  reviews: {
+    title: "Ulasan pembeli",
+    description: "Ulasan dari pesanan yang sudah selesai. Hanya ulasan yang kamu tampilkan yang muncul di website.",
+    tabs: { pending: "Menunggu", approved: "Tampil", rejected: "Ditolak" },
+    empty: "Tidak ada ulasan di sini.",
+    emptyPending: "Belum ada ulasan baru yang perlu dicek.",
+    approve: "Tampilkan",
+    reject: "Tolak",
+    order: "Pesanan",
+    by: "oleh {name}",
+    stars: "{count} dari 5 bintang",
+    errors: { notFound: "Ulasan tidak ditemukan.", unavailable: "Gagal menyimpan. Coba lagi." },
+  },
   settings: {
     title: "Pengaturan toko",
     description:
@@ -166,6 +179,14 @@ export const adminCopy = {
         tierCount: "Minimal 1 tier, maksimal 6 tier.",
         amountRange: "Jumlah Robux tidak valid.",
       },
+    },
+    robuxStock: {
+      title: "Stok Robux",
+      description:
+        "Jumlah Robux yang tersedia, ditampilkan di toko. Setiap pesanan Robux yang ditandai selesai otomatis mengurangi stok ini.",
+      amount: "Robux tersedia",
+      hint: "Ubah kapan saja (misalnya setelah isi ulang). Pesanan lebih besar dari stok akan ditolak.",
+      notTracked: "Belum diatur: stok tidak ditampilkan dan tidak dibatasi. Isi angka lalu simpan untuk mulai melacak.",
     },
     stock: {
       title: "Stok",

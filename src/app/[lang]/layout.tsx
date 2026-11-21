@@ -16,6 +16,7 @@ import { getDictionaryFor } from "@/i18n/get-dictionary";
 import { localeAlternates } from "@/i18n/metadata";
 import { I18nProvider } from "@/i18n/i18n-provider";
 import { getSiteSettings } from "@/server/settings";
+import { getPublicStats } from "@/server/stats";
 
 import "../globals.css";
 
@@ -60,7 +61,7 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[la
   if (!hasLocale(lang)) notFound();
   const dict = getDictionaryFor(lang);
   // Admin-editable prices + QRIS (cached; refreshed right after a save in /admin/settings).
-  const { robuxRates, qris, soldOut } = await getSiteSettings();
+  const [{ robuxRates, qris, soldOut, robuxStock }, stats] = await Promise.all([getSiteSettings(), getPublicStats()]);
 
   return (
     <html lang={lang} className={poppins.variable} data-scroll-behavior="smooth">
@@ -75,7 +76,7 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[la
         </a>
         <I18nProvider locale={lang} dict={dict}>
           <MotionProvider>
-            <SettingsProvider value={{ robuxRates, qris, soldOut }}>
+            <SettingsProvider value={{ robuxRates, qris, soldOut, robuxStock, stats }}>
               <TopUpProvider>
                 <ScrollProgress />
                 <Navbar />

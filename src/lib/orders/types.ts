@@ -32,6 +32,8 @@ export interface Order {
   paymentStatus: PaymentStatus | null;
   /** The buyer attached a transfer screenshot. */
   hasProof: boolean;
+  /** A review exists for this order (Check Order then hides the review form). */
+  hasReview: boolean;
 }
 
 /** Mirrors the `payment_status` enum. "submitted" = buyer pressed "Saya sudah bayar". */
@@ -46,6 +48,7 @@ export interface RobuxOrderInput {
   whatsapp: string;
   paymentId: string;
   confirmed2sv: boolean;
+  confirmedAccount: boolean;
 }
 
 export interface ProductOrderInput {
@@ -54,6 +57,7 @@ export interface ProductOrderInput {
   account: string;
   whatsapp: string;
   paymentId: string;
+  confirmedAccount: boolean;
 }
 
 /**
@@ -61,8 +65,9 @@ export interface ProductOrderInput {
  * - rateLimited: too many attempts from this connection — wait a few minutes
  * - unavailable: something went wrong on our side (database down…) — try again later
  * - soldOut:     the Robux method or product is out of stock (admin settings)
+ * - notEnoughStock: more Robux than the store has in stock right now
  */
-export type OrderFailure = "invalid" | "rateLimited" | "unavailable" | "soldOut";
+export type OrderFailure = "invalid" | "rateLimited" | "unavailable" | "soldOut" | "notEnoughStock";
 
 export type CreateOrderResult =
   { ok: true; order: Order } | { ok: false; error: OrderFailure; fields?: Partial<Record<string, OrderErrorCode>> };
@@ -75,8 +80,14 @@ export type ClaimPaymentResult =
   | { ok: true; order: Order }
   | {
       ok: false;
-      error: Exclude<OrderFailure, "invalid" | "soldOut"> | "notFound" | "tooLate" | "notPending" | "badProof";
+      error:
+        | Exclude<OrderFailure, "invalid" | "soldOut" | "notEnoughStock">
+        | "notFound"
+        | "tooLate"
+        | "notPending"
+        | "badProof";
     };
 
 export type FindOrderResult =
-  { ok: true; order: Order | null } | { ok: false; error: Exclude<OrderFailure, "invalid" | "soldOut"> };
+  | { ok: true; order: Order | null }
+  | { ok: false; error: Exclude<OrderFailure, "invalid" | "soldOut" | "notEnoughStock"> };

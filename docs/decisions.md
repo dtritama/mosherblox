@@ -36,6 +36,13 @@ What was decided, by whom, and why — so nobody re-litigates it. Newest first i
 
 ## Architecture decisions (phase 2)
 
+- **Trust features (2026-11-21, Devan's answers):** reviews come only from buyers of completed
+  orders and are shown after admin approval (no admin-written or invented reviews); leaderboard
+  shows masked usernames ("Bui•••01") + Roblox avatar, ranked on completed orders (Robux: total
+  Robux; Gamepass/Items: number of orders, ties by spend), all time first; Robux stock is set by the
+  owner and auto-decreases on completed Robux orders; the Send Username counter always shows the
+  real number. The username hint now says "Pastikan username sesuai dengan akun Roblox kamu".
+
 - **Jobs + notifications (step 6, 2026-11-19):** pg-boss 12.38.1 (pinned: the newest release
   was only days old). Separate worker process; the web app only enqueues. Discord pings go to the
   team's private channel when a buyer presses "Saya sudah bayar" (the moment someone must check
@@ -75,7 +82,7 @@ What was decided, by whom, and why — so nobody re-litigates it. Newest first i
 
 - **Orders (step 3, 2026-11-19):** the browser never sends a price; the server prices from
   `src/data/*`. Status machine: pending → paid → processing → completed; pending/paid/processing →
-  failed; pending → expired. Every change is a row in `order_events`. Unique code 1–499 added to
+  failed; pending → expired. Every change is a row in `order_events`. Unique code 1–99 (was 1–499; client asked 2026-11-21 for codes under 100) added to
   every total, and the DB forbids two _pending_ orders with the same total. Expiry **30 min
   (placeholder, open question 7)** in `src/data/orders.ts`. Expired on lookup now; the worker
   (step 6) will also do it in the background. Rate limits: 20 lookups and 10 new orders per IP per

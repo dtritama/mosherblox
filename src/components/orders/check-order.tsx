@@ -7,6 +7,7 @@ import { useRef, useState, type FormEvent } from "react";
 
 import { Field, inputClass, SummaryRow } from "@/components/checkout/form-parts";
 import { QrisPayment } from "@/components/checkout/qris-payment";
+import { ReviewForm } from "@/components/orders/review-form";
 import { SubmitError } from "@/components/checkout/submit-error";
 import { statusStyles } from "@/components/orders/status-styles";
 import { Button } from "@/components/ui/button";
@@ -276,6 +277,12 @@ function OrderResult({
       {result.status === "pending" ? (
         <div className="border-b border-brand-100 bg-brand-50/40 p-4 sm:p-6">
           <QrisPayment order={result} onChange={onChange} />
+        </div>
+      ) : null}
+
+      {result.status === "completed" ? (
+        <div className="border-b border-brand-100 bg-brand-50/40 p-4 sm:p-6">
+          <ReviewForm orderId={result.id} whatsapp={result.whatsapp} alreadyReviewed={result.hasReview} />
         </div>
       ) : null}
 

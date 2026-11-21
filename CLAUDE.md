@@ -118,6 +118,21 @@ Rules:
   bayar" ping only. `DISCORD_WEBHOOK_URL` is a secret (only in `.env.local` / server env). The worker reuses
   `server-only` code, so it runs with Node's `--conditions=react-server` (tsx in dev, esbuild bundle
   in prod; `pg-boss` is in `serverExternalPackages`).
+- **Roblox account check:** username fields (Robux panel, product dialog for username delivery)
+  show `RobloxAccountCheck` — display name + avatar via `server/roblox/*` (Roblox public APIs,
+  cached 1 h, rate-limited) and a required "Ya, ini akun Roblox saya" (`confirmedAccount`). The
+  order action looks the account up again on the server: unknown username → refused
+  (`robloxNotFound`); found → stores canonical `account`, `roblox_user_id`, `roblox_display_name`;
+  Roblox unreachable → order still allowed. Avatars come from `tr.rbxcdn.com` (in the CSP).
+- **Robux stock** (`robuxStock` setting, admin): shown on the Robux page/home; 0 = every Robux
+  method sold out; bigger orders are refused (`notEnoughStock`); completing a Robux order subtracts
+  its amount inside `transitionOrder()`. **Public stats / leaderboard / reviews** are cached
+  (`server/stats.ts` tag `stats`, `server/leaderboard.ts`, `server/reviews.ts` tag `reviews`) and
+  refreshed by admin actions (`updateTag`). Counter = real completed Send Username orders (always
+  shown). Leaderboard = completed orders only, all time, masked names (`lib/mask.ts`), no voucher
+  products. Reviews: one per completed order (Check Order, order ID + WhatsApp), shown only after
+  admin approval in `/admin/reviews`; the home sections hide themselves while empty — never add
+  placeholder or invented reviews/numbers.
 - Order IDs: `MB-` + 8 chars from an unambiguous alphabet (`lib/orders/order-id.ts`).
 - Server Components by default; `"use client"` only for interactivity. Motion via `LazyMotion` +
   `m.*` components, `MotionConfig reducedMotion="user"`.

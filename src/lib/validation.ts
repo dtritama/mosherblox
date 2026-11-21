@@ -16,6 +16,8 @@ export const LIMITS = {
 
 /** Roblox usernames: 3–20 characters, letters/digits, at most one underscore, not at the start or end. */
 const ROBLOX_USERNAME = /^(?=.{3,20}$)[A-Za-z0-9]+(?:_[A-Za-z0-9]+)?$/;
+
+export const isRobloxUsername = (value: string) => ROBLOX_USERNAME.test(value.trim());
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 /** Indonesian mobile number in international form: 62 + 8xx + 7–11 digits. */
 const ID_MOBILE = /^628\d{7,11}$/;
@@ -28,7 +30,11 @@ export type OrderErrorCode =
   | "pickPayment"
   | "amountMin"
   | "amountMax"
-  | "confirm2sv";
+  | "confirm2sv"
+  /** The buyer didn't tick "Ya, ini akun Roblox saya" under the looked-up account. */
+  | "confirmAccount"
+  /** The server found no Roblox account with that username. */
+  | "robloxNotFound";
 
 export type AccountFieldType = "username" | "email";
 
@@ -67,7 +73,7 @@ function validateAccount(type: AccountFieldType, account: string): OrderErrorCod
 
 /* ---------- Product checkout (shop items, premium, gift cards, gamepasses) ---------- */
 
-export type OrderField = "account" | "whatsapp" | "option" | "payment";
+export type OrderField = "account" | "whatsapp" | "option" | "payment" | "confirmAccount";
 export type OrderErrors = Partial<Record<OrderField, OrderErrorCode>>;
 
 export interface OrderDraft {
@@ -75,12 +81,16 @@ export interface OrderDraft {
   whatsapp: string;
   optionId: string;
   paymentId: string;
+  /** Buyer ticked "Ya, ini akun Roblox saya" (only for products delivered to a Roblox username). */
+  confirmedAccount: boolean;
 }
 
 export function validateOrder(delivery: DeliveryType, optionIds: readonly string[], draft: OrderDraft): OrderErrors {
   const errors: OrderErrors = {};
-  const account = validateAccount(getAccountFieldType(delivery), draft.account);
+  const type = getAccountFieldType(delivery);
+  const account = validateAccount(type, draft.account);
   if (account) errors.account = account;
+  else if (type === "username" && !draft.confirmedAccount) errors.confirmAccount = "confirmAccount";
   if (!normalizeWhatsapp(draft.whatsapp)) errors.whatsapp = "invalidWhatsapp";
   if (!optionIds.includes(draft.optionId)) errors.option = "pickOption";
   if (!draft.paymentId) errors.payment = "pickPayment";
@@ -89,7 +99,7 @@ export function validateOrder(delivery: DeliveryType, optionIds: readonly string
 
 /* ---------- Robux panel ---------- */
 
-export type RobuxOrderField = "amount" | "account" | "whatsapp" | "payment" | "confirm2sv";
+export type RobuxOrderField = "amount" | "account" | "whatsapp" | "payment" | "confirm2sv" | "confirmAccount";
 export type RobuxOrderErrors = Partial<Record<RobuxOrderField, OrderErrorCode>>;
 
 export interface RobuxOrderDraft {
@@ -101,6 +111,8 @@ export interface RobuxOrderDraft {
   paymentId: string;
   /** Buyer confirmed 2-Step Verification is on (only checked for methods that require it). */
   confirmed2sv: boolean;
+  /** Buyer ticked "Ya, ini akun Roblox saya" under the looked-up account. */
+  confirmedAccount: boolean;
 }
 
 /** Amount rules for one order; pass the method to apply its daily limit. */
@@ -116,6 +128,7 @@ export function validateRobuxOrder(draft: RobuxOrderDraft): RobuxOrderErrors {
   if (amount) errors.amount = amount;
   const account = validateAccount("username", draft.account);
   if (account) errors.account = account;
+  else if (!draft.confirmedAccount) errors.confirmAccount = "confirmAccount";
   if (!normalizeWhatsapp(draft.whatsapp)) errors.whatsapp = "invalidWhatsapp";
   if (!draft.paymentId) errors.payment = "pickPayment";
   if (getRobuxMethod(draft.method).requires2sv && !draft.confirmed2sv) errors.confirm2sv = "confirm2sv";

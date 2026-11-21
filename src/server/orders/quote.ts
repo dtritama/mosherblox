@@ -27,6 +27,9 @@ export interface OrderQuote {
   paymentMethod: string;
   subtotal: number;
   fee: number;
+  /** Filled in by the order action after looking `account` up on Roblox (never from the browser). */
+  robloxUserId?: number | null;
+  robloxDisplayName?: string | null;
 }
 
 export type QuoteResult =

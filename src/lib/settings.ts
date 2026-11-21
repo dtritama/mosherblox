@@ -31,6 +31,11 @@ export interface SiteSettings {
   orderExpiryMinutes: number;
   qris: QrisSetting;
   soldOut: SoldOut;
+  /**
+   * Robux the store has available, shown on the site. Completed Robux orders subtract their amount
+   * automatically. null = not tracked (hidden, no limit).
+   */
+  robuxStock: number | null;
 }
 
 export const defaultSettings: SiteSettings = {
@@ -38,6 +43,7 @@ export const defaultSettings: SiteSettings = {
   orderExpiryMinutes: orderConfig.expiryMinutes,
   qris: { ...manualQris },
   soldOut: { robuxMethods: [], products: [] },
+  robuxStock: null,
 };
 
 /** Keys in the `settings` table. */
@@ -46,6 +52,7 @@ export const SETTING_KEYS = {
   orderExpiryMinutes: "orders.expiryMinutes",
   qris: "payment.qris",
   soldOut: "stock.soldOut",
+  robuxStock: "robux.stock",
 } as const satisfies Record<keyof SiteSettings, string>;
 
 export const SETTING_LIMITS = {
@@ -88,6 +95,11 @@ export function parseRobuxRates(
     else rates[id] = (tiers as RobuxRateTier[]).map(({ minAmount, rate }) => ({ minAmount, rate }));
   }
   return Object.keys(errors).length > 0 ? { ok: false, errors } : { ok: true, rates };
+}
+
+/** Robux stock: a whole number from 0 to 100 million. */
+export function isValidStock(value: unknown): value is number {
+  return isInt(value) && value >= 0 && value <= 100_000_000;
 }
 
 export function isValidExpiry(value: unknown): value is number {
@@ -145,5 +157,6 @@ export function mergeSettings(
         }
       : defaultSettings.qris,
     soldOut: stored.soldOut !== undefined ? parseSoldOut(stored.soldOut, productSlugs) : defaultSettings.soldOut,
+    robuxStock: isValidStock(stored.robuxStock) ? stored.robuxStock : defaultSettings.robuxStock,
   };
 }
