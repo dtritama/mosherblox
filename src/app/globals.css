@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+/* Dark theme: <html data-theme="dark"> (set before paint by the script in app/[lang]/layout.tsx,
+   switched by components/layout/theme-toggle.tsx). `dark:` utilities target it. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
 @theme inline {
   --font-sans: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
 }
@@ -37,6 +41,12 @@
   --color-ink-700: #3e4934;
   --color-ink-500: #66715b;
   --color-ink-300: #adb6a3;
+
+  /* Fixed colours that never flip with the theme: dark text on lime, small dark badges,
+     white text on pink / dark. Use these instead of ink-900 / white in those spots. */
+  --color-coal: #1a2312;
+  --color-coal-700: #3e4934;
+  --color-snow: #ffffff;
 
   --animate-float: float 6s ease-in-out infinite;
   --animate-drift: drift 7s ease-in-out infinite;
@@ -83,6 +93,49 @@
   }
 }
 
+/* Dark theme: the same token names get dark values, so every `bg-white`, `text-ink-900`,
+   `bg-brand-50` … follows without per-component work. Solid lime (brand-300–500) and the
+   mid pinks stay as they are: they are the brand. */
+:root {
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* Near-neutral black page; "white" surfaces (cards, panels) sit one step lighter. */
+  --page-bg: #0c0e0c;
+  --color-white: #141714;
+
+  --color-ink-950: #f8faf6;
+  --color-ink-900: #f1f4ed;
+  --color-ink-700: #cdd3c6;
+  --color-ink-500: #a0a898;
+  --color-ink-300: #6f776a;
+
+  /* Light lime tints → dark, slightly green surfaces and borders (cards get a soft lime edge). */
+  --color-brand-50: #181d16;
+  --color-brand-100: #28361f;
+  --color-brand-200: #3a5124;
+  --color-brand-600: #9ad84e;
+  --color-brand-700: #b2e864;
+  --color-brand-800: #c8f28a;
+  --color-brand-900: #dcf7b0;
+  --color-brand-950: #eefbd8;
+
+  /* Light pink tints → deep pink surfaces with a clearly pink edge. */
+  --color-blush-50: #1d1218;
+  --color-blush-100: #2c1420;
+  --color-blush-200: #7a2347;
+  --color-blush-600: #ff7aa3;
+  --color-blush-700: #ff9dbb;
+  --color-blush-800: #ffc1d3;
+  --color-blush-900: #ffdce6;
+
+  /* Highlighted heading words: bright pink marker on dark. */
+  --highlight-mark: var(--color-blush-500);
+}
+
 @layer base {
   html {
     scroll-behavior: smooth;
@@ -90,7 +143,8 @@
   }
 
   body {
-    @apply bg-white font-sans text-ink-900 antialiased;
+    @apply font-sans text-ink-900 antialiased;
+    background-color: var(--page-bg, var(--color-white));
   }
 
   section[id] {
@@ -144,10 +198,10 @@
 /* Accent words in headings, styled like the logo: lime fill, dark outline, soft pink marker underline. */
 @utility text-highlight {
   color: var(--color-brand-400);
-  -webkit-text-stroke: 0.045em var(--color-ink-900);
+  -webkit-text-stroke: 0.045em var(--color-coal);
   paint-order: stroke fill;
-  text-shadow: 0 0.05em 0 var(--color-ink-900);
-  background-image: linear-gradient(var(--color-blush-200), var(--color-blush-200));
+  text-shadow: 0 0.05em 0 var(--color-coal);
+  background-image: linear-gradient(var(--highlight-mark, var(--color-blush-200)), var(--highlight-mark, var(--color-blush-200)));
   background-repeat: no-repeat;
   background-position: 0 96%;
   background-size: 100% 0.24em;
@@ -170,4 +224,23 @@
     rgb(251 122 161 / 0.16),
     transparent 60%
   );
+}
+
+/* Theme switch: theme-toggle.tsx grows the new theme in a circle from the button
+   (View Transitions API). Turn off the default cross-fade so only the circle moves. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-new(root) {
+  z-index: 2;
+}
+
+/* While switching, colours jump straight to the new theme (no 200 ms fades lagging behind). */
+:root[data-theme-switching] *,
+:root[data-theme-switching] *::before,
+:root[data-theme-switching] *::after {
+  transition: none !important;
 }

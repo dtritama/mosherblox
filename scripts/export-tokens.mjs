@@ -7,9 +7,14 @@ import { fileURLToPath } from "node:url";
 
 const root = new URL("..", import.meta.url);
 const css = readFileSync(fileURLToPath(new URL("src/app/globals.css", root)), "utf8");
+// Only the light theme in `@theme { … }`: the dark overrides (:root[data-theme="dark"]) come later
+// in the file and must not overwrite these.
+const themeStart = css.indexOf("@theme {");
+const darkStart = css.indexOf(':root[data-theme="dark"]');
+const themeCss = css.slice(Math.max(themeStart, 0), darkStart === -1 ? undefined : darkStart);
 
 const color = {};
-for (const [, group, step, value] of css.matchAll(/--color-([a-z]+)-(\d+):\s*(#[0-9a-f]{3,8});/gi)) {
+for (const [, group, step, value] of themeCss.matchAll(/--color-([a-z]+)-(\d+):\s*(#[0-9a-f]{3,8});/gi)) {
   color[group] ??= {};
   color[group][step] = { $type: "color", $value: value.toLowerCase() };
 }

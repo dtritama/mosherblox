@@ -32,6 +32,10 @@ export const id = {
     free: "Gratis",
     perRobux: "per Robux",
   },
+  theme: {
+    toDark: "Ganti ke mode gelap",
+    toLight: "Ganti ke mode terang",
+  },
   language: {
     label: "Bahasa",
     switchTo: "Ganti bahasa ke {language}",

@@ -39,7 +39,7 @@ export function GamepassList({ slug }: { slug: string }) {
           icon={game.icon}
           accent={game.accent}
           className="grid size-16 shrink-0 place-items-center rounded-2xl sm:size-20"
-          iconClassName="relative size-8 text-white drop-shadow-md sm:size-10"
+          iconClassName="relative size-8 text-snow drop-shadow-md sm:size-10"
         />
         <div className="min-w-0 flex-1">
           <h2 id={titleId} className="text-2xl font-bold tracking-tight text-ink-900 sm:text-3xl">
@@ -69,7 +69,7 @@ export function GamepassList({ slug }: { slug: string }) {
                 <h3 className="text-lg font-bold text-ink-900">{pass.name}</h3>
                 <div className="flex shrink-0 gap-1.5">
                   {pass.originalPrice ? (
-                    <span className="inline-flex items-center gap-0.5 rounded-full bg-blush-500 px-2 py-0.5 text-[11px] font-bold text-white">
+                    <span className="inline-flex items-center gap-0.5 rounded-full bg-blush-500 px-2 py-0.5 text-[11px] font-bold text-snow">
                       <Flame className="size-3" aria-hidden="true" />-{discountPercent(pass.price, pass.originalPrice)}%
                     </span>
                   ) : null}
@@ -94,7 +94,7 @@ export function GamepassList({ slug }: { slug: string }) {
                   ) : null}
                 </div>
                 {isSoldOut ? (
-                  <span className="inline-flex h-9 items-center rounded-2xl bg-ink-900 px-4 text-sm font-semibold text-white">
+                  <span className="inline-flex h-9 items-center rounded-2xl bg-coal px-4 text-sm font-semibold text-snow">
                     {dict.common.soldOut}
                   </span>
                 ) : (

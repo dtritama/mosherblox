@@ -51,7 +51,7 @@ export function ProductArt({
       <div aria-hidden="true" className="absolute -top-4 -left-4 size-14 -rotate-12 rounded-2xl bg-white/20" />
       <ProductIcon
         name={icon}
-        className={iconClassName ?? "relative size-10 text-white drop-shadow-md"}
+        className={iconClassName ?? "relative size-10 text-snow drop-shadow-md"}
         strokeWidth={1.75}
       />
     </div>

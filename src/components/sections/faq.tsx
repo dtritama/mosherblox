@@ -13,8 +13,8 @@ import { getContactChannels, type ContactChannelId } from "@/lib/contact";
 import { cn } from "@/lib/utils";
 
 const CHANNEL_STYLES: Record<ContactChannelId, string> = {
-  whatsapp: "bg-brand-400 text-ink-900",
-  discord: "bg-[#5865F2] text-white",
+  whatsapp: "bg-brand-400 text-coal",
+  discord: "bg-[#5865F2] text-snow",
   whatsappGroup: "bg-blush-100 text-blush-700",
 };
 
@@ -91,7 +91,7 @@ export function Faq() {
                     <span
                       className={cn(
                         "grid size-8 shrink-0 place-items-center rounded-lg transition-[transform,background-color,color] duration-300",
-                        open ? "rotate-45 bg-brand-400 text-ink-900" : "bg-brand-50 text-brand-700",
+                        open ? "rotate-45 bg-brand-400 text-coal" : "bg-brand-50 text-brand-700",
                       )}
                     >
                       <Plus className="size-4" aria-hidden="true" />

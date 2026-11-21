@@ -38,9 +38,11 @@ export async function Footer() {
               <p className="mt-3 max-w-md text-sm text-pretty text-ink-500 sm:text-base">{dict.cta.description}</p>
               <Link
                 href={localeHref(locale, "/robux")}
-                className="group mt-6 inline-flex h-11 items-center gap-2 rounded-full bg-ink-900 px-5 text-sm font-semibold text-white transition-colors hover:bg-ink-700 focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2 focus-visible:outline-none"
+                className="group mt-6 inline-flex h-11 items-center gap-2 rounded-full bg-coal px-5 text-sm font-semibold text-snow transition-colors hover:bg-coal-700 dark:bg-brand-400 dark:text-coal dark:hover:bg-brand-300 focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2 focus-visible:outline-none"
               >
-                <RobuxIcon className="size-4 text-brand-300" aria-hidden="true" />
+                <RobuxIcon className="size-4 text-brand-300 dark:hidden" aria-hidden="true" />
+                {/* On the lime dark-mode button the gold symbol loses contrast: solid ink instead. */}
+                <RobuxIcon tone="ink" className="hidden size-4 dark:block" aria-hidden="true" />
                 {dict.cta.primary}
                 <ArrowUpRight
                   className="size-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
@@ -114,7 +116,7 @@ export async function Footer() {
                 <button
                   type="submit"
                   aria-label={t.checkOrder.submit}
-                  className="grid size-9 shrink-0 place-items-center rounded-full bg-ink-900 text-white transition-colors hover:bg-ink-700"
+                  className="grid size-9 shrink-0 place-items-center rounded-full bg-coal text-snow transition-colors hover:bg-coal-700 dark:bg-brand-100 dark:text-brand-700 dark:hover:bg-brand-200"
                 >
                   <ArrowRight className="size-4" aria-hidden="true" />
                 </button>

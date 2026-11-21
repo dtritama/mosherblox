@@ -52,7 +52,7 @@ export function BackToTop() {
           exit={{ opacity: 0, scale: 0.6, y: 16 }}
           whileHover={{ y: -3 }}
           className={cn(
-            "fixed right-4 bottom-4 z-40 grid size-12 place-items-center rounded-2xl bg-brand-400 text-ink-900 shadow-xl shadow-brand-500/30 sm:right-6 sm:bottom-6",
+            "fixed right-4 bottom-4 z-40 grid size-12 place-items-center rounded-2xl bg-brand-400 text-coal shadow-xl shadow-brand-500/30 sm:right-6 sm:bottom-6",
             robuxInView && "max-lg:hidden",
           )}
         >

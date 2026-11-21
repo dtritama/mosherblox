@@ -272,9 +272,9 @@ function OrderResult({
                 <span
                   className={cn(
                     "relative grid size-8 place-items-center rounded-full border-2 text-xs font-bold",
-                    done && "border-brand-400 bg-brand-400 text-ink-900",
+                    done && "border-brand-400 bg-brand-400 text-coal",
                     current && "border-brand-400 bg-white text-brand-700",
-                    failedHere && "border-blush-500 bg-blush-500 text-white",
+                    failedHere && "border-blush-500 bg-blush-500 text-snow",
                     !done && !current && !failedHere && "border-brand-100 bg-white text-ink-300",
                   )}
                 >

@@ -181,7 +181,7 @@ export function RobuxSection() {
                 <p className="mt-1 text-xs text-ink-500">
                   {formatIDR(rate)} {dict.common.perRobux} · <strong className="text-brand-700">{t.method}</strong>
                   {methodSoldOut ? (
-                    <span className="ml-2 inline-block rounded-full bg-ink-900 px-2 py-0.5 text-[11px] font-semibold text-white">
+                    <span className="ml-2 inline-block rounded-full bg-coal px-2 py-0.5 text-[11px] font-semibold text-snow">
                       {dict.common.soldOut}
                     </span>
                   ) : null}
@@ -257,7 +257,7 @@ export function RobuxSection() {
           className="mt-4 flex flex-col items-start gap-4 rounded-[2rem] border border-blush-200 bg-linear-to-r from-blush-50 via-white to-brand-50 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6"
         >
           <div className="flex items-center gap-4">
-            <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-brand-400 text-ink-900 shadow-lg shadow-brand-500/30">
+            <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-brand-400 text-coal shadow-lg shadow-brand-500/30">
               <RobuxIcon tone="ink" className="size-6" aria-hidden="true" />
             </span>
             <div>

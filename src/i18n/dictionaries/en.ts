@@ -29,6 +29,10 @@ export const en: Dictionary = {
     free: "Free",
     perRobux: "per Robux",
   },
+  theme: {
+    toDark: "Switch to dark mode",
+    toLight: "Switch to light mode",
+  },
   language: {
     label: "Language",
     switchTo: "Switch language to {language}",

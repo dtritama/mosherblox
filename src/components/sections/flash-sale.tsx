@@ -34,11 +34,11 @@ export function FlashSale() {
       <div aria-hidden="true" className="absolute inset-0 -z-10 bg-grid opacity-60" />
       <div
         aria-hidden="true"
-        className="absolute -top-40 -left-20 -z-10 size-[30rem] rounded-full bg-blush-100/60 blur-3xl"
+        className="absolute -top-40 -left-20 -z-10 size-[30rem] rounded-full bg-blush-100/60 blur-3xl dark:opacity-30"
       />
       <div
         aria-hidden="true"
-        className="absolute -right-20 -bottom-40 -z-10 size-[28rem] rounded-full bg-brand-200/60 blur-3xl"
+        className="absolute -right-20 -bottom-40 -z-10 size-[28rem] rounded-full bg-brand-200/60 blur-3xl dark:opacity-30"
       />
 
       <Container>
@@ -70,12 +70,12 @@ export function FlashSale() {
                   icon={product.icon}
                   accent={product.accent}
                   className="grid size-16 shrink-0 place-items-center rounded-2xl"
-                  iconClassName="relative size-8 text-white transition-transform duration-300 group-hover:scale-110"
+                  iconClassName="relative size-8 text-snow transition-transform duration-300 group-hover:scale-110"
                 />
                 <span className="min-w-0 flex-1">
                   <span className="flex items-center gap-2">
                     <span className="truncate text-sm font-medium text-ink-500">{product.name}</span>
-                    <span className="inline-flex shrink-0 items-center gap-0.5 rounded-full bg-blush-500 px-2 py-0.5 text-[11px] font-bold text-white">
+                    <span className="inline-flex shrink-0 items-center gap-0.5 rounded-full bg-blush-500 px-2 py-0.5 text-[11px] font-bold text-snow">
                       <Flame className="size-3" aria-hidden="true" />-
                       {discountPercent(option.price, option.originalPrice)}%
                     </span>
@@ -86,7 +86,7 @@ export function FlashSale() {
                     <span className="text-xs text-ink-300 line-through">{formatIDR(option.originalPrice)}</span>
                   </span>
                 </span>
-                <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-brand-400 text-ink-900 transition-transform duration-300 group-hover:rotate-12">
+                <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-brand-400 text-coal transition-transform duration-300 group-hover:rotate-12">
                   <Zap className="size-5" aria-hidden="true" />
                 </span>
               </button>

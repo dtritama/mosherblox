@@ -6,7 +6,9 @@ import { poppins } from "@/app/fonts/poppins";
 import { BackToTop } from "@/components/layout/back-to-top";
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
+import { NightDecor } from "@/components/layout/night-decor";
 import { ResumeOrder } from "@/components/orders/resume-order";
+import { THEME_SCRIPT } from "@/components/layout/theme-toggle";
 import { ScrollProgress } from "@/components/layout/scroll-progress";
 import { MotionProvider } from "@/components/providers/motion-provider";
 import { SettingsProvider } from "@/components/providers/settings-provider";
@@ -54,7 +56,7 @@ export async function generateMetadata({ params }: LayoutProps<"/[lang]">): Prom
 
 export const viewport: Viewport = {
   themeColor: siteConfig.themeColor,
-  colorScheme: "light",
+  // color-scheme comes from CSS (:root / [data-theme="dark"] in globals.css): the theme is the visitor's choice.
 };
 
 export default async function RootLayout({ children, params }: LayoutProps<"/[lang]">) {
@@ -65,13 +67,18 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[la
   const [{ robuxRates, qris, soldOut, robuxStock }, stats] = await Promise.all([getSiteSettings(), getPublicStats()]);
 
   return (
-    <html lang={lang} className={poppins.variable} data-scroll-behavior="smooth">
+    // suppressHydrationWarning: THEME_SCRIPT sets data-theme on <html> before React loads.
+    <html lang={lang} className={poppins.variable} data-scroll-behavior="smooth" suppressHydrationWarning>
+      <head>
+        {/* Before paint: a visitor who picked dark mode never sees a white flash. */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+      </head>
       {/* suppressHydrationWarning: browser extensions (e.g. ColorZilla adds `cz-shortcut-listen`) inject
           attributes into <body> before React loads. This only silences attribute mismatches on this one element. */}
       <body className="min-h-dvh overflow-x-clip" suppressHydrationWarning>
         <a
           href="#main"
-          className="sr-only z-100 rounded-lg bg-brand-400 px-4 py-2 font-semibold text-ink-900 focus:not-sr-only focus:fixed focus:top-3 focus:left-3"
+          className="sr-only z-100 rounded-lg bg-brand-400 px-4 py-2 font-semibold text-coal focus:not-sr-only focus:fixed focus:top-3 focus:left-3"
         >
           {dict.common.skipToContent}
         </a>
@@ -80,6 +87,7 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[la
             <SettingsProvider value={{ robuxRates, qris, soldOut, robuxStock, stats }}>
               <TopUpProvider>
                 <ScrollProgress />
+                <NightDecor />
                 <Navbar />
                 <main id="main" className="overflow-x-clip">{children}</main>
                 <Footer />

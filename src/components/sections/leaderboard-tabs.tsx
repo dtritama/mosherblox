@@ -70,7 +70,7 @@ export function LeaderboardTabs({ data }: { data: Leaderboard }) {
                   className={cn(
                     "grid size-8 shrink-0 place-items-center rounded-full text-sm font-extrabold tabular-nums",
                     entry.rank === 1
-                      ? "bg-brand-400 text-ink-900"
+                      ? "bg-brand-400 text-coal"
                       : entry.rank <= 3
                         ? "bg-white text-brand-800 ring-1 ring-brand-200"
                         : "text-ink-500",

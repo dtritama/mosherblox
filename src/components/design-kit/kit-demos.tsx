@@ -105,7 +105,7 @@ export function CheckboxDemo() {
                 aria-hidden="true"
                 className={cn(
                   "mt-0.5 grid size-5 shrink-0 place-items-center rounded-md border-2",
-                  on ? "border-brand-500 bg-brand-500 text-white" : "border-brand-200",
+                  on ? "border-brand-500 bg-brand-500 text-snow" : "border-brand-200",
                 )}
               >
                 {on ? <Check className="size-3.5" /> : null}

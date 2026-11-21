@@ -29,7 +29,7 @@ export function Step({
   return (
     <section>
       <div className="mb-3 flex items-center gap-3">
-        <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-brand-100 text-xs font-bold text-brand-800">
+        <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-brand-100 text-xs font-bold text-brand-800 dark:bg-brand-400 dark:text-coal">
           {number}
         </span>
         <h3 className="font-semibold text-ink-900">{title}</h3>

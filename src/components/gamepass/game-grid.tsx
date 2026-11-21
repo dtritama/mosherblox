@@ -83,17 +83,17 @@ export function GameGrid() {
                   <ProductArt
                     icon={game.icon}
                     accent={game.accent}
-                    className={cn("grid aspect-[4/3] w-full place-items-center", isSoldOut && "grayscale")}
-                    iconClassName="relative size-10 text-white drop-shadow-md transition-transform duration-500 group-hover:scale-110 group-hover:-rotate-6 sm:size-12"
+                    className={cn("grid aspect-[4/3] w-full place-items-center", isSoldOut && "grayscale dark:brightness-50")}
+                    iconClassName="relative size-10 text-snow drop-shadow-md transition-transform duration-500 group-hover:scale-110 group-hover:-rotate-6 sm:size-12"
                   />
                   {active ? (
-                    <span className="absolute top-2.5 right-2.5 inline-flex items-center gap-1 rounded-full bg-brand-400 px-2 py-1 text-[11px] font-bold text-ink-900 shadow">
+                    <span className="absolute top-2.5 right-2.5 inline-flex items-center gap-1 rounded-full bg-brand-400 px-2 py-1 text-[11px] font-bold text-coal shadow">
                       <Check className="size-3.5" aria-hidden="true" />
                       {t.selected}
                     </span>
                   ) : null}
                   {isSoldOut ? (
-                    <span className="absolute top-2.5 left-2.5 rounded-full bg-ink-900 px-2 py-0.5 text-[11px] font-bold text-white shadow-sm">
+                    <span className="absolute top-2.5 left-2.5 rounded-full bg-coal px-2 py-0.5 text-[11px] font-bold text-snow shadow-sm">
                       {dict.common.soldOut}
                     </span>
                   ) : game.tag && !active ? (

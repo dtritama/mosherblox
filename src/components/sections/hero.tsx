@@ -122,9 +122,9 @@ function HeroBackdrop() {
   return (
     <div aria-hidden="true" className="absolute inset-0 -z-10">
       <div className="absolute inset-0 bg-grid mask-[radial-gradient(ellipse_at_center,black_30%,transparent_75%)]" />
-      <div className="absolute -top-32 -right-24 size-[34rem] rounded-full bg-brand-200/70 blur-3xl" />
-      <div className="absolute top-1/3 -left-40 size-[28rem] rounded-full bg-blush-100/70 blur-3xl" />
-      <div className="absolute right-1/4 bottom-0 size-64 rounded-full bg-brand-100/80 blur-3xl" />
+      <div className="absolute -top-32 -right-24 size-[34rem] rounded-full bg-brand-200/70 blur-3xl dark:opacity-30" />
+      <div className="absolute top-1/3 -left-40 size-[28rem] rounded-full bg-blush-100/70 blur-3xl dark:opacity-30" />
+      <div className="absolute right-1/4 bottom-0 size-64 rounded-full bg-brand-100/80 blur-3xl dark:opacity-30" />
       <div className="absolute inset-x-0 bottom-0 h-32 bg-linear-to-b from-transparent to-white" />
     </div>
   );
@@ -209,7 +209,7 @@ export function OrderCard({ variant }: { variant: keyof typeof cardData }) {
           icon="coins"
           accent={ROBUX_ACCENT}
           className="grid size-11 shrink-0 place-items-center rounded-xl"
-          iconClassName="relative size-5 text-white"
+          iconClassName="relative size-5 text-snow"
         />
         <div className="min-w-0">
           <p className="truncate text-sm font-semibold text-ink-900">{product}</p>

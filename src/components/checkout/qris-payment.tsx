@@ -109,7 +109,7 @@ export function QrisPayment({ order, onChange }: { order: Order; onChange: (orde
         className="w-full rounded-[1.75rem] border border-brand-200 bg-brand-50 p-5 text-left sm:p-6"
       >
         <div className="flex items-start gap-3">
-          <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-brand-400 text-ink-900">
+          <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-brand-400 text-coal">
             <ShieldCheck className="size-5" aria-hidden="true" />
           </span>
           <div>

@@ -75,7 +75,7 @@ export function OrderSuccess({
         initial={{ scale: 0, rotate: -30 }}
         animate={{ scale: 1, rotate: 0 }}
         transition={{ type: "spring", stiffness: 260, damping: 16, delay: 0.1 }}
-        className="grid size-20 place-items-center rounded-full bg-brand-400 text-ink-900 shadow-xl shadow-brand-500/30"
+        className="grid size-20 place-items-center rounded-full bg-brand-400 text-coal shadow-xl shadow-brand-500/30"
       >
         <CheckCircle2 className="size-10" aria-hidden="true" />
       </m.span>

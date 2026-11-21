@@ -14,10 +14,10 @@ import { cn } from "@/lib/utils";
 import type { Product } from "@/types";
 
 const tagStyles: Record<NonNullable<Product["tag"]>, string> = {
-  Hot: "bg-blush-500 text-white",
+  Hot: "bg-blush-500 text-snow",
   New: "bg-white text-brand-700",
   Promo: "bg-blush-200 text-blush-900",
-  "Best value": "bg-brand-400 text-ink-900",
+  "Best value": "bg-brand-400 text-coal",
 };
 
 export const ProductCard = memo(function ProductCard({
@@ -46,8 +46,8 @@ export const ProductCard = memo(function ProductCard({
       <ProductArt
         icon={product.icon}
         accent={product.accent}
-        className={cn("grid aspect-[16/10] w-full place-items-center lg:aspect-[2/1]", isSoldOut && "grayscale")}
-        iconClassName="relative size-12 text-white drop-shadow-md transition-transform duration-500 group-hover:scale-110 group-hover:-rotate-6 sm:size-14"
+        className={cn("grid aspect-[16/10] w-full place-items-center lg:aspect-[2/1]", isSoldOut && "grayscale dark:brightness-50")}
+        iconClassName="relative size-12 text-snow drop-shadow-md transition-transform duration-500 group-hover:scale-110 group-hover:-rotate-6 sm:size-14"
       />
       {/* Shine sweep on hover */}
       <span
@@ -55,7 +55,7 @@ export const ProductCard = memo(function ProductCard({
         className="pointer-events-none absolute inset-y-0 -left-full w-1/2 -skew-x-12 bg-linear-to-r from-transparent via-white/40 to-transparent transition-[left] duration-700 group-hover:left-[150%]"
       />
       {isSoldOut ? (
-        <span className="absolute top-3 left-3 rounded-full bg-ink-900 px-2.5 py-1 text-[11px] font-bold text-white shadow-sm">
+        <span className="absolute top-3 left-3 rounded-full bg-coal px-2.5 py-1 text-[11px] font-bold text-snow shadow-sm">
           {dict.common.soldOut}
         </span>
       ) : product.tag ? (

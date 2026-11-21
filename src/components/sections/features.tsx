@@ -96,7 +96,7 @@ function SafetyChecklist({ items }: { items: readonly string[] }) {
         >
           {item}
           <span
-            className="grid size-6 place-items-center rounded-full bg-brand-400 text-xs text-ink-900"
+            className="grid size-6 place-items-center rounded-full bg-brand-400 text-xs text-coal"
             aria-hidden="true"
           >
             ✓

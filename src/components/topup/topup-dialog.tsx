@@ -120,7 +120,7 @@ export function TopUpDialog({ product, initialOptionId, onClose }: TopUpDialogPr
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.25 }}
-        className="absolute inset-0 bg-ink-950/40 backdrop-blur-sm"
+        className="absolute inset-0 bg-coal/50 backdrop-blur-sm"
       />
 
       <m.div
@@ -141,7 +141,7 @@ export function TopUpDialog({ product, initialOptionId, onClose }: TopUpDialogPr
             icon={product.icon}
             accent={product.accent}
             className="grid size-14 shrink-0 place-items-center rounded-2xl"
-            iconClassName="relative size-7 text-white"
+            iconClassName="relative size-7 text-snow"
           />
           <div className="min-w-0 flex-1">
             <h2 id={titleId} className="truncate text-lg font-bold text-ink-900 sm:text-xl">
@@ -267,7 +267,7 @@ export function TopUpDialog({ product, initialOptionId, onClose }: TopUpDialogPr
                             className="sr-only"
                           />
                           {item.originalPrice ? (
-                            <span className="absolute -top-2 right-2 rounded-full bg-blush-500 px-2 py-0.5 text-[10px] font-bold text-white">
+                            <span className="absolute -top-2 right-2 rounded-full bg-blush-500 px-2 py-0.5 text-[10px] font-bold text-snow">
                               -{discountPercent(item.price, item.originalPrice)}%
                             </span>
                           ) : null}
@@ -299,7 +299,7 @@ export function TopUpDialog({ product, initialOptionId, onClose }: TopUpDialogPr
               {/* Summary */}
               <aside className="border-t border-brand-100 bg-linear-to-b from-brand-50/70 to-white p-4 sm:p-6 lg:border-t-0 lg:border-l">
                 <div className="lg:sticky lg:top-0">
-                  <h3 className="text-sm font-semibold tracking-wider text-ink-500 uppercase">{t.summary.title}</h3>
+                  <h3 className="text-sm font-semibold tracking-wider text-ink-500 uppercase dark:text-brand-600">{t.summary.title}</h3>
                   <dl className="mt-4 grid gap-3 text-sm">
                     <SummaryRow label={t.summary.product} value={product.name} />
                     <SummaryRow label={isEmail ? t.summary.email : t.summary.username} value={draft.account || "—"} />

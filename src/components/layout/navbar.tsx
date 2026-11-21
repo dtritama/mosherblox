@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
+import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { buttonVariants } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { Logo } from "@/components/ui/logo";
@@ -98,7 +99,7 @@ export function Navbar() {
                     className={cn(
                       "block rounded-full px-4 py-2 text-sm font-medium transition-colors duration-200",
                       active
-                        ? "bg-brand-400 text-ink-900 shadow-md shadow-brand-500/30"
+                        ? "bg-brand-400 text-coal shadow-md shadow-brand-500/30"
                         : "text-ink-700 hover:text-brand-700",
                     )}
                   >
@@ -111,6 +112,7 @@ export function Navbar() {
         </nav>
 
         <div className="flex items-center gap-2">
+          <ThemeToggle />
           <LanguageSwitcher />
           <Link
             href={localeHref(locale, "/robux")}

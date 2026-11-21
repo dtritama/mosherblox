@@ -164,7 +164,16 @@ Rules:
   (`blush-*`), dark text `ink-*`. Pink is an accent only — the client rejected "too much pink".
 - Highlighted heading words: `.text-highlight` = lime fill, dark ink outline, pink underline.
   **No gradient text.**
-- Primary buttons: lime background with **ink text**. Radius scale: xl 12, 2xl 16, card 28, panel 32.
+- **Dark mode** (store only, not /admin): `<html data-theme="dark">`, light is the default; the
+  choice is saved in localStorage `mb.theme` and applied before paint by `THEME_SCRIPT`
+  (`components/layout/theme-toggle.tsx`, in the `[lang]` layout `<head>`). The toggle (navbar)
+  grows the new theme in a circle from the button (View Transitions; instant under reduced motion).
+  Dark works by **redefining the same tokens** in `globals.css` (`white`, `ink-*`, light `brand-*` /
+  `blush-*` tints), so normal classes follow. Solid lime 300–500 stays lime. Where a colour must
+  NOT flip use the fixed tokens: `text-coal` (dark text on lime), `bg-coal` (small dark badges),
+  `text-snow` (white text). Use `text-snow`, never `text-white`, in store components;
+  `dark:` variants for the rest.
+- Primary buttons: lime background with **ink text** (`text-coal`). Radius scale: xl 12, 2xl 16, card 28, panel 32.
 - Hero: centered text, two tilted "order cards" (Send Username = main/left, Gamepass = right) that
   drift; full viewport height (`min-h-svh`). Badge, stats bar and hero buttons were removed by request.
 - Section eyebrow pills and hero buttons are hidden via `siteConfig.ui` flags (`showEyebrows`,

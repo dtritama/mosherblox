@@ -264,13 +264,13 @@ export function RobuxPanel({ className }: { className?: string }) {
                             <span
                               className={cn(
                                 "grid size-11 shrink-0 place-items-center rounded-xl transition-colors",
-                                selected ? "bg-brand-400 text-ink-900" : "bg-brand-100 text-brand-700",
+                                selected ? "bg-brand-400 text-coal" : "bg-brand-100 text-brand-700",
                               )}
                             >
                               <Icon className="size-5" aria-hidden="true" />
                             </span>
                             {featured ? (
-                              <span className="absolute -top-2.5 right-3 inline-flex items-center gap-1 rounded-full bg-blush-500 px-2 py-0.5 text-[11px] font-bold text-white shadow-sm">
+                              <span className="absolute -top-2.5 right-3 inline-flex items-center gap-1 rounded-full bg-blush-500 px-2 py-0.5 text-[11px] font-bold text-snow shadow-sm">
                                 <Flame className="size-3" aria-hidden="true" />
                                 {t.methods.popular}
                               </span>
@@ -281,7 +281,7 @@ export function RobuxPanel({ className }: { className?: string }) {
                                 {t.methods[option.id].description}
                               </span>
                               {out ? (
-                                <span className="mt-2 inline-block rounded-full bg-ink-900 px-2 py-0.5 text-xs font-semibold text-white">
+                                <span className="mt-2 inline-block rounded-full bg-coal px-2 py-0.5 text-xs font-semibold text-snow">
                                   {dict.common.soldOut}
                                 </span>
                               ) : (
@@ -355,7 +355,7 @@ export function RobuxPanel({ className }: { className?: string }) {
                                 aria-hidden="true"
                                 className={cn(
                                   "mt-0.5 grid size-5 shrink-0 place-items-center rounded-md border-2 transition-colors",
-                                  draft.confirmed2sv ? "border-brand-500 bg-brand-500 text-white" : "border-brand-200",
+                                  draft.confirmed2sv ? "border-brand-500 bg-brand-500 text-snow" : "border-brand-200",
                                 )}
                               >
                                 {draft.confirmed2sv ? <Check className="size-3.5" /> : null}
@@ -571,7 +571,7 @@ export function RobuxPanel({ className }: { className?: string }) {
                 {/* Summary — sticky sidebar on desktop */}
                 <aside className="hidden border-l border-brand-100 bg-linear-to-b from-brand-50/70 to-white p-6 lg:block">
                   <div className="sticky top-24">
-                    <h3 className="text-sm font-semibold tracking-wider text-ink-500 uppercase">{c.summary.title}</h3>
+                    <h3 className="text-sm font-semibold tracking-wider text-ink-500 uppercase dark:text-brand-600">{c.summary.title}</h3>
                     <dl className="mt-4 grid gap-3 text-sm">
                       <SummaryRow label={t.summary.method} value={methodName} />
                       <SummaryRow label={t.summary.amount} value={amount ? `${n(amount)} Robux` : "—"} />

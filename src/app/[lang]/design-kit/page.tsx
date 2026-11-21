@@ -145,13 +145,13 @@ export default async function DesignKitPage() {
     <div className="bg-brand-50/50 pt-24 pb-16 lg:pt-28">
       <Container className="grid gap-8">
         {/* Cover */}
-        <header className="grid gap-6 rounded-[2rem] bg-ink-900 p-8 text-white sm:p-12 lg:grid-cols-[1fr_auto] lg:items-end">
+        <header className="grid gap-6 rounded-[2rem] bg-coal p-8 text-snow sm:p-12 lg:grid-cols-[1fr_auto] lg:items-end">
           <div>
             <Logo height={56} />
             <h1 className="mt-6 text-4xl font-extrabold tracking-tight sm:text-5xl">
               {siteConfig.name} <span className="text-brand-300">Design Kit</span>
             </h1>
-            <p className="mt-3 max-w-2xl text-white/70">
+            <p className="mt-3 max-w-2xl text-snow/70">
               Foundations, components and patterns rendered from the live code. Each white card below is one frame when
               imported into Figma. Language: {locale.toUpperCase()}.
             </p>
@@ -161,7 +161,7 @@ export default async function DesignKitPage() {
               <a
                 key={id}
                 href={`#${id}`}
-                className="rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-white/20"
+                className="rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold text-snow transition-colors hover:bg-white/20"
               >
                 {label}
               </a>
@@ -196,7 +196,7 @@ export default async function DesignKitPage() {
               ["Border", "bg-brand-100", "brand-100"],
               ["Accent", "bg-blush-200", "blush-200"],
               ["Accent strong", "bg-blush-500", "blush-500"],
-              ["Text", "bg-ink-900", "ink-900"],
+              ["Text", "bg-coal", "ink-900"],
             ].map(([name, bg, token]) => (
               <div key={name}>
                 <div className={cn("h-16 rounded-xl ring-1 ring-black/5", bg)} />
@@ -331,7 +331,7 @@ export default async function DesignKitPage() {
           </KitGroup>
           <KitGroup label="Special" className="flex flex-wrap items-center gap-4">
             <div>
-              <span className="inline-flex h-11 items-center gap-2 rounded-full bg-ink-900 px-5 text-sm font-semibold text-white">
+              <span className="inline-flex h-11 items-center gap-2 rounded-full bg-coal px-5 text-sm font-semibold text-snow">
                 <RobuxIcon className="size-4 text-brand-300" aria-hidden="true" />
                 {dict.cta.primary}
                 <ArrowUpRight className="size-4" aria-hidden="true" />
@@ -339,13 +339,13 @@ export default async function DesignKitPage() {
               <KitNote>Dark pill (footer CTA)</KitNote>
             </div>
             <div>
-              <span className="grid size-9 place-items-center rounded-full bg-ink-900 text-white">
+              <span className="grid size-9 place-items-center rounded-full bg-coal text-snow">
                 <ArrowRight className="size-4" aria-hidden="true" />
               </span>
               <KitNote>Icon / round dark</KitNote>
             </div>
             <div>
-              <span className="grid size-12 place-items-center rounded-2xl bg-brand-400 text-ink-900 shadow-xl shadow-brand-500/30">
+              <span className="grid size-12 place-items-center rounded-2xl bg-brand-400 text-coal shadow-xl shadow-brand-500/30">
                 <ArrowUpRight className="size-5 -rotate-45" aria-hidden="true" />
               </span>
               <KitNote>Back to top</KitNote>
@@ -366,11 +366,11 @@ export default async function DesignKitPage() {
           <KitGroup label="Labels" className="flex flex-wrap items-start gap-4">
             {[
               ["bg-brand-100 text-brand-800", dict.hero.card.success, "Success"],
-              ["bg-blush-500 text-white", dict.robux.methods.popular, "Popular"],
+              ["bg-blush-500 text-snow", dict.robux.methods.popular, "Popular"],
               ["bg-brand-100 text-brand-800", "Rp 120/Robux", "Rate pill"],
               ["bg-blush-50 text-blush-800", "Beli ≥ 5.000 Robux untuk Rp 115/Robux", "Next tier"],
-              ["bg-blush-500 text-white", "Hot", "Tag / Hot"],
-              ["bg-brand-400 text-ink-900", "Best value", "Tag / Best value"],
+              ["bg-blush-500 text-snow", "Hot", "Tag / Hot"],
+              ["bg-brand-400 text-coal", "Best value", "Tag / Best value"],
               ["bg-white text-brand-700 ring-1 ring-brand-100", "New", "Tag / New"],
             ].map(([style, label, note]) => (
               <div key={note}>
@@ -421,7 +421,7 @@ export default async function DesignKitPage() {
             <div className="flex max-w-sm items-center gap-2 rounded-full bg-white p-1.5 pl-4 shadow-sm ring-1 ring-brand-100">
               <Search className="size-4 text-ink-300" aria-hidden="true" />
               <span className="flex-1 text-sm text-ink-300">{dict.footer.checkOrder.placeholder}</span>
-              <span className="grid size-9 place-items-center rounded-full bg-ink-900 text-white">
+              <span className="grid size-9 place-items-center rounded-full bg-coal text-snow">
                 <ArrowRight className="size-4" aria-hidden="true" />
               </span>
             </div>
