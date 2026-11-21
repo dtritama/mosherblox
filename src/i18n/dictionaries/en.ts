@@ -526,6 +526,12 @@ export const en: Dictionary = {
     },
     help: "Need help? Chat with support",
     searchAgain: "Check another order",
+    deliveryProof: {
+      title: "Delivery proof",
+      description: "A screenshot from our admin showing your order was sent.",
+      open: "View full size",
+      alt: "Delivery proof for order {id}",
+    },
     recent: {
       title: "Your recent orders",
       description: "Saved on this device only. Tap one to open it.",

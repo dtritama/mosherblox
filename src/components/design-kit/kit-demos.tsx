@@ -204,6 +204,7 @@ const sampleOrder: Order = {
   paymentStatus: "confirmed",
   hasProof: false,
   hasReview: false,
+  deliveryProofUrl: null,
 };
 
 export function OrderSuccessDemo() {

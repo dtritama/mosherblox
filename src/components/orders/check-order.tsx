@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, m } from "motion/react";
-import { Check, ChevronRight, History, Loader2, MessageCircle, Search, X } from "lucide-react";
+import { Check, ChevronRight, ExternalLink, History, Loader2, MessageCircle, PackageCheck, Search, X } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 
@@ -306,6 +306,40 @@ function OrderResult({
       {result.status === "pending" ? (
         <div className="border-b border-brand-100 bg-brand-50/40 p-4 sm:p-6">
           <QrisPayment order={result} onChange={onChange} />
+        </div>
+      ) : null}
+
+      {result.deliveryProofUrl ? (
+        <div className="border-b border-brand-100 p-5 sm:p-8">
+          <div className="flex items-start gap-3">
+            <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand-700">
+              <PackageCheck className="size-4" aria-hidden="true" />
+            </span>
+            <div className="min-w-0">
+              <h2 className="font-semibold text-ink-900">{t.deliveryProof.title}</h2>
+              <p className="text-sm text-ink-500">{t.deliveryProof.description}</p>
+            </div>
+          </div>
+          <a
+            href={result.deliveryProofUrl}
+            target="_blank"
+            rel="noopener"
+            className="group mt-4 block w-full max-w-xs overflow-hidden rounded-2xl border border-brand-100"
+          >
+            {/* Our own route with a random file name; a plain <img> keeps the screenshot exact. */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={result.deliveryProofUrl}
+              alt={interpolate(t.deliveryProof.alt, { id: result.id })}
+              loading="lazy"
+              className="max-h-96 w-full bg-brand-50/40 object-contain transition-transform duration-300 group-hover:scale-[1.02]"
+            />
+            <span className="flex items-center justify-center gap-1.5 border-t border-brand-100 bg-brand-50 py-2 text-xs font-semibold text-ink-700">
+              {t.deliveryProof.open}
+              <ExternalLink className="size-3.5" aria-hidden="true" />
+              <span className="sr-only">{dict.contact.newTab}</span>
+            </span>
+          </a>
         </div>
       ) : null}
 

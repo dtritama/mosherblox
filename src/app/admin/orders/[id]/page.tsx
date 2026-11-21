@@ -7,6 +7,7 @@ import { adminCopy } from "@/app/admin/copy";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { formatAdminDate, formatWhatsapp, StatusBadge } from "@/components/admin/status-badge";
 import { StatusActions } from "@/components/admin/status-actions";
+import { DeliveryProof } from "@/components/admin/delivery-proof";
 import { formatIDR, formatNumber, interpolate } from "@/i18n/format";
 import { normalizeOrderId } from "@/lib/orders/order-id";
 import { cn } from "@/lib/utils";
@@ -158,6 +159,16 @@ function OrderDetail({ order }: { order: AdminOrderDetail }) {
               {order.paidAt ? <Row label={t.paidAt}>{formatAdminDate(order.paidAt)}</Row> : null}
               {order.completedAt ? <Row label={t.completedAt}>{formatAdminDate(order.completedAt)}</Row> : null}
             </dl>
+          </Card>
+
+          <Card title={adminCopy.delivery.title}>
+            <DeliveryProof
+              key={order.deliveryProofUrl ?? "none"}
+              orderId={order.id}
+              imageUrl={order.deliveryProofUrl}
+              uploadedAt={order.deliveryProofAt}
+              canUpload={order.status === "paid" || order.status === "processing" || order.status === "completed"}
+            />
           </Card>
 
           <Card title={t.history}>

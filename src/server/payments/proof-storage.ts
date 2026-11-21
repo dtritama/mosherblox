@@ -7,7 +7,9 @@ import { orderConfig } from "@/data/orders";
  * Uploaded images, stored on disk OUTSIDE public/ in UPLOAD_DIR (default ./storage/uploads,
  * a Docker volume in production):
  * - proofs/  transfer screenshots ("bukti transfer"), shown to admins only via a logged-in route
- * - qris/    the store's QRIS uploaded in /admin/settings, served publicly via /payments/qris/[file]
+ * - qris/      the store's QRIS uploaded in /admin/settings, served publicly via /payments/qris/[file]
+ * - delivery/  "bukti pengiriman" an admin uploads on an order, served via /orders/delivery/[file]
+ *              (random name, only revealed to the buyer after an order ID + WhatsApp lookup)
  */
 
 // The upload folder is only known at runtime: tell Turbopack not to trace it into the build.
@@ -69,11 +71,13 @@ export async function readProof(relative: string): Promise<{ bytes: Uint8Array<A
   }
 }
 
-/** QRIS file names we create: a UUID + image extension. Anything else is refused by the public route. */
-export const QRIS_FILE = /^[0-9a-f-]{36}\.(jpg|png|webp)$/;
+/** File names we create for qris/ and delivery/: a UUID + image extension. Anything else is refused. */
+const RANDOM_FILE = /^[0-9a-f-]{36}\.(jpg|png|webp)$/;
+export const QRIS_FILE = RANDOM_FILE;
 
-/** Saves a new QRIS image (admin settings). Returns the file name inside qris/. */
-export async function saveQrisImage(
+/** Saves an image under a random, never-reused name in `folder`. Returns the file name. */
+async function saveRandomImage(
+  folder: "qris" | "delivery",
   file: File,
 ): Promise<{ ok: true; file: string } | { ok: false; error: ProofError }> {
   if (file.size === 0 || file.size > orderConfig.proofMaxBytes) return { ok: false, error: "tooBig" };
@@ -81,12 +85,29 @@ export async function saveQrisImage(
   const kind = sniffImage(bytes);
   if (!kind) return { ok: false, error: "notImage" };
   const name = `${crypto.randomUUID()}.${kind.ext}`;
-  const absolute = path.join(/*turbopackIgnore: true*/ uploadRoot(), "qris", name);
+  const absolute = path.join(/*turbopackIgnore: true*/ uploadRoot(), folder, name);
   await mkdir(path.dirname(absolute), { recursive: true });
   await writeFile(absolute, bytes, { flag: "wx" });
   return { ok: true, file: name };
 }
 
+/** Saves a new QRIS image (admin settings). Returns the file name inside qris/. */
+export const saveQrisImage = (file: File) => saveRandomImage("qris", file);
+
 export async function readQrisImage(file: string) {
-  return QRIS_FILE.test(file) ? readProof(`qris/${file}`) : null;
+  return RANDOM_FILE.test(file) ? readProof(`qris/${file}`) : null;
 }
+
+/** "Bukti pengiriman" (admin, order page). Returns the file name inside delivery/. */
+export const saveDeliveryProof = (file: File) => saveRandomImage("delivery", file);
+
+export async function readDeliveryProof(file: string) {
+  return RANDOM_FILE.test(file) ? readProof(`delivery/${file}`) : null;
+}
+
+export async function deleteDeliveryProof(file: string) {
+  if (RANDOM_FILE.test(file)) await deleteProof(`delivery/${file}`);
+}
+
+/** Where the browser loads a delivery proof from. */
+export const deliveryProofUrl = (file: string | null) => (file ? `/orders/delivery/${file}` : null);

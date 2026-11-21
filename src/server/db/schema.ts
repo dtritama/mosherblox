@@ -137,6 +137,12 @@ export const orders = pgTable(
     expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
     paidAt: timestamp("paid_at", { withTimezone: true }),
     completedAt: timestamp("completed_at", { withTimezone: true }),
+    /**
+     * Screenshot an admin uploaded as proof the Robux / item was sent ("bukti pengiriman"):
+     * a random file name in UPLOAD_DIR/delivery, shown to the buyer on Check Order.
+     */
+    deliveryProof: text("delivery_proof"),
+    deliveryProofAt: timestamp("delivery_proof_at", { withTimezone: true }),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },

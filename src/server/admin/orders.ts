@@ -1,6 +1,7 @@
 import "server-only";
 import { and, asc, count, desc, eq, ilike, or, type SQL } from "drizzle-orm";
 import { getPaymentMethod } from "@/data/payments";
+import { deliveryProofUrl } from "@/server/payments/proof-storage";
 import { getDb, schema } from "@/server/db";
 import type { OrderStatus, PaymentStatus } from "@/lib/orders/types";
 import { normalizeWhatsapp } from "@/lib/validation";
@@ -137,6 +138,9 @@ export interface AdminOrderDetail {
   expiresAt: string;
   paidAt: string | null;
   completedAt: string | null;
+  /** "Bukti pengiriman" image URL (also shown to the buyer), and when it was uploaded. */
+  deliveryProofUrl: string | null;
+  deliveryProofAt: string | null;
   productName: string;
   productSlug: string | null;
   item: string;
@@ -200,6 +204,8 @@ export async function getOrderDetail(id: string): Promise<AdminOrderDetail | nul
     expiresAt: order.expiresAt.toISOString(),
     paidAt: iso(order.paidAt),
     completedAt: iso(order.completedAt),
+    deliveryProofUrl: deliveryProofUrl(order.deliveryProof),
+    deliveryProofAt: iso(order.deliveryProofAt),
     productName: order.productName,
     productSlug: order.productSlug,
     item: order.itemLabel.id,

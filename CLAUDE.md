@@ -110,7 +110,12 @@ Rules:
   only its SHA-256 stored in `admin_sessions` (12 h). Login rate-limited per IP and per email.
   Status changes go through `transitionOrder()` with `expectedFrom` (stale clicks are refused) and
   also update the payment (paid → confirmed + who, failed-from-pending → rejected). Proof images
-  only via `/admin/proofs/[paymentId]` (no-store, nosniff, sandbox CSP). `/admin` is skipped by
+  only via `/admin/proofs/[paymentId]` (no-store, nosniff, sandbox CSP). **Bukti pengiriman:** on
+  a paid/processing/completed order the admin can upload/replace/remove a screenshot that the
+  Robux / item was sent (`components/admin/delivery-proof.tsx`, `deliveryProofAction`, columns
+  `orders.delivery_proof(_at)`). Stored as a random UUID name in `UPLOAD_DIR/delivery`, served by
+  `app/orders/delivery/[file]` (the unguessable name is the key; it only reaches the buyer through
+  a Check Order lookup) and shown on Check Order. `/admin` is skipped by
   `proxy.ts` (no locale) and disallowed in robots. Copy lives in `app/admin/copy.ts`.
 - **Background jobs** (pg-boss in the `pgboss` schema of the same Postgres): the worker
   (`src/worker/index.mts`) runs `orders.expire` every minute (`expireOverdueOrders()`; never expires

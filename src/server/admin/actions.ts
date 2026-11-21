@@ -10,6 +10,9 @@ import { canTransition } from "@/lib/orders/status";
 import type { OrderStatus } from "@/lib/orders/types";
 import { normalizeOrderId } from "@/lib/orders/order-id";
 import { OrderTransitionError, transitionOrder } from "@/server/orders/service";
+import { eq } from "drizzle-orm";
+import { getDb, schema } from "@/server/db";
+import { deleteDeliveryProof, saveDeliveryProof } from "@/server/payments/proof-storage";
 
 /** Admin server actions. Each one checks the session itself — never trust that the UI hid a button. */
 
@@ -98,6 +101,61 @@ export async function moderateReviewAction(
     return { ok: true };
   } catch (error) {
     console.error("[admin] review moderation failed", error);
+    return { error: "unavailable" };
+  }
+}
+
+export type DeliveryProofState = {
+  ok?: boolean;
+  error?: "notAllowed" | "noImage" | "badImage" | "tooBig" | "unavailable";
+};
+
+/** A delivery proof only makes sense once the buyer has paid. */
+const DELIVERY_PROOF_STATUSES: readonly OrderStatus[] = ["paid", "processing", "completed"];
+
+/**
+ * "Bukti pengiriman": upload (or replace) / remove the screenshot showing the Robux / item was
+ * sent. The buyer sees it on Check Order.
+ */
+export async function deliveryProofAction(_prev: DeliveryProofState, formData: FormData): Promise<DeliveryProofState> {
+  await requireAdmin();
+  const orderId = normalizeOrderId(str(formData.get("orderId"), 32));
+  const intent = str(formData.get("intent"), 10);
+  const { orders } = schema;
+  try {
+    const db = getDb();
+    const [order] = await db
+      .select({ status: orders.status, deliveryProof: orders.deliveryProof })
+      .from(orders)
+      .where(eq(orders.id, orderId))
+      .limit(1);
+    if (!order) return { error: "notAllowed" };
+
+    if (intent === "remove") {
+      await db.update(orders).set({ deliveryProof: null, deliveryProofAt: null }).where(eq(orders.id, orderId));
+      if (order.deliveryProof) await deleteDeliveryProof(order.deliveryProof).catch(() => undefined);
+      return { ok: true };
+    }
+
+    if (!DELIVERY_PROOF_STATUSES.includes(order.status)) return { error: "notAllowed" };
+    const file = formData.get("image");
+    if (!(file instanceof File) || file.size === 0) return { error: "noImage" };
+    const saved = await saveDeliveryProof(file);
+    if (!saved.ok) return { error: saved.error === "tooBig" ? "tooBig" : "badImage" };
+    try {
+      await db
+        .update(orders)
+        .set({ deliveryProof: saved.file, deliveryProofAt: new Date() })
+        .where(eq(orders.id, orderId));
+    } catch (error) {
+      await deleteDeliveryProof(saved.file).catch(() => undefined);
+      throw error;
+    }
+    // Replaced: the old file isn't referenced any more.
+    if (order.deliveryProof) await deleteDeliveryProof(order.deliveryProof).catch(() => undefined);
+    return { ok: true };
+  } catch (error) {
+    console.error("[admin] delivery proof failed", error);
     return { error: "unavailable" };
   }
 }

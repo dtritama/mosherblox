@@ -9,6 +9,7 @@ import { canTransition } from "@/lib/orders/status";
 import type { Order, OrderStatus } from "@/lib/orders/types";
 import type { OrderQuote } from "@/server/orders/quote";
 import { providerFor } from "@/server/payments/provider";
+import { deliveryProofUrl } from "@/server/payments/proof-storage";
 import { SETTING_KEYS } from "@/lib/settings";
 
 /**
@@ -54,6 +55,7 @@ export function toOrder(row: OrderRow, payment?: PaymentRow | null): Order {
     paymentStatus: payment?.status ?? null,
     hasProof: Boolean(payment?.proofPath),
     hasReview: false,
+    deliveryProofUrl: deliveryProofUrl(row.deliveryProof),
   };
 }
 

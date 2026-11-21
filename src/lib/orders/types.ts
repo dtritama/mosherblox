@@ -34,6 +34,8 @@ export interface Order {
   hasProof: boolean;
   /** A review exists for this order (Check Order then hides the review form). */
   hasReview: boolean;
+  /** Screenshot the admin uploaded showing the Robux / item was sent ("bukti pengiriman"). */
+  deliveryProofUrl: string | null;
 }
 
 /** Mirrors the `payment_status` enum. "submitted" = buyer pressed "Saya sudah bayar". */

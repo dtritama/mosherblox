@@ -529,6 +529,12 @@ export const id = {
     },
     help: "Butuh bantuan? Chat CS",
     searchAgain: "Cek pesanan lain",
+    deliveryProof: {
+      title: "Bukti pengiriman",
+      description: "Screenshot dari admin bahwa pesananmu sudah dikirim.",
+      open: "Lihat ukuran penuh",
+      alt: "Bukti pengiriman untuk pesanan {id}",
+    },
     recent: {
       title: "Pesanan terakhir kamu",
       description: "Tersimpan di perangkat ini saja. Ketuk untuk membuka.",
