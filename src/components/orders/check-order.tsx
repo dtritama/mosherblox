@@ -1,9 +1,9 @@
 "use client";
 
 import { AnimatePresence, m } from "motion/react";
-import { Check, Loader2, MessageCircle, Search, X } from "lucide-react";
+import { Check, ChevronRight, History, Loader2, MessageCircle, Search, X } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import { useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 
 import { Field, inputClass, SummaryRow } from "@/components/checkout/form-parts";
 import { QrisPayment } from "@/components/checkout/qris-payment";
@@ -12,11 +12,12 @@ import { SubmitError } from "@/components/checkout/submit-error";
 import { statusStyles } from "@/components/orders/status-styles";
 import { Button } from "@/components/ui/button";
 import { siteConfig } from "@/config/site";
-import { intlLocales } from "@/i18n/config";
+import { intlLocales, localize } from "@/i18n/config";
 import { formatIDR, interpolate } from "@/i18n/format";
 import { useI18n } from "@/i18n/i18n-provider";
 import { DEMO_WHATSAPP, demoOrders, SHOW_DEMO_ORDERS } from "@/lib/orders/demo-orders";
 import { normalizeOrderId } from "@/lib/orders/order-id";
+import { findRecentOrder, forgetOrder, rememberOrder, useRecentOrders } from "@/lib/orders/recent-orders";
 import { orderService } from "@/lib/orders/service";
 import type { Order, OrderStatus } from "@/lib/orders/types";
 import { cn } from "@/lib/utils";
@@ -68,6 +69,7 @@ export function CheckOrder() {
       }
       setOrder(result.order);
       setNotFound(!result.order);
+      if (result.order) rememberOrder(result.order);
     } finally {
       setSearching(false);
     }
@@ -76,6 +78,30 @@ export function CheckOrder() {
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     void search(orderId, whatsapp);
+  };
+
+  // ?id= of an order this device remembers (refresh after checkout, "Cek status" link): open it.
+  useEffect(() => {
+    const saved = findRecentOrder(normalizeOrderId(searchParams.get("id") ?? ""));
+    if (!saved) return;
+    // The saved list lives in localStorage (outside React), so it's read after mounting.
+    let active = true;
+    void Promise.resolve().then(() => {
+      if (!active) return;
+      setWhatsapp(saved.whatsapp);
+      return search(saved.id, saved.whatsapp);
+    });
+    return () => {
+      active = false;
+    };
+    // Only on arrival.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const openRecent = (id: string, phone: string) => {
+    setOrderId(id);
+    setWhatsapp(phone);
+    void search(id, phone);
   };
 
   const tryDemo = (id: string) => {
@@ -91,7 +117,8 @@ export function CheckOrder() {
   };
 
   return (
-    <div className="grid gap-4">
+    // minmax(0,1fr): long one-line text inside (recent orders) must not widen the page on phones.
+    <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4">
       <div className="overflow-hidden rounded-[2rem] border border-brand-100 bg-white shadow-xl shadow-brand-900/5">
         <AnimatePresence mode="wait" initial={false}>
           {order ? (
@@ -153,6 +180,8 @@ export function CheckOrder() {
           )}
         </AnimatePresence>
       </div>
+
+      {!order ? <RecentOrders disabled={searching} onOpen={openRecent} /> : null}
 
       {SHOW_DEMO_ORDERS ? (
         <aside className="rounded-2xl border border-dashed border-brand-200 bg-brand-50/60 p-4 text-sm">
@@ -317,5 +346,66 @@ function OrderResult({
         </div>
       </div>
     </m.div>
+  );
+}
+
+/** Orders remembered on this device (lib/orders/recent-orders.ts); hidden while empty. */
+function RecentOrders({ disabled, onOpen }: { disabled: boolean; onOpen: (id: string, whatsapp: string) => void }) {
+  const { locale, dict } = useI18n();
+  const t = dict.checkOrder.recent;
+  const recent = useRecentOrders();
+  if (recent.length === 0) return null;
+  const formatDate = new Intl.DateTimeFormat(intlLocales[locale], { dateStyle: "medium", timeStyle: "short" });
+
+  return (
+    <section
+      aria-labelledby="recent-orders-title"
+      className="rounded-[1.75rem] border border-brand-100 bg-white p-4 shadow-lg shadow-brand-900/5 sm:p-6"
+    >
+      <div className="flex items-start gap-3">
+        <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand-700">
+          <History className="size-4" aria-hidden="true" />
+        </span>
+        <div className="min-w-0">
+          <h2 id="recent-orders-title" className="font-semibold text-ink-900">
+            {t.title}
+          </h2>
+          <p className="text-sm text-ink-500">{t.description}</p>
+        </div>
+      </div>
+      <ul className="mt-4 grid grid-cols-[minmax(0,1fr)] gap-2">
+        {recent.map((saved) => (
+          <li key={saved.id} className="flex items-stretch gap-2">
+            <button
+              type="button"
+              disabled={disabled}
+              onClick={() => onOpen(saved.id, saved.whatsapp)}
+              aria-label={interpolate(t.open, { id: saved.id })}
+              className="group flex min-w-0 flex-1 items-center gap-3 rounded-2xl border border-brand-100 px-4 py-3 text-left transition-colors hover:border-brand-300 hover:bg-brand-50/60 disabled:opacity-60"
+            >
+              <span className="min-w-0 flex-1">
+                <span className="block font-mono text-sm font-bold tracking-wider text-ink-900">{saved.id}</span>
+                <span className="block truncate text-sm text-ink-700">{localize(saved.item, locale)}</span>
+                <span className="block text-xs text-ink-500">
+                  {formatDate.format(new Date(saved.createdAt))} · {formatIDR(saved.total)}
+                </span>
+              </span>
+              <ChevronRight
+                className="size-4 shrink-0 text-ink-300 transition-transform group-hover:translate-x-0.5 group-hover:text-ink-700"
+                aria-hidden="true"
+              />
+            </button>
+            <button
+              type="button"
+              onClick={() => forgetOrder(saved.id)}
+              aria-label={interpolate(t.remove, { id: saved.id })}
+              className="grid w-11 shrink-0 place-items-center rounded-2xl border border-transparent text-ink-300 transition-colors hover:border-blush-200 hover:bg-blush-50 hover:text-blush-700"
+            >
+              <X className="size-4" aria-hidden="true" />
+            </button>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }

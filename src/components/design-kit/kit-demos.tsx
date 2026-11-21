@@ -209,7 +209,7 @@ const sampleOrder: Order = {
 export function OrderSuccessDemo() {
   return (
     <div className="rounded-[2rem] border border-brand-100">
-      <OrderSuccess order={sampleOrder} onDone={() => undefined} />
+      <OrderSuccess order={sampleOrder} onDone={() => undefined} remember={false} />
     </div>
   );
 }

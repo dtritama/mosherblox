@@ -6,6 +6,7 @@ import { poppins } from "@/app/fonts/poppins";
 import { BackToTop } from "@/components/layout/back-to-top";
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
+import { ResumeOrder } from "@/components/orders/resume-order";
 import { ScrollProgress } from "@/components/layout/scroll-progress";
 import { MotionProvider } from "@/components/providers/motion-provider";
 import { SettingsProvider } from "@/components/providers/settings-provider";
@@ -83,6 +84,7 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[la
                 <main id="main" className="overflow-x-clip">{children}</main>
                 <Footer />
                 <BackToTop />
+                <ResumeOrder />
               </TopUpProvider>
             </SettingsProvider>
           </MotionProvider>

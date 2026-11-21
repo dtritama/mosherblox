@@ -526,6 +526,12 @@ export const en: Dictionary = {
     },
     help: "Need help? Chat with support",
     searchAgain: "Check another order",
+    recent: {
+      title: "Your recent orders",
+      description: "Saved on this device only. Tap one to open it.",
+      open: "Open order {id}",
+      remove: "Remove {id} from the list",
+    },
     demo: {
       title: "Sample orders (development only)",
       description: "From the sample data (npm run db:seed). Try them with number {phone}:",

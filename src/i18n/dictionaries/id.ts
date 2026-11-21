@@ -529,6 +529,12 @@ export const id = {
     },
     help: "Butuh bantuan? Chat CS",
     searchAgain: "Cek pesanan lain",
+    recent: {
+      title: "Pesanan terakhir kamu",
+      description: "Tersimpan di perangkat ini saja. Ketuk untuk membuka.",
+      open: "Buka pesanan {id}",
+      remove: "Hapus {id} dari daftar",
+    },
     demo: {
       title: "Pesanan contoh (hanya di development)",
       description: "Dari data contoh (npm run db:seed). Coba dengan nomor {phone}:",

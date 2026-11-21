@@ -3,34 +3,57 @@
 import { m } from "motion/react";
 import { Check, CheckCircle2, Copy, Search } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { QrisPayment } from "@/components/checkout/qris-payment";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { localeHref } from "@/i18n/config";
 import { formatIDR, interpolate } from "@/i18n/format";
 import { useI18n } from "@/i18n/i18n-provider";
+import { rememberOrder } from "@/lib/orders/recent-orders";
 import { PAYMENTS_LIVE } from "@/lib/orders/service";
 import type { Order } from "@/lib/orders/types";
+import { RESUME_PARAM } from "@/components/orders/resume-order";
 
 /**
  * Shown after checkout: order ID (copyable), summary, the QRIS payment step while the order
  * waits for payment, and a link to Check Order.
+ *
+ * The order is remembered on this device (Check Order lists it) and its ID is put in the address
+ * bar (`?order=MB-…`): a refresh then lands on Check Order with the order open (ResumeOrder).
  */
 export function OrderSuccess({
   order: created,
   onDone,
   doneLabel,
+  remember = true,
 }: {
   order: Order;
   onDone: () => void;
   doneLabel?: string;
+  /** false for the design-kit sample. */
+  remember?: boolean;
 }) {
   const { locale, dict } = useI18n();
   const t = dict.checkout.success;
   const [copied, setCopied] = useState(false);
   // Updated after "Saya sudah bayar".
   const [order, setOrder] = useState(created);
+
+  useEffect(() => {
+    if (!remember) return;
+    rememberOrder(created);
+    const url = new URL(window.location.href);
+    url.searchParams.set(RESUME_PARAM, created.id);
+    window.history.replaceState(null, "", url);
+    return () => {
+      // Closed / "Selesai": take the ID out of the address again (only if it is still ours).
+      const current = new URL(window.location.href);
+      if (current.searchParams.get(RESUME_PARAM) !== created.id) return;
+      current.searchParams.delete(RESUME_PARAM);
+      window.history.replaceState(null, "", current);
+    };
+  }, [created, remember]);
 
   const copy = async () => {
     try {
