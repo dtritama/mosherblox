@@ -175,7 +175,7 @@ export function TopUpDialog({ product, initialOptionId, onClose }: TopUpDialogPr
               exit={{ opacity: 0, y: -12 }}
               className="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)] overflow-y-auto lg:grid-cols-[minmax(0,1fr)_20rem]"
             >
-              <form id={formId} onSubmit={handleSubmit} noValidate className="grid gap-6 p-4 sm:p-6">
+              <form id={formId} onSubmit={handleSubmit} noValidate className="grid grid-cols-[minmax(0,1fr)] gap-6 p-4 sm:p-6">
                 {/* First thing in the form, so nobody fills it in for nothing. */}
                 <StoreClosedNotice />
                 {isSoldOut ? (

@@ -143,7 +143,7 @@ export function CheckOrder() {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -12 }}
-              className="grid gap-4 p-5 sm:p-8"
+              className="grid grid-cols-[minmax(0,1fr)] gap-4 p-5 sm:p-8"
             >
               <Field label={t.orderId.label} error={errors.orderId}>
                 {(props) => (

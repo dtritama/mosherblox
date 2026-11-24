@@ -235,7 +235,7 @@ export function RobuxPanel({ className }: { className?: string }) {
                 exit={{ opacity: 0, y: -12 }}
                 className="grid grid-cols-[minmax(0,1fr)] lg:grid-cols-[minmax(0,1fr)_21rem]"
               >
-                <form ref={formRef} id={formId} onSubmit={handleSubmit} noValidate className="grid gap-8 p-5 sm:p-8">
+                <form ref={formRef} id={formId} onSubmit={handleSubmit} noValidate className="grid grid-cols-[minmax(0,1fr)] gap-8 p-5 sm:p-8">
                   {/* First thing in the form, so nobody fills it in for nothing. */}
                   <StoreClosedNotice />
                   {/* 1 — Method */}
@@ -399,7 +399,7 @@ export function RobuxPanel({ className }: { className?: string }) {
                       >
                         <Minus className="size-5" aria-hidden="true" />
                       </AmountButton>
-                      <div className="relative flex-1">
+                      <div className="relative min-w-0 flex-1">
                         <RobuxIcon
                           className="pointer-events-none absolute top-1/2 left-3.5 size-5 -translate-y-1/2 text-brand-500 sm:left-4 sm:size-6"
                           aria-hidden="true"
@@ -501,7 +501,7 @@ export function RobuxPanel({ className }: { className?: string }) {
 
                   {/* 3 — Account */}
                   <Step number={3} title={t.steps.account}>
-                    <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="grid grid-cols-[minmax(0,1fr)] gap-4 sm:grid-cols-2">
                       <div className="min-w-0">
                         <Field
                           label={c.username.label}
