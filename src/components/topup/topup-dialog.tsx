@@ -10,6 +10,7 @@ import { PaymentPicker } from "@/components/checkout/payment-picker";
 import { RobloxAccountCheck } from "@/components/checkout/roblox-account-check";
 import { SubmitError } from "@/components/checkout/submit-error";
 import { useStoreSettings } from "@/components/providers/settings-provider";
+import { StoreClosedNotice } from "@/components/ui/store-closed-notice";
 import { Button } from "@/components/ui/button";
 import { ProductArt } from "@/components/ui/product-art";
 import { defaultPaymentId, getPaymentMethod } from "@/data/payments";
@@ -64,7 +65,7 @@ export function TopUpDialog({ product, initialOptionId, onClose }: TopUpDialogPr
   const [order, setOrder] = useState<Order | null>(null);
   const [submitError, setSubmitError] = useState<OrderFailure | null>(null);
 
-  const { soldOut } = useStoreSettings();
+  const { soldOut, storeOpen } = useStoreSettings();
   const isSoldOut = soldOut.products.includes(product.slug);
   const errors: OrderErrors = useMemo(
     () => (touched ? validateOrder(product.delivery, optionIds, draft) : {}),
@@ -83,6 +84,10 @@ export function TopUpDialog({ product, initialOptionId, onClose }: TopUpDialogPr
     const result = validateOrder(product.delivery, optionIds, draft);
     const whatsapp = normalizeWhatsapp(draft.whatsapp);
     setSubmitError(null);
+    if (!storeOpen) {
+      setSubmitError("storeClosed");
+      return;
+    }
     if (isSoldOut) {
       setSubmitError("soldOut");
       return;
@@ -172,6 +177,7 @@ export function TopUpDialog({ product, initialOptionId, onClose }: TopUpDialogPr
             >
               <form id={formId} onSubmit={handleSubmit} noValidate className="grid gap-6 p-4 sm:p-6">
                 {/* First thing in the form, so nobody fills it in for nothing. */}
+                <StoreClosedNotice />
                 {isSoldOut ? (
                   <p role="status" className="rounded-xl bg-ink-300/15 px-3 py-2.5 text-sm text-ink-700">
                     <strong className="font-semibold text-ink-900">{dict.common.soldOut}.</strong> {t.soldOutNotice}
@@ -330,7 +336,7 @@ export function TopUpDialog({ product, initialOptionId, onClose }: TopUpDialogPr
                     form={formId}
                     size="lg"
                     className="mt-5 w-full"
-                    disabled={submitting || isSoldOut}
+                    disabled={submitting || isSoldOut || !storeOpen}
                   >
                     <Zap className="size-4" aria-hidden="true" />
                     {submitting ? t.processing : t.buyNow}

@@ -66,7 +66,7 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[la
   if (!hasLocale(lang)) notFound();
   // Admin-editable prices + QRIS (cached; refreshed right after a save in /admin/settings).
   // + home content (/admin/content): texts in the dictionary, contact links.
-  const [{ robuxRates, qris, soldOut, robuxStock }, stats, { contact }, dict, navItems] = await Promise.all([
+  const [{ robuxRates, qris, soldOut, robuxStock, storeOpen, closedMessage }, stats, { contact }, dict, navItems] = await Promise.all([
     getSiteSettings(),
     getPublicStats(),
     getSiteContent(),
@@ -92,7 +92,7 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[la
         </a>
         <I18nProvider locale={lang} dict={dict}>
           <MotionProvider>
-            <SettingsProvider value={{ robuxRates, qris, soldOut, robuxStock, stats, contact }}>
+            <SettingsProvider value={{ robuxRates, qris, soldOut, robuxStock, storeOpen, closedMessage, stats, contact }}>
               <TopUpProvider>
                 <ScrollProgress />
                 <NightDecor />

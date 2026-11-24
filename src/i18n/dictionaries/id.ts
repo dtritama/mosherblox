@@ -32,6 +32,7 @@ export const id = {
     free: "Gratis",
     perRobux: "per Robux",
   },
+  storeClosed: { title: "Toko lagi offline" },
   theme: {
     toDark: "Ganti ke mode gelap",
     toLight: "Ganti ke mode terang",
@@ -401,6 +402,7 @@ export const id = {
       unavailable: "Pesanan belum bisa dibuat sekarang. Coba lagi sebentar lagi, atau chat CS kami.",
       soldOut: "Maaf, stoknya baru saja habis. Pilih yang lain atau cek lagi nanti.",
       notEnoughStock: "Stok Robux kami tidak cukup untuk jumlah ini. Kurangi jumlahnya, atau chat CS kami.",
+      storeClosed: "Toko lagi offline, jadi belum bisa menerima pesanan baru. Cek lagi nanti ya.",
     },
     success: {
       title: "Pesanan dibuat",

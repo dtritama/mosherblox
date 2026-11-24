@@ -148,6 +148,9 @@ Rules:
   order action looks the account up again on the server: unknown username → refused
   (`robloxNotFound`); found → stores canonical `account`, `roblox_user_id`, `roblox_display_name`;
   Roblox unreachable → order still allowed. Avatars come from `tr.rbxcdn.com` (in the CSP).
+- **Open / closed** (`storeOpen` setting, switch in the admin header; text = `closedMessage`): closed →
+  `StoreClosedNotice` on Robux page/home/product dialog, buy buttons off, server refuses new orders
+  (`storeClosed`). Existing orders can still be paid and checked.
 - **Robux stock** (`robuxStock` setting, admin): shown on the Robux page/home; 0 = every Robux
   method sold out; bigger orders are refused (`notEnoughStock`); completing a Robux order subtracts
   its amount inside `transitionOrder()`. **Public stats / leaderboard / reviews** are cached

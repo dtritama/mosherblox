@@ -1,14 +1,21 @@
 import { ExternalLink, LogOut } from "lucide-react";
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 
 import { adminCopy } from "@/app/admin/copy";
+import { StoreSwitch } from "@/components/admin/store-switch";
 import { Logo } from "@/components/ui/logo";
 import { cn } from "@/lib/utils";
 import type { AdminUser } from "@/server/auth/admin";
 import { logoutAction } from "@/server/admin/actions";
+import { getFreshSettings } from "@/server/settings";
 
 const t = adminCopy.nav;
+
+async function StoreStatus({ admin }: { admin: AdminUser }) {
+  const { storeOpen } = await getFreshSettings();
+  return <StoreSwitch open={storeOpen} owner={admin.role === "owner"} />;
+}
 
 /** Header + page frame for logged-in admin pages. */
 export function AdminShell({
@@ -56,6 +63,9 @@ export function AdminShell({
             ))}
           </nav>
           <div className="ml-auto flex shrink-0 items-center gap-1">
+            <Suspense fallback={null}>
+              <StoreStatus admin={admin} />
+            </Suspense>
             <a
               href="/id"
               target="_blank"

@@ -5,6 +5,7 @@ import { Suspense, type ReactNode } from "react";
 import { adminCopy } from "@/app/admin/copy";
 import { AdminShell } from "@/components/admin/admin-shell";
 import {
+  ClosedMessageForm,
   ExpiryForm,
   QrisForm,
   ResetButton,
@@ -66,6 +67,16 @@ async function Settings() {
 
       {/* Staff see the values but can't change them (the server refuses too). */}
       <fieldset disabled={!isOwner} className="mt-6 grid gap-5 disabled:opacity-60">
+        <Section
+          field="closedMessage"
+          title={t.store.title}
+          description={t.store.description}
+          meta={meta.closedMessage}
+          owner={isOwner}
+        >
+          {/* key: a reset starts the form fresh with the default text. */}
+          <ClosedMessageForm key={meta.closedMessage ? "edited" : "default"} initial={settings.closedMessage} />
+        </Section>
         <Section
           field="robuxStock"
           title={t.robuxStock.title}

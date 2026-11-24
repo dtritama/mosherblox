@@ -31,6 +31,8 @@ import { hasReview } from "@/server/reviews";
 const str = (value: unknown, max = 300) => (typeof value === "string" ? value.slice(0, max) : "");
 
 async function create(quote: QuoteResult, settings: SiteSettings): Promise<CreateOrderResult> {
+  // Closed by the owner: refused even from a page that was opened before.
+  if (!settings.storeOpen) return { ok: false, error: "storeClosed" };
   if (!quote.ok) return { ok: false, error: "invalid", fields: quote.fields };
   // Out of stock (admin settings), checked on the server whatever the page showed.
   const { kind, robuxMethod, productSlug } = quote.quote;

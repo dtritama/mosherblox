@@ -70,8 +70,9 @@ export interface ProductOrderInput {
  * - unavailable: something went wrong on our side (database down…) — try again later
  * - soldOut:     the Robux method or product is out of stock (admin settings)
  * - notEnoughStock: more Robux than the store has in stock right now
+ * - storeClosed: the owner closed the store for new orders
  */
-export type OrderFailure = "invalid" | "rateLimited" | "unavailable" | "soldOut" | "notEnoughStock";
+export type OrderFailure = "invalid" | "rateLimited" | "unavailable" | "soldOut" | "notEnoughStock" | "storeClosed";
 
 export type CreateOrderResult =
   { ok: true; order: Order } | { ok: false; error: OrderFailure; fields?: Partial<Record<string, OrderErrorCode>> };
@@ -85,7 +86,7 @@ export type ClaimPaymentResult =
   | {
       ok: false;
       error:
-        | Exclude<OrderFailure, "invalid" | "soldOut" | "notEnoughStock">
+        | Exclude<OrderFailure, "invalid" | "soldOut" | "notEnoughStock" | "storeClosed">
         | "notFound"
         | "tooLate"
         | "notPending"
@@ -94,4 +95,4 @@ export type ClaimPaymentResult =
 
 export type FindOrderResult =
   | { ok: true; order: Order | null }
-  | { ok: false; error: Exclude<OrderFailure, "invalid" | "soldOut" | "notEnoughStock"> };
+  | { ok: false; error: Exclude<OrderFailure, "invalid" | "soldOut" | "notEnoughStock" | "storeClosed"> };

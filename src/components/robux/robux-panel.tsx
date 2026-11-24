@@ -28,6 +28,7 @@ import { SubmitError } from "@/components/checkout/submit-error";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { Reveal } from "@/components/ui/reveal";
+import { StoreClosedNotice } from "@/components/ui/store-closed-notice";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { defaultPaymentId, getPaymentMethod } from "@/data/payments";
 import { robuxConfig, type RobuxMethodId } from "@/data/robux";
@@ -95,7 +96,7 @@ export function RobuxPanel({ className }: { className?: string }) {
   const amountHintId = useId();
 
   // Admin-editable prices (falls back to src/data/robux.ts).
-  const { robuxRates: rates, soldOut, robuxStock, stats } = useStoreSettings();
+  const { robuxRates: rates, soldOut, robuxStock, storeOpen, stats } = useStoreSettings();
   // No Robux left in stock = every method is sold out.
   const isSoldOut = (id: RobuxMethodId) => robuxStock === 0 || soldOut.robuxMethods.includes(id);
   const available = robuxConfig.methods.filter((item) => !isSoldOut(item.id));
@@ -159,6 +160,10 @@ export function RobuxPanel({ className }: { className?: string }) {
     const result = validateRobuxOrder(draft);
     const whatsapp = normalizeWhatsapp(draft.whatsapp);
     setSubmitError(null);
+    if (!storeOpen) {
+      setSubmitError("storeClosed");
+      return;
+    }
     if (isSoldOut(draft.method)) {
       setSubmitError("soldOut");
       return;
@@ -231,6 +236,8 @@ export function RobuxPanel({ className }: { className?: string }) {
                 className="grid grid-cols-[minmax(0,1fr)] lg:grid-cols-[minmax(0,1fr)_21rem]"
               >
                 <form ref={formRef} id={formId} onSubmit={handleSubmit} noValidate className="grid gap-8 p-5 sm:p-8">
+                  {/* First thing in the form, so nobody fills it in for nothing. */}
+                  <StoreClosedNotice />
                   {/* 1 — Method */}
                   <Step number={1} title={t.steps.method}>
                     <fieldset className="grid gap-3 sm:grid-cols-2">
@@ -597,7 +604,7 @@ export function RobuxPanel({ className }: { className?: string }) {
                       form={formId}
                       size="lg"
                       className="mt-5 w-full"
-                      disabled={submitting || allSoldOut}
+                      disabled={submitting || allSoldOut || !storeOpen}
                     >
                       <Zap className="size-4" aria-hidden="true" />
                       {submitting ? c.processing : buyLabel}
@@ -619,7 +626,7 @@ export function RobuxPanel({ className }: { className?: string }) {
                       </p>
                       <Total value={total} />
                     </div>
-                    <Button type="submit" form={formId} disabled={submitting || allSoldOut}>
+                    <Button type="submit" form={formId} disabled={submitting || allSoldOut || !storeOpen}>
                       <Zap className="size-4" aria-hidden="true" />
                       {submitting ? c.processing : c.buyNow}
                     </Button>

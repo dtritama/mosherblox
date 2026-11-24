@@ -16,6 +16,7 @@ import { SETTING_LIMITS, validateTiers, type QrisSetting, type SiteSettings, typ
 import { cn } from "@/lib/utils";
 import {
   resetSettingAction,
+  saveClosedMessageAction,
   saveExpiryAction,
   saveQrisAction,
   saveRobuxRatesAction,
@@ -215,6 +216,41 @@ export function RobuxRatesForm({ initial }: { initial: RobuxRates }) {
 /* ------------------------------------------------ Expiry ------------------------------------------------ */
 
 /** Robux in stock. Shown on the site; completed Robux orders subtract from it automatically. */
+export function ClosedMessageForm({ initial }: { initial: SiteSettings["closedMessage"] }) {
+  const [state, action, pending] = useActionState<SettingsState, FormData>(saveClosedMessageAction, {});
+  useRefreshOnSave(state);
+  const [message, setMessage] = useState(initial);
+  const id = useId();
+  return (
+    <form action={action}>
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-4 md:grid-cols-2">
+        {(["id", "en"] as const).map((locale) => (
+          <div key={locale}>
+            <label htmlFor={`${id}-${locale}`} className="mb-1.5 block text-sm font-medium text-ink-700">
+              {t.store[locale]}
+            </label>
+            <textarea
+              id={`${id}-${locale}`}
+              name={locale}
+              lang={locale}
+              rows={3}
+              maxLength={SETTING_LIMITS.closedMessageMax}
+              value={message[locale]}
+              onChange={(event) => setMessage((prev) => ({ ...prev, [locale]: event.target.value }))}
+              aria-describedby={`${id}-hint`}
+              className="w-full min-w-0 rounded-xl border-2 border-brand-100 bg-white px-3 py-2.5 text-sm text-ink-900 outline-none hover:border-brand-300 focus:border-brand-500"
+            />
+          </div>
+        ))}
+      </div>
+      <p id={`${id}-hint`} className="mt-1.5 text-xs text-ink-500">
+        {t.store.hint}
+      </p>
+      <SaveRow state={state} pending={pending} disabled={!message.id.trim()} />
+    </form>
+  );
+}
+
 export function RobuxStockForm({ initial }: { initial: number | null }) {
   const [state, action, pending] = useActionState<SettingsState, FormData>(saveRobuxStockAction, {});
   useRefreshOnSave(state);

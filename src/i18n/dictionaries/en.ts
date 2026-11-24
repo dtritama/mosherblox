@@ -29,6 +29,7 @@ export const en: Dictionary = {
     free: "Free",
     perRobux: "per Robux",
   },
+  storeClosed: { title: "The store is offline" },
   theme: {
     toDark: "Switch to dark mode",
     toLight: "Switch to light mode",
@@ -397,6 +398,7 @@ export const en: Dictionary = {
       unavailable: "We couldn't create your order right now. Try again shortly, or chat with support.",
       soldOut: "Sorry, this just sold out. Pick something else or check back later.",
       notEnoughStock: "We don't have enough Robux in stock for this amount. Lower it, or chat with support.",
+      storeClosed: "The store is offline and can't take new orders right now. Please check back later.",
     },
     success: {
       title: "Order created",

@@ -9,6 +9,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { Reveal } from "@/components/ui/reveal";
 import { RobuxIcon } from "@/components/ui/robux-icon";
+import { StoreClosedNotice } from "@/components/ui/store-closed-notice";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { useStoreSettings } from "@/components/providers/settings-provider";
 import { robuxConfig } from "@/data/robux";
@@ -41,7 +42,7 @@ export function RobuxSection() {
   const hintId = useId();
   // The amount can be typed freely; the slider and quick buttons set it to a preset.
   const [amount, setAmount] = useState<number | null>(presets[DEFAULT_INDEX]);
-  const { robuxRates: rates, soldOut, robuxStock, stats } = useStoreSettings();
+  const { robuxRates: rates, soldOut, robuxStock, storeOpen, stats } = useStoreSettings();
   const methodSoldOut = robuxStock === 0 || soldOut.robuxMethods.includes(METHOD);
 
   const valid = amount !== null && amount >= robuxConfig.minAmount && amount <= MAX_AMOUNT;
@@ -75,6 +76,7 @@ export function RobuxSection() {
 
         <div className="mt-10 grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
           <Reveal className="rounded-[2rem] border border-brand-100 bg-white p-5 shadow-xl shadow-brand-900/5 sm:p-8">
+            <StoreClosedNotice className="mb-5" />
             {/* Live numbers: Robux in stock (admin) and delivered Send Username orders (real count). */}
             {robuxStock !== null || stats.sendUsernameCompleted !== null ? (
               <ul className="mb-4 flex flex-wrap gap-2 text-xs font-semibold">
@@ -187,7 +189,7 @@ export function RobuxSection() {
                   ) : null}
                 </p>
               </div>
-              {valid ? (
+              {valid && storeOpen ? (
                 <Link
                   href={robuxPageHref(locale, amountValue, methodSoldOut)}
                   className={buttonVariants({ size: "lg", className: "w-full sm:w-auto" })}
@@ -196,7 +198,7 @@ export function RobuxSection() {
                   {interpolate(t.buy, { amount: formatNumber(amountValue, locale) })}
                 </Link>
               ) : (
-                // Not a link while the amount is out of range (the hint above says why).
+                // Not a link while the amount is out of range or the store is closed (said above).
                 <span
                   aria-disabled="true"
                   className={buttonVariants({

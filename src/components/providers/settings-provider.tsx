@@ -7,7 +7,7 @@ import { defaultContact, type ContactContent } from "@/lib/site-content";
 import type { PublicStats } from "@/server/stats";
 
 /** The admin-editable values the shop's client components need (prices, QRIS). */
-export type StoreSettings = Pick<SiteSettings, "robuxRates" | "qris" | "soldOut" | "robuxStock"> & {
+export type StoreSettings = Pick<SiteSettings, "robuxRates" | "qris" | "soldOut" | "robuxStock" | "storeOpen" | "closedMessage"> & {
   stats: PublicStats;
   contact: ContactContent;
 };
@@ -17,6 +17,8 @@ const SettingsContext = createContext<StoreSettings>({
   qris: defaultSettings.qris,
   soldOut: defaultSettings.soldOut,
   robuxStock: defaultSettings.robuxStock,
+  storeOpen: defaultSettings.storeOpen,
+  closedMessage: defaultSettings.closedMessage,
   stats: { sendUsernameCompleted: null },
   contact: defaultContact,
 });

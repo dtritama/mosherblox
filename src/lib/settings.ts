@@ -1,6 +1,7 @@
 import { orderConfig } from "@/data/orders";
 import { manualQris } from "@/data/payments";
 import { robuxConfig, type RobuxMethodId, type RobuxRateTier } from "@/data/robux";
+import type { LocalizedText } from "@/i18n/config";
 import { defaultRobuxRates, type RobuxRates } from "@/lib/robux-pricing";
 
 /**
@@ -36,6 +37,10 @@ export interface SiteSettings {
    * automatically. null = not tracked (hidden, no limit).
    */
   robuxStock: number | null;
+  /** false = the store takes no new orders (existing ones can still be paid and checked). */
+  storeOpen: boolean;
+  /** Shown to buyers while the store is closed. Empty English = the Indonesian text. */
+  closedMessage: LocalizedText;
 }
 
 export const defaultSettings: SiteSettings = {
@@ -44,6 +49,11 @@ export const defaultSettings: SiteSettings = {
   qris: { ...manualQris },
   soldOut: { robuxMethods: [], products: [] },
   robuxStock: null,
+  storeOpen: true,
+  closedMessage: {
+    id: "Kami lagi istirahat, jadi belum bisa menerima pesanan baru. Cek lagi nanti ya!",
+    en: "We're taking a break and can't take new orders right now. Please check back later!",
+  },
 };
 
 /** Keys in the `settings` table. */
@@ -53,6 +63,8 @@ export const SETTING_KEYS = {
   qris: "payment.qris",
   soldOut: "stock.soldOut",
   robuxStock: "robux.stock",
+  storeOpen: "store.open",
+  closedMessage: "store.closedMessage",
 } as const satisfies Record<keyof SiteSettings, string>;
 
 export const SETTING_LIMITS = {
@@ -63,6 +75,7 @@ export const SETTING_LIMITS = {
   expiryMin: 10,
   expiryMax: 240,
   merchantNameMax: 60,
+  closedMessageMax: 300,
 } as const;
 
 export type RatesError = "firstTierZero" | "tierOrder" | "rateRange" | "tierCount" | "amountRange";
@@ -100,6 +113,17 @@ export function parseRobuxRates(
 /** Robux stock: a whole number from 0 to 100 million. */
 export function isValidStock(value: unknown): value is number {
   return isInt(value) && value >= 0 && value <= 100_000_000;
+}
+
+/** Owner's "store closed" text: plain text, line breaks kept. null = no Indonesian text. */
+export function parseClosedMessage(input: unknown): LocalizedText | null {
+  const value = (input ?? {}) as Partial<Record<keyof LocalizedText, unknown>>;
+  const clean = (text: unknown) =>
+    typeof text === "string"
+      ? text.replace(/\r\n?/g, "\n").replace(/\n{3,}/g, "\n\n").trim().slice(0, SETTING_LIMITS.closedMessageMax)
+      : "";
+  const message = { id: clean(value.id), en: clean(value.en) };
+  return message.id ? message : null;
 }
 
 export function isValidExpiry(value: unknown): value is number {
@@ -158,5 +182,7 @@ export function mergeSettings(
       : defaultSettings.qris,
     soldOut: stored.soldOut !== undefined ? parseSoldOut(stored.soldOut, productSlugs) : defaultSettings.soldOut,
     robuxStock: isValidStock(stored.robuxStock) ? stored.robuxStock : defaultSettings.robuxStock,
+    storeOpen: typeof stored.storeOpen === "boolean" ? stored.storeOpen : defaultSettings.storeOpen,
+    closedMessage: parseClosedMessage(stored.closedMessage) ?? defaultSettings.closedMessage,
   };
 }

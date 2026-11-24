@@ -4,6 +4,7 @@ import { updateTag } from "next/cache";
 import {
   isValidExpiry,
   isValidStock,
+  parseClosedMessage,
   parseRobuxRates,
   parseSoldOut,
   SETTING_LIMITS,
@@ -68,6 +69,25 @@ export async function saveRobuxStockAction(_prev: SettingsState, formData: FormD
     const amount = Number(str(formData.get("amount"), 12).replace(/\D/g, ""));
     if (!isValidStock(amount)) return { error: "invalid" };
     await saveSetting("robuxStock", amount, admin.id);
+    return { ok: true };
+  });
+}
+
+/** Header switch: open / close the store for new orders. */
+export async function setStoreOpenAction(open: boolean): Promise<SettingsState> {
+  return run(async (admin) => {
+    if (typeof open !== "boolean") return { error: "invalid" };
+    await saveSetting("storeOpen", open, admin.id);
+    return { ok: true };
+  });
+}
+
+/** Text buyers see while the store is closed. */
+export async function saveClosedMessageAction(_prev: SettingsState, formData: FormData): Promise<SettingsState> {
+  return run(async (admin) => {
+    const message = parseClosedMessage({ id: str(formData.get("id"), 1000), en: str(formData.get("en"), 1000) });
+    if (!message) return { error: "invalid" };
+    await saveSetting("closedMessage", message, admin.id);
     return { ok: true };
   });
 }
@@ -137,6 +157,7 @@ const RESETTABLE: readonly (keyof SiteSettings)[] = [
   "qris",
   "soldOut",
   "robuxStock",
+  "closedMessage",
 ];
 
 /** Remove the override: back to the value in src/data/*. */

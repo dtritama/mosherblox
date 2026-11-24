@@ -21,6 +21,16 @@ export const adminCopy = {
     },
   },
   nav: { orders: "Pesanan", reviews: "Ulasan", content: "Konten", settings: "Pengaturan", logout: "Keluar", site: "Lihat toko" },
+  storeStatus: {
+    label: "Toko menerima pesanan",
+    open: "Toko buka",
+    closed: "Toko tutup",
+    hintOpen: "Toko menerima pesanan. Klik untuk menutup.",
+    hintClosed: "Toko tidak menerima pesanan baru. Klik untuk membuka.",
+    confirmClose: "Tutup toko? Pembeli tidak bisa membuat pesanan baru sampai kamu membukanya lagi.",
+    confirmOpen: "Buka toko? Pembeli bisa membuat pesanan lagi.",
+    failed: "Gagal, coba lagi",
+  },
   orders: {
     title: "Pesanan",
     description: "Cocokkan pembayaran QRIS di mutasi GoPay merchant, lalu ubah status pesanannya.",
@@ -291,6 +301,14 @@ export const adminCopy = {
         tierCount: "Minimal 1 tier, maksimal 6 tier.",
         amountRange: "Jumlah Robux tidak valid.",
       },
+    },
+    store: {
+      title: "Tulisan saat toko tutup",
+      description:
+        "Pembeli melihat ini di halaman Robux, halaman depan, dan saat membeli produk selama toko tutup. Buka / tutup toko lewat tombol di bagian atas admin.",
+      id: "Tulisan (Indonesia)",
+      en: "Tulisan (English)",
+      hint: "Maks. 300 karakter. English boleh dikosongkan, nanti memakai tulisan Indonesia.",
     },
     robuxStock: {
       title: "Stok Robux",
