@@ -13,8 +13,8 @@ import { getFreshSettings } from "@/server/settings";
 const t = adminCopy.nav;
 
 async function StoreStatus({ admin }: { admin: AdminUser }) {
-  const { storeOpen } = await getFreshSettings();
-  return <StoreSwitch open={storeOpen} owner={admin.role === "owner"} />;
+  const { storeOpen, closedMessage } = await getFreshSettings();
+  return <StoreSwitch open={storeOpen} owner={admin.role === "owner"} closedMessage={closedMessage.id} />;
 }
 
 /** Header + page frame for logged-in admin pages. */
