@@ -70,6 +70,8 @@ export async function setOrderStatusAction(_prev: StatusState, formData: FormDat
       actor: "admin",
       adminId: admin.id,
       note: note || undefined,
+      // Only when the form said so: an outdated admin page still promises "admin only".
+      buyerNote: to === "failed" || (to === "completed" && formData.get("buyerNote") === "1"),
       expectedFrom: from,
     });
     // A completed order changes the Robux stock, the success counter and the leaderboard.

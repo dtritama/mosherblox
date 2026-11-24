@@ -1,0 +1,1 @@
+ALTER TABLE "order_events" ADD COLUMN "buyer_note" boolean DEFAULT false NOT NULL;

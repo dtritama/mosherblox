@@ -36,8 +36,8 @@ export interface Order {
   hasReview: boolean;
   /** Screenshots the admin uploaded showing the Robux / item was sent ("bukti pengiriman"). */
   deliveryProofUrls: string[];
-  /** Why an admin marked the order as failed (Check Order only). Other admin notes are never sent. */
-  failureNote: string | null;
+  /** Note an admin wrote for the buyer when failing or completing the order (Check Order only). */
+  adminNote: string | null;
 }
 
 /** Mirrors the `payment_status` enum. "submitted" = buyer pressed "Saya sudah bayar". */

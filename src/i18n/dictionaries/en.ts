@@ -534,7 +534,7 @@ export const en: Dictionary = {
     help: "Need help? Chat with support",
     searchAgain: "Check another order",
     live: { on: "Status updates by itself", offline: "Connection lost, retrying…" },
-    failureNote: "Note from our admin",
+    adminNote: "Note from our admin",
     deliveryProof: {
       title: "Delivery proof",
       description: "Screenshots from our admin showing your order was sent.",

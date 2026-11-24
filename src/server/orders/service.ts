@@ -56,7 +56,7 @@ export function toOrder(row: OrderRow, payment?: PaymentRow | null): Order {
     hasProof: Boolean(payment?.proofPath),
     hasReview: false,
     deliveryProofUrls: row.deliveryProofs.map(deliveryProofUrl),
-    failureNote: null,
+    adminNote: null,
   };
 }
 
@@ -128,7 +128,7 @@ export async function createOrder(
 export async function transitionOrder(
   orderId: string,
   to: OrderStatus,
-  by: { actor: Actor; adminId?: string; note?: string; expectedFrom?: OrderStatus },
+  by: { actor: Actor; adminId?: string; note?: string; buyerNote?: boolean; expectedFrom?: OrderStatus },
 ): Promise<Order> {
   const [row, payment] = await getDb().transaction(async (tx) => {
     const [current] = await tx.select().from(orders).where(eq(orders.id, orderId)).for("update");
@@ -174,6 +174,7 @@ export async function transitionOrder(
       actor: by.actor,
       adminId: by.adminId,
       note: by.note,
+      buyerNote: Boolean(by.note && by.buyerNote),
     });
     return [updated, await latestPayment(tx, orderId)] as const;
   });
@@ -215,16 +216,25 @@ export async function findOrder(rawId: string, whatsapp: string): Promise<Order 
     }
   }
   const order = toOrder(row, payment);
-  if (order.status === "failed") order.failureNote = await failureNote(db, row.id);
+  if (order.status === "failed" || order.status === "completed")
+    order.adminNote = await adminNote(db, row.id, order.status);
   return order;
 }
 
-/** The note an admin wrote when marking the order failed: the one note meant for the buyer. */
-async function failureNote(db: Db, orderId: string) {
+/** The note an admin wrote for the buyer when failing or completing the order. Other notes stay private. */
+async function adminNote(db: Db, orderId: string, status: "failed" | "completed") {
   const [event] = await db
     .select({ note: orderEvents.note })
     .from(orderEvents)
-    .where(and(eq(orderEvents.orderId, orderId), eq(orderEvents.toStatus, "failed"), eq(orderEvents.actor, "admin")))
+    .where(
+      and(
+        eq(orderEvents.orderId, orderId),
+        eq(orderEvents.toStatus, status),
+        eq(orderEvents.actor, "admin"),
+        // Older "completed" notes were written as admin-only.
+        status === "failed" ? undefined : eq(orderEvents.buyerNote, true),
+      ),
+    )
     .orderBy(desc(orderEvents.id))
     .limit(1);
   return event?.note?.trim() || null;

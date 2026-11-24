@@ -15,6 +15,9 @@ import { setOrderStatusAction, type StatusState } from "@/server/admin/actions";
 
 const t = adminCopy.actions;
 
+/** Thank-you note for the buyer when completing; every other step starts empty. */
+const defaultNote = (to: OrderStatus | "" | undefined) => (to === "completed" ? t.defaultCompletedNote : "");
+
 /**
  * Choose the next status (only moves the status machine allows), confirm, add a note, save.
  * "Paid" needs an explicit tick that the exact amount is in the bank history; "failed" needs a note.
@@ -24,6 +27,7 @@ export function StatusActions({ orderId, status, total }: { orderId: string; sta
   const [state, formAction, pending] = useActionState<StatusState, FormData>(setOrderStatusAction, {});
   const options = ORDER_TRANSITIONS[status].filter((to) => to !== "expired");
   const [to, setTo] = useState<OrderStatus | "">(options[0] ?? "");
+  const [note, setNote] = useState(() => defaultNote(options[0]));
   const [confirmed, setConfirmed] = useState(false);
   const noteId = useId();
   const confirmId = useId();
@@ -43,6 +47,7 @@ export function StatusActions({ orderId, status, total }: { orderId: string; sta
     <form action={formAction} className="grid gap-4">
       <input type="hidden" name="orderId" value={orderId} />
       <input type="hidden" name="from" value={status} />
+      {to === "completed" ? <input type="hidden" name="buyerNote" value="1" /> : null}
       <fieldset>
         <legend className="mb-2 text-sm font-medium text-ink-700">{t.choose}</legend>
         <div className="grid gap-2">
@@ -65,6 +70,8 @@ export function StatusActions({ orderId, status, total }: { orderId: string; sta
                 checked={to === option}
                 onChange={() => {
                   setTo(option);
+                  // Swap the ready-made note; anything the admin typed stays.
+                  if (note.trim() === "" || note === defaultNote(to)) setNote(defaultNote(option));
                   setConfirmed(false);
                 }}
                 className="size-4 accent-ink-900"
@@ -102,6 +109,8 @@ export function StatusActions({ orderId, status, total }: { orderId: string; sta
         <textarea
           id={noteId}
           name="note"
+          value={note}
+          onChange={(event) => setNote(event.target.value)}
           rows={2}
           maxLength={500}
           required={to === "failed"}
@@ -111,7 +120,9 @@ export function StatusActions({ orderId, status, total }: { orderId: string; sta
             state.error === "noteRequired" ? "border-blush-500" : "border-brand-100 hover:border-brand-300",
           )}
         />
-        <p className="mt-1.5 text-xs text-ink-500">{to === "failed" ? t.noteHintFailed : t.noteHint}</p>
+        <p className="mt-1.5 text-xs text-ink-500">
+          {to === "failed" ? t.noteHintFailed : to === "completed" ? t.noteHintCompleted : t.noteHint}
+        </p>
       </div>
 
       <SubmitError message={state.error ? t.errors[state.error] : null} />

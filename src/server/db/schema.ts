@@ -7,6 +7,7 @@
 import { sql } from "drizzle-orm";
 import {
   bigint,
+  boolean,
   check,
   index,
   integer,
@@ -184,6 +185,8 @@ export const orderEvents = pgTable(
     actor: actorType("actor").notNull(),
     adminId: uuid("admin_id").references(() => admins.id, { onDelete: "set null" }),
     note: text("note"),
+    /** The admin wrote this note for the buyer (shown on Check Order). Notes on "failed" always are. */
+    buyerNote: boolean("buyer_note").notNull().default(false),
     createdAt: createdAt(),
   },
   (t) => [index("order_events_order_idx").on(t.orderId, t.createdAt)],
