@@ -23,7 +23,7 @@
     "worker": "tsx --conditions=react-server src/worker/index.mts",
     "worker:dev": "tsx watch --conditions=react-server src/worker/index.mts",
     "deploy": "node scripts/deploy.mjs",
-    "worker:build": "esbuild src/worker/index.mts --bundle --platform=node --format=esm --target=node22 --conditions=react-server --packages=external --outfile=dist/worker.mjs"
+    "worker:build": "esbuild src/worker/index.mts --bundle --platform=node --format=esm --target=node22 --conditions=react-server --packages=external --alias:next/cache=next/cache.js --alias:next/server=next/server.js --alias:next/headers=next/headers.js --alias:next/navigation=next/navigation.js --outfile=dist/worker.mjs"
   },
   "dependencies": {
     "clsx": "^2.1.1",

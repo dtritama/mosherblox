@@ -30,7 +30,8 @@ function pipe(left, right, input) {
 console.log(`Sending ${files.length} files to ${host} …`);
 // Unpack next to the live copy, then swap, so a broken upload never replaces it.
 const unpack =
-  "set -e; cd /opt/mosherblox; rm -rf app.new; mkdir app.new; tar -xzf - -C app.new; rm -rf app.old; " +
+  "set -e; cd /opt/mosherblox; exec 9>.deploy.lock; " +
+  "flock -n 9 || { echo 'Another deploy is still running. Wait for it to finish.' >&2; exit 1; }; rm -rf app.new; mkdir app.new; tar -xzf - -C app.new; rm -rf app.old; " +
   "if [ -d app ]; then mv app app.old; fi; mv app.new app; chmod +x app/deploy/*.sh";
 await pipe(["tar", ["--null", "-czf", "-", "-T", "-"]], ["ssh", [...ssh, unpack]], files.join("\0") + "\0");
 

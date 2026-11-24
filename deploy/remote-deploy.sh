@@ -1,8 +1,14 @@
 #!/usr/bin/env bash
 # Runs ON THE VPS (started by `npm run deploy`): build, back up, migrate, restart, check.
 set -euo pipefail
+# One deploy at a time.
+exec 9>/opt/mosherblox/.deploy.lock
+flock -n 9 || { echo "Another deploy is still running. Wait for it to finish."; exit 1; }
 cd /opt/mosherblox/app
 compose() { docker compose --env-file /opt/mosherblox/.env -f deploy/compose.yml "$@"; }
+
+echo "== Checking the Caddy config"
+docker run --rm -v "$PWD/deploy/Caddyfile:/etc/caddy/Caddyfile:ro" caddy:2-alpine caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile >/dev/null 2>/tmp/caddy-check.log || { cat /tmp/caddy-check.log; exit 1; }
 
 echo "== Building (a few minutes on this small server)"
 docker image inspect mosherblox-app:latest >/dev/null 2>&1 && docker tag mosherblox-app:latest mosherblox-app:previous
@@ -21,7 +27,8 @@ compose run --rm -T tools npx drizzle-kit migrate
 echo "== Starting"
 compose up -d --wait app
 compose up -d worker caddy
-compose exec -T caddy caddy reload --config /etc/caddy/Caddyfile >/dev/null 2>&1 || true
+# The Caddyfile is a mounted file: a new copy only reaches Caddy through a restart.
+compose restart caddy
 
 # Pages are prerendered with the built-in prices; refresh them with the saved settings right away.
 sleep 62
@@ -34,5 +41,15 @@ done
 
 docker image prune -f >/dev/null
 docker builder prune -f --filter until=168h >/dev/null
-compose ps
-echo "== Done"
+compose ps --format "table {{.Service}}\t{{.Status}}"
+for service in postgres app worker caddy; do
+  id=$(compose ps -q "$service")
+  state=$(docker inspect -f '{{.State.Status}} {{.RestartCount}}' "${id:-none}" 2>/dev/null || echo missing)
+  if [ "$state" != "running 0" ]; then
+    echo "!! $service is not healthy ($state):"
+    compose logs --no-log-prefix --tail 20 "$service"
+    exit 1
+  fi
+done
+curl -fsS -m 20 -o /dev/null https://mosherblox.com/id || { echo "!! https://mosherblox.com/id does not answer"; exit 1; }
+echo "== Done: https://mosherblox.com"
