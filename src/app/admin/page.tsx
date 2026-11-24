@@ -5,6 +5,7 @@ import { Suspense } from "react";
 
 import { adminCopy } from "@/app/admin/copy";
 import { AdminShell } from "@/components/admin/admin-shell";
+import { ExportOrders } from "@/components/admin/export-orders";
 import { LiveOrders } from "@/components/admin/live-orders";
 import { formatAdminDate, formatWhatsapp, StatusBadge } from "@/components/admin/status-badge";
 import { formatIDR, interpolate } from "@/i18n/format";
@@ -62,36 +63,40 @@ async function Orders({ searchParams }: { searchParams: PageProps<"/admin">["sea
           <p className="mt-1 max-w-xl text-sm text-ink-500">{t.description}</p>
           <LiveOrders version={version} />
         </div>
-        <form action="/admin" className="flex w-full gap-2 sm:w-auto" role="search">
-          {filter !== "check" ? <input type="hidden" name="filter" value={filter} /> : null}
-          <label htmlFor="admin-search" className="sr-only">
-            {t.searchLabel}
-          </label>
-          <input
-            id="admin-search"
-            name="q"
-            type="search"
-            defaultValue={q}
-            placeholder={t.searchPlaceholder}
-            className="h-11 w-full min-w-0 rounded-xl border-2 border-brand-100 bg-white px-4 text-sm outline-none placeholder:text-ink-300 hover:border-brand-300 focus:border-brand-500 sm:w-80"
-          />
-          <button
-            type="submit"
-            aria-label={t.search}
-            className="grid size-11 shrink-0 place-items-center rounded-xl bg-brand-400 text-ink-900 transition-colors hover:bg-brand-300 active:scale-[0.97]"
-          >
-            <Search className="size-4" aria-hidden="true" />
-          </button>
-          {q ? (
-            <Link
-              href={hrefFor({ filter })}
-              aria-label={t.clear}
-              className="grid size-11 shrink-0 place-items-center rounded-xl border border-brand-200 bg-white text-ink-700 hover:border-blush-300"
+        <div className="flex w-full flex-col gap-2 sm:flex-row lg:w-auto">
+          <form action="/admin" className="flex w-full gap-2 lg:w-auto" role="search">
+            {filter !== "check" ? <input type="hidden" name="filter" value={filter} /> : null}
+            <label htmlFor="admin-search" className="sr-only">
+              {t.searchLabel}
+            </label>
+            <input
+              id="admin-search"
+              name="q"
+              type="search"
+              defaultValue={q}
+              placeholder={t.searchPlaceholder}
+              className="h-11 w-full min-w-0 rounded-xl border-2 border-brand-100 bg-white px-4 text-sm outline-none placeholder:text-ink-300 hover:border-brand-300 focus:border-brand-500 sm:w-80"
+            />
+            <button
+              type="submit"
+              aria-label={t.search}
+              className="grid size-11 shrink-0 place-items-center rounded-xl bg-brand-400 text-ink-900 transition-colors hover:bg-brand-300 active:scale-[0.97]"
             >
-              <X className="size-4" aria-hidden="true" />
-            </Link>
-          ) : null}
-        </form>
+              <Search className="size-4" aria-hidden="true" />
+            </button>
+            {q ? (
+              <Link
+                href={hrefFor({ filter })}
+                aria-label={t.clear}
+                className="grid size-11 shrink-0 place-items-center rounded-xl border border-brand-200 bg-white text-ink-700 hover:border-blush-300"
+              >
+                <X className="size-4" aria-hidden="true" />
+              </Link>
+            ) : null}
+          </form>
+          {/* "Perlu dicek" is the to-do list: export everything from there. */}
+          <ExportOrders status={filter === "check" ? "all" : filter} className="shrink-0 rounded-xl" />
+        </div>
       </div>
 
       {/* Filter tabs: plain links, so the URL is shareable and Back works. */}

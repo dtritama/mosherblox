@@ -132,7 +132,8 @@ Rules:
   a Check Order lookup) and shown on Check Order. `/admin` is skipped by
   `proxy.ts` (no locale) and disallowed in robots. The order list updates itself: `components/admin/live-orders.tsx` polls
   `/admin/orders-version` (newest `order_events` row) every 5 s while visible and refreshes on change,
-  so every order change must write an order event. Copy lives in `app/admin/copy.ts`.
+  so every order change must write an order event. **CSV export** ("Export CSV" → `/admin/orders-export`, any admin): columns in
+  `copy.ts` `export.columns`, dates in WIB, `lib/csv.ts` (BOM, `;` by default for Indonesian Excel, formula-safe cells). Copy lives in `app/admin/copy.ts`.
 - **Background jobs** (pg-boss in the `pgboss` schema of the same Postgres): the worker
   (`src/worker/index.mts`) runs `orders.expire` every minute (`expireOverdueOrders()`; never expires
   an order whose buyer pressed "Saya sudah bayar") and `notify.discord` (retries with backoff).

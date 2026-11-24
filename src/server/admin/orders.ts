@@ -1,9 +1,10 @@
 import "server-only";
-import { and, asc, count, desc, eq, ilike, max, or, type SQL } from "drizzle-orm";
+import { and, asc, count, desc, eq, gte, ilike, lt, max, or, type SQL } from "drizzle-orm";
 import { getPaymentMethod } from "@/data/payments";
 import { deliveryProofUrl } from "@/server/payments/proof-storage";
 import { getDb, schema } from "@/server/db";
 import type { OrderStatus, PaymentStatus } from "@/lib/orders/types";
+import type { ExportRange } from "@/lib/export-period";
 import { normalizeWhatsapp } from "@/lib/validation";
 
 /**
@@ -51,6 +52,7 @@ function latestPayments() {
       orderId: payments.orderId,
       status: payments.status,
       proofPath: payments.proofPath,
+      confirmedBy: payments.confirmedBy,
     })
     .from(payments)
     .orderBy(payments.orderId, desc(payments.createdAt))
@@ -107,6 +109,25 @@ export async function listOrders({ filter, q, page }: { filter: AdminFilter; q: 
     hasProof: Boolean(proofPath),
   }));
   return { items, total, pages: Math.max(1, Math.ceil(total / PAGE_SIZE)) };
+}
+
+/** Every order for the CSV export, newest first, with its latest payment. */
+export async function listOrdersForExport(filter: AdminFilter, { from, until }: ExportRange) {
+  const lp = latestPayments();
+  const rows = await getDb()
+    .select({ order: orders, paymentStatus: lp.status, confirmedBy: admins.name })
+    .from(orders)
+    .leftJoin(lp, eq(lp.orderId, orders.id))
+    .leftJoin(admins, eq(admins.id, lp.confirmedBy))
+    .where(
+      and(
+        filterWhere(filter, lp),
+        from ? gte(orders.createdAt, from) : undefined,
+        until ? lt(orders.createdAt, until) : undefined,
+      ),
+    )
+    .orderBy(desc(orders.createdAt));
+  return rows.map(({ order, paymentStatus, confirmedBy }) => ({ ...order, paymentStatus, confirmedBy }));
 }
 
 /**
