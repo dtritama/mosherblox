@@ -138,9 +138,14 @@ export const orders = pgTable(
     paidAt: timestamp("paid_at", { withTimezone: true }),
     completedAt: timestamp("completed_at", { withTimezone: true }),
     /**
-     * Screenshot an admin uploaded as proof the Robux / item was sent ("bukti pengiriman"):
-     * a random file name in UPLOAD_DIR/delivery, shown to the buyer on Check Order.
+     * Screenshots an admin uploaded as proof the Robux / item was sent ("bukti pengiriman"): random
+     * file names in UPLOAD_DIR/delivery, shown to the buyer on Check Order, oldest first.
      */
+    deliveryProofs: text("delivery_proofs")
+      .array()
+      .notNull()
+      .default(sql`'{}'::text[]`),
+    /** Old single image, copied into delivery_proofs by migration 0004. Kept for rollback; not read. */
     deliveryProof: text("delivery_proof"),
     deliveryProofAt: timestamp("delivery_proof_at", { withTimezone: true }),
     createdAt: createdAt(),

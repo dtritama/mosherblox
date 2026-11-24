@@ -16,6 +16,8 @@ export const orderConfig = {
    * At most 50 (client request 2026-11-24, was 99): so at most 50 unpaid orders can share one price.
    */
   uniqueCodeMax: 50,
+  /** "Bukti pengiriman" images an admin can attach to one order. */
+  deliveryProofMax: 6,
   /** Optional transfer screenshot: max size and allowed types. */
   proofMaxBytes: 4 * 1024 * 1024,
   proofTypes: ["image/jpeg", "image/png", "image/webp"],

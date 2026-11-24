@@ -311,7 +311,7 @@ function OrderResult({
         </div>
       ) : null}
 
-      {result.deliveryProofUrl ? (
+      {result.deliveryProofUrls.length > 0 ? (
         <div className="border-b border-brand-100 p-5 sm:p-8">
           <div className="flex items-start gap-3">
             <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-brand-50 text-brand-700">
@@ -322,26 +322,37 @@ function OrderResult({
               <p className="text-sm text-ink-500">{t.deliveryProof.description}</p>
             </div>
           </div>
-          <a
-            href={result.deliveryProofUrl}
-            target="_blank"
-            rel="noopener"
-            className="group mt-4 block w-full max-w-xs overflow-hidden rounded-2xl border border-brand-100"
+          <ul
+            className={cn(
+              "mt-4 grid grid-cols-[minmax(0,1fr)] gap-3",
+              result.deliveryProofUrls.length > 1 ? "grid-cols-2" : "max-w-xs",
+            )}
           >
-            {/* Our own route with a random file name; a plain <img> keeps the screenshot exact. */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={result.deliveryProofUrl}
-              alt={interpolate(t.deliveryProof.alt, { id: result.id })}
-              loading="lazy"
-              className="max-h-96 w-full bg-brand-50/40 object-contain transition-transform duration-300 group-hover:scale-[1.02]"
-            />
-            <span className="flex items-center justify-center gap-1.5 border-t border-brand-100 bg-brand-50 py-2 text-xs font-semibold text-ink-700">
-              {t.deliveryProof.open}
-              <ExternalLink className="size-3.5" aria-hidden="true" />
-              <span className="sr-only">{dict.contact.newTab}</span>
-            </span>
-          </a>
+            {result.deliveryProofUrls.map((url, index) => (
+              <li key={url} className="min-w-0">
+                <a
+                  href={url}
+                  target="_blank"
+                  rel="noopener"
+                  className="group flex h-full flex-col overflow-hidden rounded-2xl border border-brand-100"
+                >
+                  {/* Our own route with a random file name; a plain <img> keeps the screenshot exact. */}
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={url}
+                    alt={interpolate(t.deliveryProof.alt, { id: result.id, number: index + 1 })}
+                    loading="lazy"
+                    className="max-h-96 min-h-0 w-full flex-1 bg-brand-50/40 object-contain transition-transform duration-300 group-hover:scale-[1.02]"
+                  />
+                  <span className="flex items-center justify-center gap-1.5 border-t border-brand-100 bg-brand-50 px-2 py-2 text-center text-xs font-semibold text-ink-700">
+                    {t.deliveryProof.open}
+                    <ExternalLink className="size-3.5 shrink-0" aria-hidden="true" />
+                    <span className="sr-only">{dict.contact.newTab}</span>
+                  </span>
+                </a>
+              </li>
+            ))}
+          </ul>
         </div>
       ) : null}
 

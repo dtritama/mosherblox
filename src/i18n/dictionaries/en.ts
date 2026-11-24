@@ -535,9 +535,9 @@ export const en: Dictionary = {
     searchAgain: "Check another order",
     deliveryProof: {
       title: "Delivery proof",
-      description: "A screenshot from our admin showing your order was sent.",
+      description: "Screenshots from our admin showing your order was sent.",
       open: "View full size",
-      alt: "Delivery proof for order {id}",
+      alt: "Delivery proof {number} for order {id}",
     },
     recent: {
       title: "Your recent orders",

@@ -55,7 +55,7 @@ export function toOrder(row: OrderRow, payment?: PaymentRow | null): Order {
     paymentStatus: payment?.status ?? null,
     hasProof: Boolean(payment?.proofPath),
     hasReview: false,
-    deliveryProofUrl: deliveryProofUrl(row.deliveryProof),
+    deliveryProofUrls: row.deliveryProofs.map(deliveryProofUrl),
   };
 }
 

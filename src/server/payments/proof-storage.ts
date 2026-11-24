@@ -122,4 +122,4 @@ export async function deleteDeliveryProof(file: string) {
 }
 
 /** Where the browser loads a delivery proof from. */
-export const deliveryProofUrl = (file: string | null) => (file ? `/orders/delivery/${file}` : null);
+export const deliveryProofUrl = (file: string) => `/orders/delivery/${file}`;

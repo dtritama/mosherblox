@@ -1,8 +1,17 @@
 "use client";
 
-import { ExternalLink, ImageUp, Loader2, Trash2 } from "lucide-react";
+import { ImageUp, Loader2, Trash2, Upload, X } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useActionState, useEffect, useEffectEvent, useId, useRef, useState, type DragEvent } from "react";
+import {
+  useEffect,
+  useEffectEvent,
+  useId,
+  useRef,
+  useState,
+  useTransition,
+  type DragEvent,
+  type ReactNode,
+} from "react";
 
 import { adminCopy } from "@/app/admin/copy";
 import { SubmitError } from "@/components/checkout/submit-error";
@@ -13,74 +22,103 @@ import { cn } from "@/lib/utils";
 import { deliveryProofAction, type DeliveryProofState } from "@/server/admin/actions";
 
 const t = adminCopy.delivery;
+const MAX = orderConfig.deliveryProofMax;
+
+interface Draft {
+  id: string;
+  file: File;
+  url: string;
+}
+
+async function send(fields: Record<string, string | File>): Promise<DeliveryProofState> {
+  const formData = new FormData();
+  for (const [key, value] of Object.entries(fields)) formData.set(key, value);
+  return deliveryProofAction(formData).catch((): DeliveryProofState => ({ error: "unavailable" }));
+}
 
 /**
- * "Bukti pengiriman" on the admin order page: a screenshot showing the Robux / item was sent.
- * Pick, drop or paste (Ctrl/Cmd+V) an image → preview → upload. Replacing or removing it is one click; the buyer sees the
- * current one on Check Order.
+ * "Bukti pengiriman" on the admin order page: screenshots showing the Robux / item was sent, up to 6.
+ * Pick, drop or paste (Ctrl/Cmd+V) images → previews → upload (one request per image, so each stays
+ * under the upload limit). The buyer sees the saved ones on Check Order.
  */
 export function DeliveryProof({
   orderId,
-  imageUrl,
-  uploadedAt,
+  saved,
   canUpload,
 }: {
   orderId: string;
-  imageUrl: string | null;
-  uploadedAt: string | null;
+  saved: { file: string; url: string }[];
   /** Only once the order is paid (paid / processing / completed). */
   canUpload: boolean;
 }) {
   const router = useRouter();
-  const [state, formAction, pending] = useActionState<DeliveryProofState, FormData>(deliveryProofAction, {});
-  const [preview, setPreview] = useState<{ url: string; name: string } | null>(null);
-  const [localError, setLocalError] = useState<string | null>(null);
-  const [fileKey, setFileKey] = useState(0);
-  const fileId = useId();
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [drafts, setDrafts] = useState<Draft[]>([]);
+  const [error, setError] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
+  const [busy, startBusy] = useTransition();
+  const fileId = useId();
+  const free = MAX - saved.length - drafts.length;
 
-  // Saved: show the server's version and clear the picker.
+  // Free the preview URLs when leaving the page.
+  const urls = useRef(new Set<string>());
   useEffect(() => {
-    if (!state.ok) return;
-    router.refresh();
-  }, [state, router]);
+    const open = urls.current;
+    return () => open.forEach((url) => URL.revokeObjectURL(url));
+  }, []);
 
-  useEffect(() => () => (preview ? URL.revokeObjectURL(preview.url) : undefined), [preview]);
-
-  const pick = (file: File | undefined) => {
-    setLocalError(null);
-    if (!file) return setPreview(null);
-    if (file.size > orderConfig.proofMaxBytes) {
-      setFileKey((key) => key + 1);
-      setPreview(null);
-      return setLocalError(t.errors.tooBig);
+  const add = (files: Iterable<File>) => {
+    if (busy) return;
+    setError(null);
+    const next: Draft[] = [];
+    for (const file of files) {
+      if (!(orderConfig.proofTypes as readonly string[]).includes(file.type)) setError(t.errors.badImage);
+      else if (file.size > orderConfig.proofMaxBytes) setError(t.errors.tooBig);
+      else if (next.length >= free) setError(t.errors.tooMany);
+      else {
+        const url = URL.createObjectURL(file);
+        urls.current.add(url);
+        next.push({ id: crypto.randomUUID(), file, url });
+      }
     }
-    if (!(orderConfig.proofTypes as readonly string[]).includes(file.type)) {
-      setFileKey((key) => key + 1);
-      setPreview(null);
-      return setLocalError(t.errors.badImage);
-    }
-    setPreview({ url: URL.createObjectURL(file), name: file.name });
+    if (next.length > 0) setDrafts((list) => [...list, ...next]);
   };
 
-  /** A dropped or pasted file goes into the real file input, so the form submits it as usual. */
-  const take = (files: FileList | undefined) => {
-    const input = inputRef.current;
-    const file = files?.[0];
-    if (!input || !file || pending) return;
-    const transfer = new DataTransfer();
-    transfer.items.add(file);
-    input.files = transfer.files;
-    pick(file);
+  const discard = (draft: Draft) => {
+    URL.revokeObjectURL(draft.url);
+    urls.current.delete(draft.url);
+    setDrafts((list) => list.filter((item) => item.id !== draft.id));
+  };
+
+  const upload = () =>
+    startBusy(async () => {
+      setError(null);
+      for (const draft of drafts) {
+        const result = await send({ orderId, intent: "upload", image: draft.file });
+        if (!result.ok) {
+          // The ones already sent are saved; this one and the rest stay here to retry.
+          setError(t.errors[result.error ?? "unavailable"]);
+          break;
+        }
+        discard(draft);
+      }
+      router.refresh();
+    });
+
+  const remove = (file: string) => {
+    if (!window.confirm(t.confirmRemove)) return;
+    startBusy(async () => {
+      const result = await send({ orderId, intent: "remove", file });
+      setError(result.error ? t.errors[result.error] : null);
+      router.refresh();
+    });
   };
 
   const onPaste = useEffectEvent((event: ClipboardEvent) => {
     // Only images; pasting text into the note field keeps working.
-    const files = event.clipboardData?.files;
-    if (!files?.length || !files[0].type.startsWith("image/")) return;
+    const files = [...(event.clipboardData?.files ?? [])].filter((file) => file.type.startsWith("image/"));
+    if (files.length === 0) return;
     event.preventDefault();
-    take(files);
+    add(files);
   });
   useEffect(() => {
     if (!canUpload) return;
@@ -103,110 +141,182 @@ export function DeliveryProof({
           if (!event.dataTransfer.types.includes("Files")) return;
           event.preventDefault();
           setDragging(false);
-          take(event.dataTransfer.files);
+          add(event.dataTransfer.files);
         },
       }
     : {};
 
-  const submit = (formData: FormData) => {
-    formAction(formData);
-    if (formData.get("intent") === "upload") {
-      setPreview(null);
-      setFileKey((key) => key + 1);
-    }
-  };
-
-  const shown = preview?.url ?? imageUrl;
-  const error = localError ?? (state.error ? t.errors[state.error] : null);
-
   return (
-    <form
-      action={submit}
+    <div
       {...dropHandlers}
       className={cn(
-        "grid gap-4 transition-colors",
+        "grid grid-cols-[minmax(0,1fr)] gap-4 transition-colors",
         canUpload && "rounded-2xl border-2 border-dashed p-4",
         canUpload && (dragging ? "border-brand-500 bg-brand-50" : "border-brand-200"),
       )}
     >
-      <input type="hidden" name="orderId" value={orderId} />
-
-      {shown ? (
-        <figure className="grid gap-2">
-          <a
-            href={preview ? undefined : (imageUrl ?? undefined)}
-            target="_blank"
-            rel="noopener"
-            className="group block w-full max-w-xs overflow-hidden rounded-2xl border border-brand-100"
-          >
-            {/* Local blob preview or our own route: a plain <img> keeps it simple and exact. */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={shown}
-              alt={interpolate(t.alt, { id: orderId })}
-              className="max-h-96 w-full object-contain transition-transform duration-300 group-hover:scale-[1.02]"
-            />
-            {!preview ? (
-              <span className="flex items-center justify-center gap-1.5 border-t border-brand-100 bg-brand-50 py-2 text-xs font-semibold text-ink-700">
-                {adminCopy.detail.openProof}
-                <ExternalLink className="size-3.5" aria-hidden="true" />
-              </span>
-            ) : null}
-          </a>
-          <figcaption className="text-xs text-ink-500">
-            {preview ? interpolate(t.previewOf, { name: preview.name }) : uploadedAt ? t.visible : null}
-          </figcaption>
-        </figure>
+      {saved.length > 0 ? (
+        <div className="grid gap-2">
+          <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+            {saved.map(({ file, url }, index) => (
+              <Tile
+                key={file}
+                url={url}
+                href={url}
+                alt={interpolate(t.alt, { id: orderId, number: index + 1 })}
+                button={
+                  canUpload ? (
+                    <TileButton
+                      label={interpolate(t.removeOne, { number: index + 1 })}
+                      disabled={busy}
+                      onClick={() => remove(file)}
+                    >
+                      <Trash2 className="size-4" aria-hidden="true" />
+                    </TileButton>
+                  ) : null
+                }
+              />
+            ))}
+          </ul>
+          <p className="text-xs text-ink-500">{interpolate(t.visible, { count: saved.length, max: MAX })}</p>
+        </div>
       ) : (
         <p className="text-sm text-ink-500">{canUpload ? t.empty : t.notYet}</p>
       )}
 
-      {canUpload ? (
-        <div className="flex flex-wrap items-center gap-2">
-          <input
-            key={fileKey}
-            ref={inputRef}
-            id={fileId}
-            name="image"
-            type="file"
-            accept={orderConfig.proofTypes.join(",")}
-            onChange={(event) => pick(event.target.files?.[0])}
-            className="peer sr-only"
-          />
-          <label
-            htmlFor={fileId}
-            className="inline-flex h-11 cursor-pointer items-center gap-2 rounded-xl bg-brand-100 px-4 text-sm font-semibold text-brand-800 transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-brand-400 peer-focus-visible:ring-offset-2 hover:bg-brand-200 active:scale-[0.97]"
-          >
-            <ImageUp className="size-4" aria-hidden="true" />
-            {imageUrl || preview ? t.chooseOther : t.choose}
-          </label>
-          <p className="text-sm text-ink-500">{dragging ? t.dropNow : t.dropHint}</p>
-          {preview ? (
-            <Button type="submit" name="intent" value="upload" disabled={pending}>
-              {pending ? <Loader2 className="size-4 animate-spin" aria-hidden="true" /> : null}
-              {t.upload}
-            </Button>
-          ) : null}
-          {imageUrl && !preview ? (
-            <button
-              type="submit"
-              name="intent"
-              value="remove"
-              disabled={pending}
-              onClick={(event) => {
-                if (!window.confirm(t.confirmRemove)) event.preventDefault();
-              }}
-              className="inline-flex h-11 items-center gap-2 rounded-xl px-3 text-sm font-semibold text-blush-700 transition-colors hover:bg-blush-50 disabled:opacity-60"
-            >
-              <Trash2 className="size-4" aria-hidden="true" />
-              {t.remove}
-            </button>
-          ) : null}
+      {drafts.length > 0 ? (
+        <div className="grid gap-2">
+          <p className="text-sm font-semibold text-blush-700">{interpolate(t.notSaved, { count: drafts.length })}</p>
+          <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+            {drafts.map((draft) => (
+              <Tile
+                key={draft.id}
+                url={draft.url}
+                alt={draft.file.name}
+                draft
+                button={
+                  <TileButton
+                    label={interpolate(t.discard, { name: draft.file.name })}
+                    disabled={busy}
+                    onClick={() => discard(draft)}
+                  >
+                    <X className="size-4" aria-hidden="true" />
+                  </TileButton>
+                }
+              />
+            ))}
+          </ul>
         </div>
       ) : null}
 
-      {canUpload ? <p className="text-xs text-ink-500">{t.hint}</p> : null}
+      {canUpload ? (
+        <>
+          <div className="flex flex-wrap items-center gap-2">
+            {free > 0 ? (
+              <>
+                <span className="relative inline-flex">
+                  <input
+                    id={fileId}
+                    type="file"
+                    multiple
+                    accept={orderConfig.proofTypes.join(",")}
+                    disabled={busy}
+                    onChange={(event) => {
+                      add([...(event.target.files ?? [])]);
+                      event.target.value = ""; // the same file can be picked again
+                    }}
+                    className="peer sr-only"
+                  />
+                  <label
+                    htmlFor={fileId}
+                    className="inline-flex h-11 cursor-pointer items-center gap-2 rounded-xl bg-brand-100 px-4 text-sm font-semibold text-brand-800 transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-brand-400 peer-focus-visible:ring-offset-2 peer-disabled:pointer-events-none peer-disabled:opacity-60 hover:bg-brand-200 active:scale-[0.97]"
+                  >
+                    <ImageUp className="size-4" aria-hidden="true" />
+                    {saved.length + drafts.length > 0 ? t.addMore : t.choose}
+                  </label>
+                </span>
+                <p className="text-sm text-ink-500">{dragging ? t.dropNow : t.dropHint}</p>
+              </>
+            ) : (
+              <p className="text-sm text-ink-500">{interpolate(t.full, { max: MAX })}</p>
+            )}
+          </div>
+          {drafts.length > 0 ? (
+            <Button onClick={upload} disabled={busy} className="justify-self-start">
+              {busy ? (
+                <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+              ) : (
+                <Upload className="size-4" aria-hidden="true" />
+              )}
+              {busy ? t.uploading : interpolate(t.upload, { count: drafts.length })}
+            </Button>
+          ) : null}
+          <p className="text-xs text-ink-500">{interpolate(t.hint, { max: MAX })}</p>
+        </>
+      ) : null}
       <SubmitError message={error} />
-    </form>
+    </div>
+  );
+}
+
+function Tile({
+  url,
+  href,
+  alt,
+  draft,
+  button,
+}: {
+  url: string;
+  href?: string;
+  alt: string;
+  draft?: boolean;
+  button: ReactNode;
+}) {
+  // Local blob preview or our own route: a plain <img> keeps it simple and exact.
+  const image = (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={url} alt={alt} className="aspect-[3/4] w-full bg-brand-50/60 object-contain" />
+  );
+  return (
+    <li
+      className={cn(
+        "relative min-w-0 overflow-hidden rounded-2xl border",
+        draft ? "border-dashed border-blush-300" : "border-brand-100",
+      )}
+    >
+      {href ? (
+        <a href={href} target="_blank" rel="noopener" className="block">
+          {image}
+        </a>
+      ) : (
+        image
+      )}
+      {button}
+    </li>
+  );
+}
+
+function TileButton({
+  label,
+  disabled,
+  onClick,
+  children,
+}: {
+  label: string;
+  disabled: boolean;
+  onClick: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      title={label}
+      disabled={disabled}
+      onClick={onClick}
+      className="absolute top-1.5 right-1.5 grid size-11 place-items-center rounded-xl bg-white/90 text-blush-700 shadow-sm transition-colors hover:bg-blush-50 disabled:opacity-60"
+    >
+      {children}
+    </button>
   );
 }

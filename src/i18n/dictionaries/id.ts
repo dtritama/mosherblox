@@ -540,7 +540,7 @@ export const id = {
       title: "Bukti pengiriman",
       description: "Screenshot dari admin bahwa pesananmu sudah dikirim.",
       open: "Lihat ukuran penuh",
-      alt: "Bukti pengiriman untuk pesanan {id}",
+      alt: "Bukti pengiriman {number} untuk pesanan {id}",
     },
     recent: {
       title: "Pesanan terakhir kamu",

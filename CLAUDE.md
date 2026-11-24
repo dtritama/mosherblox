@@ -122,12 +122,14 @@ Rules:
   Status changes go through `transitionOrder()` with `expectedFrom` (stale clicks are refused) and
   also update the payment (paid → confirmed + who, failed-from-pending → rejected). Proof images
   only via `/admin/proofs/[paymentId]` (no-store, nosniff, sandbox CSP). **Bukti pengiriman:** on
-  a paid/processing/completed order the admin can upload/replace/remove a screenshot that the
-  Robux / item was sent (`components/admin/delivery-proof.tsx`, `deliveryProofAction`, columns
-  `orders.delivery_proof(_at)`). Stored as a random UUID name in `UPLOAD_DIR/delivery`, served by
+  a paid/processing/completed order the admin can add up to 6 / remove screenshots that the
+  Robux / item was sent (`components/admin/delivery-proof.tsx`, `deliveryProofAction`, column
+  `orders.delivery_proofs`; one image per action call). Stored as random UUID names in `UPLOAD_DIR/delivery`, served by
   `app/orders/delivery/[file]` (the unguessable name is the key; it only reaches the buyer through
   a Check Order lookup) and shown on Check Order. `/admin` is skipped by
-  `proxy.ts` (no locale) and disallowed in robots. Copy lives in `app/admin/copy.ts`.
+  `proxy.ts` (no locale) and disallowed in robots. The order list updates itself: `components/admin/live-orders.tsx` polls
+  `/admin/orders-version` (newest `order_events` row) every 5 s while visible and refreshes on change,
+  so every order change must write an order event. Copy lives in `app/admin/copy.ts`.
 - **Background jobs** (pg-boss in the `pgboss` schema of the same Postgres): the worker
   (`src/worker/index.mts`) runs `orders.expire` every minute (`expireOverdueOrders()`; never expires
   an order whose buyer pressed "Saya sudah bayar") and `notify.discord` (retries with backoff).

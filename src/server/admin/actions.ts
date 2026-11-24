@@ -1,6 +1,7 @@
 "use server";
 
 import { updateTag } from "next/cache";
+import { orderConfig } from "@/data/orders";
 import { redirect } from "next/navigation";
 import { STATS_TAG } from "@/server/stats";
 import { moderateReview, REVIEWS_TAG } from "@/server/reviews";
@@ -10,7 +11,7 @@ import { canTransition } from "@/lib/orders/status";
 import type { OrderStatus } from "@/lib/orders/types";
 import { normalizeOrderId } from "@/lib/orders/order-id";
 import { OrderTransitionError, transitionOrder } from "@/server/orders/service";
-import { eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { getDb, schema } from "@/server/db";
 import { deleteDeliveryProof, saveDeliveryProof } from "@/server/payments/proof-storage";
 
@@ -107,53 +108,69 @@ export async function moderateReviewAction(
 
 export type DeliveryProofState = {
   ok?: boolean;
-  error?: "notAllowed" | "noImage" | "badImage" | "tooBig" | "unavailable";
+  error?: "notAllowed" | "tooMany" | "noImage" | "badImage" | "tooBig" | "unavailable";
 };
 
 /** A delivery proof only makes sense once the buyer has paid. */
 const DELIVERY_PROOF_STATUSES: readonly OrderStatus[] = ["paid", "processing", "completed"];
 
 /**
- * "Bukti pengiriman": upload (or replace) / remove the screenshot showing the Robux / item was
- * sent. The buyer sees it on Check Order.
+ * "Bukti pengiriman": add one screenshot showing the Robux / item was sent (one image per call, up to
+ * `deliveryProofMax` per order), or remove one. The buyer sees them on Check Order.
  */
-export async function deliveryProofAction(_prev: DeliveryProofState, formData: FormData): Promise<DeliveryProofState> {
+export async function deliveryProofAction(formData: FormData): Promise<DeliveryProofState> {
   await requireAdmin();
   const orderId = normalizeOrderId(str(formData.get("orderId"), 32));
   const intent = str(formData.get("intent"), 10);
   const { orders } = schema;
   try {
     const db = getDb();
-    const [order] = await db
-      .select({ status: orders.status, deliveryProof: orders.deliveryProof })
-      .from(orders)
-      .where(eq(orders.id, orderId))
-      .limit(1);
-    if (!order) return { error: "notAllowed" };
 
     if (intent === "remove") {
-      await db.update(orders).set({ deliveryProof: null, deliveryProofAt: null }).where(eq(orders.id, orderId));
-      if (order.deliveryProof) await deleteDeliveryProof(order.deliveryProof).catch(() => undefined);
+      const file = str(formData.get("file"), 64);
+      const removed = await db
+        .update(orders)
+        .set({
+          deliveryProofs: sql`array_remove(${orders.deliveryProofs}, ${file})`,
+          deliveryProof: sql`nullif(${orders.deliveryProof}, ${file})`,
+        })
+        // Only a file that belongs to this order is deleted from disk.
+        .where(and(eq(orders.id, orderId), sql`${file} = any(${orders.deliveryProofs})`))
+        .returning({ id: orders.id });
+      if (removed.length > 0) await deleteDeliveryProof(file).catch(() => undefined);
       return { ok: true };
     }
 
-    if (!DELIVERY_PROOF_STATUSES.includes(order.status)) return { error: "notAllowed" };
-    const file = formData.get("image");
-    if (!(file instanceof File) || file.size === 0) return { error: "noImage" };
-    const saved = await saveDeliveryProof(file);
+    if (intent !== "upload") return { error: "notAllowed" };
+    const [order] = await db
+      .select({ status: orders.status, proofs: orders.deliveryProofs })
+      .from(orders)
+      .where(eq(orders.id, orderId))
+      .limit(1);
+    if (!order || !DELIVERY_PROOF_STATUSES.includes(order.status)) return { error: "notAllowed" };
+    if (order.proofs.length >= orderConfig.deliveryProofMax) return { error: "tooMany" };
+    const image = formData.get("image");
+    if (!(image instanceof File) || image.size === 0) return { error: "noImage" };
+    const saved = await saveDeliveryProof(image);
     if (!saved.ok) return { error: saved.error === "tooBig" ? "tooBig" : "badImage" };
+    let added = 0;
     try {
-      await db
+      // Append in one statement, with the limit checked again: two uploads at once both count.
+      const rows = await db
         .update(orders)
-        .set({ deliveryProof: saved.file, deliveryProofAt: new Date() })
-        .where(eq(orders.id, orderId));
-    } catch (error) {
-      await deleteDeliveryProof(saved.file).catch(() => undefined);
-      throw error;
+        .set({
+          deliveryProofs: sql`array_append(${orders.deliveryProofs}, ${saved.file})`,
+          deliveryProofAt: new Date(),
+        })
+        .where(
+          and(eq(orders.id, orderId), sql`cardinality(${orders.deliveryProofs}) < ${orderConfig.deliveryProofMax}`),
+        )
+        .returning({ id: orders.id });
+      added = rows.length;
+    } finally {
+      if (added === 0) await deleteDeliveryProof(saved.file).catch(() => undefined);
     }
-    // Replaced: the old file isn't referenced any more.
-    if (order.deliveryProof) await deleteDeliveryProof(order.deliveryProof).catch(() => undefined);
-    return { ok: true };
+    return added > 0 ? { ok: true } : { error: "tooMany" };
   } catch (error) {
     console.error("[admin] delivery proof failed", error);
     return { error: "unavailable" };

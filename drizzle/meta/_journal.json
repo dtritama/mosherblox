@@ -29,6 +29,13 @@
       "when": 1795242461452,
       "tag": "0003_delivery_proof",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1795513750558,
+      "tag": "0004_delivery_proofs",
+      "breakpoints": true
     }
   ]
 }

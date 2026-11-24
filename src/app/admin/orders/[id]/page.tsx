@@ -163,10 +163,8 @@ function OrderDetail({ order }: { order: AdminOrderDetail }) {
 
           <Card title={adminCopy.delivery.title}>
             <DeliveryProof
-              key={order.deliveryProofUrl ?? "none"}
               orderId={order.id}
-              imageUrl={order.deliveryProofUrl}
-              uploadedAt={order.deliveryProofAt}
+              saved={order.deliveryProofs}
               canUpload={order.status === "paid" || order.status === "processing" || order.status === "completed"}
             />
           </Card>

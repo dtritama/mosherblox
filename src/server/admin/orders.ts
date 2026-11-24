@@ -1,5 +1,5 @@
 import "server-only";
-import { and, asc, count, desc, eq, ilike, or, type SQL } from "drizzle-orm";
+import { and, asc, count, desc, eq, ilike, max, or, type SQL } from "drizzle-orm";
 import { getPaymentMethod } from "@/data/payments";
 import { deliveryProofUrl } from "@/server/payments/proof-storage";
 import { getDb, schema } from "@/server/db";
@@ -109,6 +109,17 @@ export async function listOrders({ filter, q, page }: { filter: AdminFilter; q: 
   return { items, total, pages: Math.max(1, Math.ceil(total / PAGE_SIZE)) };
 }
 
+/**
+ * Changes whenever an order is created, claimed or changes status: each writes an order event.
+ * (Count as well as max: a slower transaction can commit an event with a lower ID later.)
+ */
+export async function getOrdersVersion(): Promise<string> {
+  const [row] = await getDb()
+    .select({ last: max(orderEvents.id), total: count() })
+    .from(orderEvents);
+  return `${row?.last ?? 0}-${row?.total ?? 0}`;
+}
+
 /** Counts for the filter tabs. */
 export async function countByFilter(): Promise<Record<AdminFilter, number>> {
   const db = getDb();
@@ -138,9 +149,8 @@ export interface AdminOrderDetail {
   expiresAt: string;
   paidAt: string | null;
   completedAt: string | null;
-  /** "Bukti pengiriman" image URL (also shown to the buyer), and when it was uploaded. */
-  deliveryProofUrl: string | null;
-  deliveryProofAt: string | null;
+  /** "Bukti pengiriman" images (also shown to the buyer). */
+  deliveryProofs: { file: string; url: string }[];
   productName: string;
   productSlug: string | null;
   item: string;
@@ -204,8 +214,7 @@ export async function getOrderDetail(id: string): Promise<AdminOrderDetail | nul
     expiresAt: order.expiresAt.toISOString(),
     paidAt: iso(order.paidAt),
     completedAt: iso(order.completedAt),
-    deliveryProofUrl: deliveryProofUrl(order.deliveryProof),
-    deliveryProofAt: iso(order.deliveryProofAt),
+    deliveryProofs: order.deliveryProofs.map((file) => ({ file, url: deliveryProofUrl(file) })),
     productName: order.productName,
     productSlug: order.productSlug,
     item: order.itemLabel.id,

@@ -5,12 +5,14 @@ import { Suspense } from "react";
 
 import { adminCopy } from "@/app/admin/copy";
 import { AdminShell } from "@/components/admin/admin-shell";
+import { LiveOrders } from "@/components/admin/live-orders";
 import { formatAdminDate, formatWhatsapp, StatusBadge } from "@/components/admin/status-badge";
 import { formatIDR, interpolate } from "@/i18n/format";
 import { cn } from "@/lib/utils";
 import {
   ADMIN_FILTERS,
   countByFilter,
+  getOrdersVersion,
   isAdminFilter,
   listOrders,
   type AdminFilter,
@@ -48,6 +50,8 @@ async function Orders({ searchParams }: { searchParams: PageProps<"/admin">["sea
   const q = one(params.q).slice(0, 64);
   const page = Math.max(1, Math.min(1000, Number.parseInt(one(params.page), 10) || 1));
 
+  // Before the list: a change in between is then picked up by the next check, never missed.
+  const version = await getOrdersVersion();
   const [{ items, total, pages }, counts] = await Promise.all([listOrders({ filter, q, page }), countByFilter()]);
 
   return (
@@ -56,6 +60,7 @@ async function Orders({ searchParams }: { searchParams: PageProps<"/admin">["sea
         <div>
           <h1 className="text-2xl font-bold text-ink-900">{t.title}</h1>
           <p className="mt-1 max-w-xl text-sm text-ink-500">{t.description}</p>
+          <LiveOrders version={version} />
         </div>
         <form action="/admin" className="flex w-full gap-2 sm:w-auto" role="search">
           {filter !== "check" ? <input type="hidden" name="filter" value={filter} /> : null}
