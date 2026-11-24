@@ -311,6 +311,17 @@ function OrderResult({
         </div>
       ) : null}
 
+      {result.failureNote ? (
+        <div className="border-b border-brand-100 p-5 sm:p-8">
+          <div className="rounded-2xl border border-blush-200 bg-blush-50 p-4">
+            <h2 className="text-sm font-semibold text-blush-800">{t.failureNote}</h2>
+            <p className="mt-1 text-sm leading-relaxed break-words whitespace-pre-line text-ink-900">
+              {result.failureNote}
+            </p>
+          </div>
+        </div>
+      ) : null}
+
       {result.deliveryProofUrls.length > 0 ? (
         <div className="border-b border-brand-100 p-5 sm:p-8">
           <div className="flex items-start gap-3">

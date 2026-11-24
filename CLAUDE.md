@@ -120,7 +120,8 @@ Rules:
   itself (DAL pattern). Sessions: random token in an httpOnly cookie (`__Host-mb_admin` in prod),
   only its SHA-256 stored in `admin_sessions` (12 h). Login rate-limited per IP and per email.
   Status changes go through `transitionOrder()` with `expectedFrom` (stale clicks are refused) and
-  also update the payment (paid → confirmed + who, failed-from-pending → rejected). Proof images
+  a failed order's note is shown to the buyer on Check Order (`Order.failureNote`), all other notes are
+  admin-only; they also update the payment (paid → confirmed + who, failed-from-pending → rejected). Proof images
   only via `/admin/proofs/[paymentId]` (no-store, nosniff, sandbox CSP). **Bukti pengiriman:** on
   a paid/processing/completed order the admin can add up to 6 / remove screenshots that the
   Robux / item was sent (`components/admin/delivery-proof.tsx`, `deliveryProofAction`, column

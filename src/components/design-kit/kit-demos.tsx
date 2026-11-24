@@ -205,6 +205,7 @@ const sampleOrder: Order = {
   hasProof: false,
   hasReview: false,
   deliveryProofUrls: [],
+  failureNote: null,
 };
 
 export function OrderSuccessDemo() {

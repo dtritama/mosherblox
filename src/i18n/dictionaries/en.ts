@@ -533,6 +533,7 @@ export const en: Dictionary = {
     },
     help: "Need help? Chat with support",
     searchAgain: "Check another order",
+    failureNote: "Note from our admin",
     deliveryProof: {
       title: "Delivery proof",
       description: "Screenshots from our admin showing your order was sent.",

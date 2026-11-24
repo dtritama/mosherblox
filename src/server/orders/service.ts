@@ -56,6 +56,7 @@ export function toOrder(row: OrderRow, payment?: PaymentRow | null): Order {
     hasProof: Boolean(payment?.proofPath),
     hasReview: false,
     deliveryProofUrls: row.deliveryProofs.map(deliveryProofUrl),
+    failureNote: null,
   };
 }
 
@@ -213,7 +214,20 @@ export async function findOrder(rawId: string, whatsapp: string): Promise<Order 
       return findOrder(id, whatsapp);
     }
   }
-  return toOrder(row, payment);
+  const order = toOrder(row, payment);
+  if (order.status === "failed") order.failureNote = await failureNote(db, row.id);
+  return order;
+}
+
+/** The note an admin wrote when marking the order failed: the one note meant for the buyer. */
+async function failureNote(db: Db, orderId: string) {
+  const [event] = await db
+    .select({ note: orderEvents.note })
+    .from(orderEvents)
+    .where(and(eq(orderEvents.orderId, orderId), eq(orderEvents.toStatus, "failed"), eq(orderEvents.actor, "admin")))
+    .orderBy(desc(orderEvents.id))
+    .limit(1);
+  return event?.note?.trim() || null;
 }
 
 export type ClaimError = "notFound" | "notPending" | "tooLate";

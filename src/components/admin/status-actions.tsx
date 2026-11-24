@@ -111,7 +111,7 @@ export function StatusActions({ orderId, status, total }: { orderId: string; sta
             state.error === "noteRequired" ? "border-blush-500" : "border-brand-100 hover:border-brand-300",
           )}
         />
-        <p className="mt-1.5 text-xs text-ink-500">{t.noteHint}</p>
+        <p className="mt-1.5 text-xs text-ink-500">{to === "failed" ? t.noteHintFailed : t.noteHint}</p>
       </div>
 
       <SubmitError message={state.error ? t.errors[state.error] : null} />
