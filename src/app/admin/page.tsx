@@ -80,7 +80,7 @@ async function Orders({ searchParams }: { searchParams: PageProps<"/admin">["sea
             <button
               type="submit"
               aria-label={t.search}
-              className="grid size-11 shrink-0 place-items-center rounded-xl bg-brand-400 text-ink-900 transition-colors hover:bg-brand-300 active:scale-[0.97]"
+              className="grid size-11 shrink-0 place-items-center rounded-xl bg-brand-400 text-coal transition-colors hover:bg-brand-300 active:scale-[0.97]"
             >
               <Search className="size-4" aria-hidden="true" />
             </button>
@@ -124,7 +124,7 @@ async function Orders({ searchParams }: { searchParams: PageProps<"/admin">["sea
                       active
                         ? "bg-white/15 text-white"
                         : key === "check" && counts.check > 0
-                          ? "bg-blush-500 text-white"
+                          ? "bg-blush-500 text-snow dark:bg-blush-400 dark:text-coal"
                           : "bg-brand-50 text-ink-500",
                     )}
                   >

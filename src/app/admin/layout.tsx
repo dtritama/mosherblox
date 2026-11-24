@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 
 import { adminCopy } from "@/app/admin/copy";
 import { poppins } from "@/app/fonts/poppins";
+import { THEME_SCRIPT } from "@/components/layout/theme-toggle";
 import { MotionProvider } from "@/components/providers/motion-provider";
 import { siteConfig } from "@/config/site";
 
@@ -21,13 +22,17 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: siteConfig.themeColor,
-  colorScheme: "light",
+  // color-scheme comes from CSS: the theme is the visitor's choice (shared with the store).
 };
 
 export default function AdminRootLayout({ children }: LayoutProps<"/admin">) {
   return (
-    <html lang="id" className={`${poppins.variable} bg-white`}>
-      <body className="min-h-dvh bg-brand-50/50 text-ink-900" suppressHydrationWarning>
+    <html lang="id" className={`${poppins.variable} bg-white dark:bg-(--page-bg)`} suppressHydrationWarning>
+      <head>
+        {/* Before paint: no white flash in dark mode. suppressHydrationWarning: it sets data-theme. */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+      </head>
+      <body className="min-h-dvh bg-brand-50/50 text-ink-900 dark:bg-(--page-bg)" suppressHydrationWarning>
         <MotionProvider>{children}</MotionProvider>
       </body>
     </html>

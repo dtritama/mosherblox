@@ -57,7 +57,7 @@ async function Reviews({ searchParams }: { searchParams: PageProps<"/admin/revie
                 tab === status
                   ? "bg-white/15"
                   : tab === "pending" && counts.pending > 0
-                    ? "bg-blush-500 text-white"
+                    ? "bg-blush-500 text-snow dark:bg-blush-400 dark:text-coal"
                     : "bg-brand-50 text-ink-500",
               )}
             >

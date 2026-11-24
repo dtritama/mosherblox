@@ -4,6 +4,7 @@ import { Suspense } from "react";
 
 import { adminCopy } from "@/app/admin/copy";
 import { LoginForm } from "@/components/admin/login-form";
+import { ThemeButton } from "@/components/layout/theme-toggle";
 import { Logo } from "@/components/ui/logo";
 import { getAdmin } from "@/server/auth/admin";
 
@@ -18,10 +19,13 @@ async function RedirectIfLoggedIn() {
 export default function AdminLoginPage() {
   const t = adminCopy.login;
   return (
-    <main className="grid min-h-dvh place-items-center px-4 py-10">
+    <main className="relative grid min-h-dvh place-items-center px-4 py-10">
       <Suspense>
         <RedirectIfLoggedIn />
       </Suspense>
+      <div className="absolute top-4 right-4">
+        <ThemeButton labels={adminCopy.theme} className="size-11" />
+      </div>
       <div className="w-full max-w-sm">
         <Logo eager height={44} className="mx-auto" />
         <div className="mt-6 rounded-[1.75rem] border border-brand-100 bg-white p-6 shadow-xl shadow-brand-900/5 sm:p-8">

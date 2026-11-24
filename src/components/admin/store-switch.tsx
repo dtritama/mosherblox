@@ -73,7 +73,7 @@ export function StoreSwitch({ open, owner, closedMessage }: { open: boolean; own
         onClick={(event) => {
           if (event.target === event.currentTarget && !pending) event.currentTarget.close();
         }}
-        className="m-auto w-[calc(100%-2rem)] max-w-md translate-y-0 rounded-[1.75rem] bg-white p-0 text-ink-900 opacity-100 shadow-2xl transition-[opacity,translate] duration-200 backdrop:bg-ink-950/50 backdrop:backdrop-blur-sm starting:open:translate-y-3 starting:open:opacity-0"
+        className="m-auto w-[calc(100%-2rem)] max-w-md translate-y-0 rounded-[1.75rem] bg-white p-0 text-ink-900 opacity-100 shadow-2xl transition-[opacity,translate] duration-200 backdrop:bg-coal/50 dark:border dark:border-brand-100 dark:backdrop:bg-black/60 backdrop:backdrop-blur-sm starting:open:translate-y-3 starting:open:opacity-0"
       >
         <div className="p-6">
           <span

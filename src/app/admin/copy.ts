@@ -20,6 +20,7 @@ export const adminCopy = {
       unavailable: "Server sedang bermasalah. Coba lagi sebentar lagi.",
     },
   },
+  theme: { toDark: "Ganti ke mode gelap", toLight: "Ganti ke mode terang" },
   nav: { orders: "Pesanan", reviews: "Ulasan", content: "Konten", settings: "Pengaturan", logout: "Keluar", site: "Lihat toko" },
   storeStatus: {
     open: "Toko buka",

@@ -184,7 +184,7 @@ Rules:
   (`blush-*`), dark text `ink-*`. Pink is an accent only — the client rejected "too much pink".
 - Highlighted heading words: `.text-highlight` = lime fill, dark ink outline, pink underline.
   **No gradient text.**
-- **Dark mode** (store only, not /admin): `<html data-theme="dark">`, light is the default; the
+- **Dark mode** (store and /admin, one shared choice; admin uses `ThemeButton` in its header and login): `<html data-theme="dark">`, light is the default; the
   choice is saved in localStorage `mb.theme` and applied before paint by `THEME_SCRIPT`
   (`components/layout/theme-toggle.tsx`, in the `[lang]` layout `<head>`). The toggle (navbar)
   grows the new theme in a circle from the button (View Transitions; instant under reduced motion).

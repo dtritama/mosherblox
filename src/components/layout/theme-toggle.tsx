@@ -43,9 +43,20 @@ function applyTheme(theme: Theme) {
   }
 }
 
+/** The store's switch (texts from the dictionary). */
 export function ThemeToggle({ className }: { className?: string }) {
   const { dict } = useI18n();
-  const t = dict.theme;
+  return <ThemeButton labels={dict.theme} className={className} />;
+}
+
+/** The switch itself; the admin panel (no dictionary) passes its own texts. */
+export function ThemeButton({
+  labels: t,
+  className,
+}: {
+  labels: { toDark: string; toLight: string };
+  className?: string;
+}) {
   // "light" on the server and during hydration, then the real value.
   const theme = useSyncExternalStore(subscribe, readTheme, () => "light" as Theme);
   const buttonRef = useRef<HTMLButtonElement>(null);

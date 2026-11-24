@@ -4,6 +4,7 @@ import { Suspense, type ReactNode } from "react";
 
 import { adminCopy } from "@/app/admin/copy";
 import { StoreSwitch } from "@/components/admin/store-switch";
+import { ThemeButton } from "@/components/layout/theme-toggle";
 import { Logo } from "@/components/ui/logo";
 import { cn } from "@/lib/utils";
 import type { AdminUser } from "@/server/auth/admin";
@@ -66,6 +67,7 @@ export function AdminShell({
             <Suspense fallback={null}>
               <StoreStatus admin={admin} />
             </Suspense>
+            <ThemeButton labels={adminCopy.theme} className="size-11 bg-transparent" />
             <a
               href="/id"
               target="_blank"

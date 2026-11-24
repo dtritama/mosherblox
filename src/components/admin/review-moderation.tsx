@@ -32,7 +32,7 @@ export function ReviewModeration({
           name="decision"
           value="approved"
           disabled={pending}
-          className="inline-flex h-11 items-center gap-1.5 rounded-xl bg-brand-400 px-4 text-sm font-semibold text-ink-900 transition-colors hover:bg-brand-300 active:scale-[0.97] disabled:opacity-50"
+          className="inline-flex h-11 items-center gap-1.5 rounded-xl bg-brand-400 px-4 text-sm font-semibold text-coal transition-colors hover:bg-brand-300 active:scale-[0.97] disabled:opacity-50"
         >
           {pending ? (
             <Loader2 className="size-4 animate-spin" aria-hidden="true" />

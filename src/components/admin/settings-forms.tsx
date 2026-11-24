@@ -630,7 +630,7 @@ export function StockForm({ initial, items }: { initial: SoldOut; items: StockIt
                         >
                           <span
                             className={cn(
-                              "absolute top-0.5 left-0.5 size-5 rounded-full bg-white shadow transition-transform",
+                              "absolute top-0.5 left-0.5 size-5 rounded-full bg-snow shadow transition-transform",
                               available && "translate-x-5",
                             )}
                           />

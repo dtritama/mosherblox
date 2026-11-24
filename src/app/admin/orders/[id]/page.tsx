@@ -81,7 +81,7 @@ function RobuxToSend({ order }: { order: AdminOrderDetail }) {
     <div
       className={cn(
         "mb-3 rounded-2xl border p-4",
-        cancelled || unpaid ? "border-brand-100 bg-white" : "border-brand-300 bg-brand-100",
+        cancelled || unpaid ? "border-brand-100 bg-white" : "border-brand-300 bg-brand-100 dark:border-brand-500/60",
       )}
     >
       <p className="text-xs font-semibold text-ink-700">{label}</p>
