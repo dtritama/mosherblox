@@ -179,7 +179,7 @@ export const adminCopy = {
     note: "Catatan",
     noteHint: "Opsional. Hanya terlihat di admin.",
     /** Filled in when "Tandai selesai" is chosen; the admin can change or empty it. */
-    defaultCompletedNote: "makasih untuk ordernya kak, ditunggu next ordernya yahh >.<",
+    defaultCompletedNote: "makasih untuk ordernya kak, ditunggu next ordernya yahh, jangan lupa untuk kasih review yaaa >.<",
     noteHintCompleted: "Opsional. Pembeli melihat catatan ini di Cek Pesanan. Kosongkan kalau tidak perlu.",
     noteHintFailed: "Wajib. Pembeli melihat catatan ini di Cek Pesanan, jangan tulis hal internal.",
     submit: "Simpan status",
