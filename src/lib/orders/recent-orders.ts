@@ -37,7 +37,7 @@ function isRecentOrder(value: unknown): value is RecentOrder {
     typeof v.id === "string" &&
     /^MB-[A-Z0-9]{4,13}$/.test(v.id) &&
     typeof v.whatsapp === "string" &&
-    /^628\d{6,13}$/.test(v.whatsapp) &&
+    /^(628\d{6,13}|\+[1-9]\d{7,14})$/.test(v.whatsapp) &&
     typeof v.total === "number" &&
     typeof v.createdAt === "string" &&
     typeof v.item === "object" &&

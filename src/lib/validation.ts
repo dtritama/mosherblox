@@ -1,4 +1,5 @@
 import { robuxConfig, type RobuxMethodId } from "@/data/robux";
+import { detectCountry, stripTrunkZero } from "@/lib/dial-codes";
 import { getRobuxMaxAmount, getRobuxMethod } from "@/lib/robux-pricing";
 import type { DeliveryType } from "@/types";
 
@@ -11,7 +12,7 @@ import type { DeliveryType } from "@/types";
 export const LIMITS = {
   usernameMax: 20,
   emailMax: 254,
-  whatsappMax: 18,
+  whatsappMax: 24,
 } as const;
 
 /** Roblox usernames: 3–20 characters, letters/digits, at most one underscore, not at the start or end. */
@@ -21,6 +22,8 @@ export const isRobloxUsername = (value: string) => ROBLOX_USERNAME.test(value.tr
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 /** Indonesian mobile number in international form: 62 + 8xx + 7–11 digits. */
 const ID_MOBILE = /^628\d{7,11}$/;
+/** Other countries (E.164): country code + number, 8–15 digits. */
+const INTERNATIONAL = /^[1-9]\d{7,14}$/;
 
 export type OrderErrorCode =
   | "invalidEmail"
@@ -57,12 +60,34 @@ export function sanitizeWhatsapp(value: string) {
   return value.replace(/[^\d+\s-]/g, "").slice(0, LIMITS.whatsappMax);
 }
 
-/** "0812-3456 7890", "+62 812…", "812…" → "628123…" (or null when it isn't an Indonesian mobile number). */
+/**
+ * One canonical form per number:
+ * - Indonesian ("0812-3456 7890", "812…", "62812…", "+62 812…") → "628123…"
+ * - any other country, written with its code ("+60 12-345…", "0060…") → "+6012345…". The "+" stays: without
+ *   it "81…" could be Japan or Indonesia. null = not a usable number.
+ */
 export function normalizeWhatsapp(value: string): string | null {
-  let digits = value.replace(/\D/g, "");
+  const trimmed = value.trim();
+  let digits = trimmed.replace(/\D/g, "");
+  const international = trimmed.startsWith("+") || digits.startsWith("00");
+  if (international) {
+    digits = digits.replace(/^00/, "");
+    digits = stripTrunkZero(digits);
+    if (digits.startsWith("62")) return ID_MOBILE.test(digits) ? digits : null;
+    return INTERNATIONAL.test(digits) && detectCountry(`+${digits}`) ? `+${digits}` : null;
+  }
   if (digits.startsWith("0")) digits = `62${digits.slice(1)}`;
   else if (digits.startsWith("8")) digits = `62${digits}`;
   return ID_MOBILE.test(digits) ? digits : null;
+}
+
+/** Digits only, for wa.me links. */
+export const whatsappDigits = (normalized: string) => normalized.replace(/\D/g, "");
+
+/** "+60123456789" → "+60 123456789" (numbers outside Indonesia). */
+export function formatForeignWhatsapp(normalized: string) {
+  const code = detectCountry(normalized)?.code ?? "";
+  return `+${code} ${whatsappDigits(normalized).slice(code.length)}`.trim();
 }
 
 function validateAccount(type: AccountFieldType, account: string): OrderErrorCode | undefined {

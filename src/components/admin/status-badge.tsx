@@ -2,6 +2,7 @@ import { adminCopy } from "@/app/admin/copy";
 import { statusStyles } from "@/components/orders/status-styles";
 import type { OrderStatus } from "@/lib/orders/types";
 import { cn } from "@/lib/utils";
+import { formatForeignWhatsapp } from "@/lib/validation";
 
 export function StatusBadge({ status, className }: { status: OrderStatus; className?: string }) {
   const { badge, icon: Icon } = statusStyles[status];
@@ -30,6 +31,7 @@ export const formatAdminDate = (iso: string) => `${dateTime.format(new Date(iso)
 
 /** 6281234567890 → 0812-3456-7890 (how people read Indonesian numbers). */
 export function formatWhatsapp(normalized: string) {
+  if (normalized.startsWith("+")) return formatForeignWhatsapp(normalized);
   const local = `0${normalized.slice(2)}`;
   return local.replace(/^(\d{4})(\d{4})(\d+)$/, "$1-$2-$3");
 }

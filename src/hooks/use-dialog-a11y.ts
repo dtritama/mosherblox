@@ -27,6 +27,8 @@ export function useDialogA11y(ref: RefObject<HTMLElement | null>, onClose: () =>
     autofocusTarget?.focus();
 
     const onKeyDown = (event: KeyboardEvent) => {
+      // An open popover inside (country list) takes Esc first; the browser closes it.
+      if (event.key === "Escape" && document.querySelector(":popover-open")) return;
       if (event.key === "Escape") {
         event.preventDefault();
         onCloseRef.current();

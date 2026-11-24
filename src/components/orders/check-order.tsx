@@ -1,13 +1,24 @@
 "use client";
 
 import { AnimatePresence, m } from "motion/react";
-import { Check, ChevronRight, ExternalLink, History, Loader2, MessageCircle, PackageCheck, Search, X } from "lucide-react";
+import {
+  Check,
+  ChevronRight,
+  ExternalLink,
+  History,
+  Loader2,
+  MessageCircle,
+  PackageCheck,
+  Search,
+  X,
+} from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 
 import { Field, inputClass, SummaryRow } from "@/components/checkout/form-parts";
 import { QrisPayment } from "@/components/checkout/qris-payment";
 import { ReviewForm } from "@/components/orders/review-form";
+import { PhoneInput } from "@/components/checkout/phone-input";
 import { SubmitError } from "@/components/checkout/submit-error";
 import { statusStyles } from "@/components/orders/status-styles";
 import { Button } from "@/components/ui/button";
@@ -22,7 +33,7 @@ import { orderService } from "@/lib/orders/service";
 import { useLiveOrder } from "@/lib/orders/use-live-order";
 import type { Order, OrderStatus } from "@/lib/orders/types";
 import { cn } from "@/lib/utils";
-import { LIMITS, normalizeWhatsapp, sanitizeWhatsapp } from "@/lib/validation";
+import { normalizeWhatsapp, whatsappDigits } from "@/lib/validation";
 
 /** Index of the timeline step the order is currently on (0 created · 1 payment · 2 processing · 3 done). */
 const currentStep: Record<OrderStatus, number> = {
@@ -153,16 +164,11 @@ export function CheckOrder() {
               </Field>
               <Field label={dict.checkout.whatsapp.label} error={errors.whatsapp}>
                 {(props) => (
-                  <input
-                    {...props}
-                    type="tel"
-                    inputMode="tel"
-                    autoComplete="tel"
-                    maxLength={LIMITS.whatsappMax}
-                    placeholder={dict.checkout.whatsapp.placeholder}
+                  <PhoneInput
+                    control={props}
                     value={whatsapp}
-                    onChange={(e) => setWhatsapp(sanitizeWhatsapp(e.target.value))}
-                    className={inputClass(Boolean(errors.whatsapp))}
+                    onChange={setWhatsapp}
+                    invalid={Boolean(errors.whatsapp)}
                   />
                 )}
               </Field>
@@ -231,7 +237,7 @@ function OrderResult({
   const date = new Intl.DateTimeFormat(intlLocales[locale], { dateStyle: "medium", timeStyle: "short" }).format(
     new Date(result.createdAt),
   );
-  const helpHref = `https://wa.me/${contact.whatsapp}?text=${encodeURIComponent(
+  const helpHref = `https://wa.me/${whatsappDigits(contact.whatsapp)}?text=${encodeURIComponent(
     `${dict.contact.whatsappMessage} (${result.id})`,
   )}`;
 

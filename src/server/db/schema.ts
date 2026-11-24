@@ -123,7 +123,7 @@ export const orders = pgTable(
      */
     robloxUserId: bigint("roblox_user_id", { mode: "number" }),
     robloxDisplayName: text("roblox_display_name"),
-    /** Normalised 628xxxxxxxxx. Needed together with the ID to look an order up. */
+    /** Normalised: 628… or, outside Indonesia, +<country code>…. Needed together with the ID to look an order up. */
     whatsapp: text("whatsapp").notNull(),
     /** Payment method id from src/data/payments.ts (e.g. "qris"). */
     paymentMethod: text("payment_method").notNull(),

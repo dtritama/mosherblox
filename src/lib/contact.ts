@@ -1,4 +1,5 @@
 import type { Dictionary } from "@/i18n/dictionaries/id";
+import { formatForeignWhatsapp, whatsappDigits } from "@/lib/validation";
 import type { ContactContent } from "@/lib/site-content";
 
 export type ContactChannelId = "discord" | "whatsapp" | "whatsappGroup";
@@ -14,6 +15,7 @@ export interface ContactChannel {
 
 /** 6281211980741 → 0812-1198-0741 */
 export function formatLocalWhatsapp(number: string) {
+  if (number.startsWith("+")) return formatForeignWhatsapp(number);
   const local = `0${number.replace(/^62/, "")}`;
   return [local.slice(0, 4), local.slice(4, 8), local.slice(8)].filter(Boolean).join("-");
 }
@@ -29,7 +31,7 @@ export function getContactChannels(dict: Dictionary, contact: ContactContent): C
       description: t.whatsapp.description,
       detail: formatLocalWhatsapp(whatsapp),
       // Opens a chat with a pre-filled greeting in the visitor's language.
-      href: `https://wa.me/${whatsapp}?text=${encodeURIComponent(t.whatsappMessage)}`,
+      href: `https://wa.me/${whatsappDigits(whatsapp)}?text=${encodeURIComponent(t.whatsappMessage)}`,
     },
     {
       id: "discord",

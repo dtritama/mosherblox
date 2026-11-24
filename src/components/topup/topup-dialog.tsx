@@ -8,6 +8,7 @@ import { Field, inputClass, Step, SummaryRow } from "@/components/checkout/form-
 import { OrderSuccess } from "@/components/checkout/order-success";
 import { PaymentPicker } from "@/components/checkout/payment-picker";
 import { RobloxAccountCheck } from "@/components/checkout/roblox-account-check";
+import { PhoneInput } from "@/components/checkout/phone-input";
 import { SubmitError } from "@/components/checkout/submit-error";
 import { useStoreSettings } from "@/components/providers/settings-provider";
 import { StoreClosedNotice } from "@/components/ui/store-closed-notice";
@@ -26,7 +27,6 @@ import {
   normalizeWhatsapp,
   sanitizeEmail,
   sanitizeUsername,
-  sanitizeWhatsapp,
   validateOrder,
   type OrderDraft,
   type OrderErrorCode,
@@ -229,16 +229,11 @@ export function TopUpDialog({ product, initialOptionId, onClose }: TopUpDialogPr
                   <div className="mt-4">
                     <Field label={t.whatsapp.label} error={errorText(errors.whatsapp)} hint={t.whatsapp.hint}>
                       {(props) => (
-                        <input
-                          {...props}
-                          type="tel"
-                          inputMode="tel"
-                          autoComplete="tel"
-                          maxLength={LIMITS.whatsappMax}
-                          placeholder={t.whatsapp.placeholder}
+                        <PhoneInput
+                          control={props}
                           value={draft.whatsapp}
-                          onChange={(e) => update("whatsapp", sanitizeWhatsapp(e.target.value))}
-                          className={inputClass(Boolean(errors.whatsapp))}
+                          onChange={(v) => update("whatsapp", v)}
+                          invalid={Boolean(errors.whatsapp)}
                         />
                       )}
                     </Field>
@@ -305,7 +300,9 @@ export function TopUpDialog({ product, initialOptionId, onClose }: TopUpDialogPr
               {/* Summary */}
               <aside className="border-t border-brand-100 bg-linear-to-b from-brand-50/70 to-white p-4 sm:p-6 lg:border-t-0 lg:border-l">
                 <div className="lg:sticky lg:top-0">
-                  <h3 className="text-sm font-semibold tracking-wider text-ink-500 uppercase dark:text-brand-600">{t.summary.title}</h3>
+                  <h3 className="text-sm font-semibold tracking-wider text-ink-500 uppercase dark:text-brand-600">
+                    {t.summary.title}
+                  </h3>
                   <dl className="mt-4 grid gap-3 text-sm">
                     <SummaryRow label={t.summary.product} value={product.name} />
                     <SummaryRow label={isEmail ? t.summary.email : t.summary.username} value={draft.account || "—"} />

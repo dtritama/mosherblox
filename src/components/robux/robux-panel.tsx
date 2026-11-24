@@ -24,6 +24,7 @@ import { OrderSuccess } from "@/components/checkout/order-success";
 import { PaymentPicker } from "@/components/checkout/payment-picker";
 import { RobloxAccountCheck } from "@/components/checkout/roblox-account-check";
 import { useStoreSettings } from "@/components/providers/settings-provider";
+import { PhoneInput } from "@/components/checkout/phone-input";
 import { SubmitError } from "@/components/checkout/submit-error";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
@@ -51,7 +52,6 @@ import {
   LIMITS,
   normalizeWhatsapp,
   sanitizeUsername,
-  sanitizeWhatsapp,
   validateRobuxAmount,
   validateRobuxOrder,
   type OrderErrorCode,
@@ -551,16 +551,11 @@ export function RobuxPanel({ className }: { className?: string }) {
                       </div>
                       <Field label={c.whatsapp.label} error={errorText(errors.whatsapp)} hint={c.whatsapp.hint}>
                         {(props) => (
-                          <input
-                            {...props}
-                            type="tel"
-                            inputMode="tel"
-                            autoComplete="tel"
-                            maxLength={LIMITS.whatsappMax}
-                            placeholder={c.whatsapp.placeholder}
+                          <PhoneInput
+                            control={props}
                             value={draft.whatsapp}
-                            onChange={(e) => update("whatsapp", sanitizeWhatsapp(e.target.value))}
-                            className={inputClass(Boolean(errors.whatsapp))}
+                            onChange={(v) => update("whatsapp", v)}
+                            invalid={Boolean(errors.whatsapp)}
                           />
                         )}
                       </Field>
@@ -582,7 +577,9 @@ export function RobuxPanel({ className }: { className?: string }) {
                 {/* Summary — sticky sidebar on desktop */}
                 <aside className="hidden border-l border-brand-100 bg-linear-to-b from-brand-50/70 to-white p-6 lg:block">
                   <div className="sticky top-24">
-                    <h3 className="text-sm font-semibold tracking-wider text-ink-500 uppercase dark:text-brand-600">{c.summary.title}</h3>
+                    <h3 className="text-sm font-semibold tracking-wider text-ink-500 uppercase dark:text-brand-600">
+                      {c.summary.title}
+                    </h3>
                     <dl className="mt-4 grid gap-3 text-sm">
                       <SummaryRow label={t.summary.method} value={methodName} />
                       <SummaryRow label={t.summary.amount} value={amount ? `${n(amount)} Robux` : "—"} />

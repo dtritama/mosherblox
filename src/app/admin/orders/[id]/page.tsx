@@ -11,6 +11,7 @@ import { DeliveryProof } from "@/components/admin/delivery-proof";
 import { formatIDR, formatNumber, interpolate } from "@/i18n/format";
 import { normalizeOrderId } from "@/lib/orders/order-id";
 import { cn } from "@/lib/utils";
+import { whatsappDigits } from "@/lib/validation";
 import { getOrderDetail, type AdminOrderDetail } from "@/server/admin/orders";
 import { requireAdmin } from "@/server/auth/admin";
 import { getAvatarUrls } from "@/server/roblox/users";
@@ -276,7 +277,7 @@ function OrderDetail({ order }: { order: AdminOrderDetail }) {
               <Row label={t.whatsapp}>{formatWhatsapp(order.whatsapp)}</Row>
             </dl>
             <a
-              href={`https://wa.me/${order.whatsapp}?text=${waText}`}
+              href={`https://wa.me/${whatsappDigits(order.whatsapp)}?text=${waText}`}
               target="_blank"
               rel="noopener noreferrer"
               className="mt-3 inline-flex h-11 w-full items-center justify-center gap-2 rounded-2xl border border-brand-200 bg-white text-sm font-semibold text-ink-900 transition-colors hover:border-blush-300 active:scale-[0.97]"

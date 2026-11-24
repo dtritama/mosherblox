@@ -349,6 +349,11 @@ export const en: Dictionary = {
     whatsapp: {
       label: "WhatsApp number",
       placeholder: "0812-3456-7890",
+      placeholderForeign: "number without the country code",
+      countryButton: "Country code {country} +{code}, change",
+      countrySearch: "Search country or code",
+      countryEmpty: "No country found.",
+      country: "Country code",
       hint: "For status updates & order lookup.",
     },
     paymentGroups: {
@@ -375,7 +380,7 @@ export const en: Dictionary = {
     errors: {
       invalidEmail: "Enter a valid email address.",
       invalidUsername: "Use 3–20 letters/numbers (one underscore allowed).",
-      invalidWhatsapp: "Enter a valid Indonesian WhatsApp number (e.g. 0812…).",
+      invalidWhatsapp: "Enter a valid WhatsApp number. Not Indonesian? Pick your country code first.",
       pickOption: "Pick an amount.",
       pickPayment: "Pick a payment method.",
       amountMin: "Minimum {min} Robux.",

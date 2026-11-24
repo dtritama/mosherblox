@@ -353,6 +353,11 @@ export const id = {
     whatsapp: {
       label: "Nomor WhatsApp",
       placeholder: "0812-3456-7890",
+      placeholderForeign: "nomor tanpa kode negara",
+      countryButton: "Kode negara {country} +{code}, ubah",
+      countrySearch: "Cari negara atau kode",
+      countryEmpty: "Negara tidak ditemukan.",
+      country: "Negara / kode telepon",
       hint: "Untuk update status & cek pesanan.",
     },
     paymentGroups: {
@@ -379,7 +384,7 @@ export const id = {
     errors: {
       invalidEmail: "Masukkan alamat email yang valid.",
       invalidUsername: "Gunakan 3–20 huruf/angka (boleh satu garis bawah).",
-      invalidWhatsapp: "Masukkan nomor WhatsApp Indonesia yang valid (contoh 0812…).",
+      invalidWhatsapp: "Masukkan nomor WhatsApp yang valid. Nomor luar negeri? Pilih dulu kode negaranya.",
       pickOption: "Pilih jumlahnya.",
       pickPayment: "Pilih metode pembayaran.",
       amountMin: "Minimal {min} Robux.",

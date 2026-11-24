@@ -20,7 +20,7 @@ export interface Order {
   item: LocalizedText;
   /** Roblox username or email (for vouchers). */
   account: string;
-  /** Normalised Indonesian number: 628xxxxxxxxx. Used together with the ID to look an order up. */
+  /** Normalised number: 628… or, outside Indonesia, +<country code>…. Used together with the ID to look an order up. */
   whatsapp: string;
   /** Payment method display name (e.g. "QRIS"). */
   payment: string;

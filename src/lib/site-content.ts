@@ -23,7 +23,7 @@ export interface BannerContent {
 
 /** Empty string = channel hidden (WhatsApp is always there: Check Order's help button uses it). */
 export interface ContactContent {
-  /** 628… */
+  /** Normalised: 628… or +<country code>… */
   whatsapp: string;
   discord: string;
   whatsappGroup: string;

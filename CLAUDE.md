@@ -214,7 +214,8 @@ Rules:
 - Robux prices/tiers in `src/data/robux.ts` are **placeholders** until the client confirms.
 - **Do not advertise "no password required" / "tanpa password"** — the client asked to remove it.
   (Safety hint "never share your password" and the FAQ answer are fine.)
-- Checkout always collects a WhatsApp number (normalized to `628…`).
+- Checkout always collects a WhatsApp number, any country (`PhoneInput` picker, Indonesia default):
+  Indonesian → `628…`, others → `+<code>…` **with the plus** (`normalizeWhatsapp`; use `whatsappDigits()` for wa.me).
 - **Stock:** the owner can mark a Robux method or a product / gamepass game "Stok habis" in
   /admin/settings. It stays visible with a badge, can't be selected or bought, flash deals hide it,
   and the server refuses the order (`soldOut` error) even from a stale page. Shop "Blox Fruits"
