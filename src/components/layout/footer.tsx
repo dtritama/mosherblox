@@ -12,11 +12,13 @@ import { localeHref } from "@/i18n/config";
 import { getI18n } from "@/i18n/get-dictionary";
 import { getContactChannels } from "@/lib/contact";
 import { cn } from "@/lib/utils";
+import { getSiteContent } from "@/server/site-content";
 
 export async function Footer() {
   const { locale, dict } = await getI18n();
   const t = dict.footer;
-  const channels = getContactChannels(dict);
+  const { contact } = await getSiteContent();
+  const channels = getContactChannels(dict, contact);
 
   return (
     <footer className="px-3 pt-6 pb-3 sm:px-4 sm:pb-4">

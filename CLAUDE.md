@@ -87,6 +87,15 @@ Rules:
   `useStoreSettings()`; pricing functions take `rates` as an optional last argument. Saves call
   `updateTag("settings")`. Uploaded QRIS images live in `UPLOAD_DIR/qris`, served by
   `app/payments/qris/[file]` (immutable cache). The QR is rendered `unoptimized` (exact pixels).
+- **Home content** (`/admin/content`, owner only): banners, contact links, FAQ and section texts, each
+  in id + en (empty en → id for FAQ/banner alt, built-in text for section texts). `lib/site-content.ts`
+  (types, `TEXT_GROUPS` = the editable dictionary paths, shared validation), `server/site-content.ts`
+  (`getSiteContent()` cached, tag `content`), `server/admin/content-actions.ts`. Defaults stay in code;
+  only edits are stored (`settings` table, `content.*` keys). Texts/FAQ are laid over the dictionary
+  in `getI18n()` / `getContentDictionary()`, so components keep reading `dict.*`; contact comes from
+  `useStoreSettings().contact` / `getSiteContent()` — never read `siteConfig.contact` in components.
+  Uploaded banners: `UPLOAD_DIR/banners`, served by `app/banners/[file]`. To make another text
+  editable, add its path to `TEXT_GROUPS` (not texts with {placeholders}).
 - **Validation & pricing are pure functions** (`lib/validation.ts`, `lib/robux-pricing.ts`) so the
   phase-2 server reuses them. The server must recompute every price — never trust a client total.
 - **Orders go through `orderService`** (`lib/orders/service.ts`) → Server Actions
@@ -190,7 +199,7 @@ Rules:
   promoted on home). Requirements: buyer must have **2-Step Verification ON** (confirmation checkbox
   required); limits **5.000 Robux/day and 10.000 Robux/month per account** — daily limit = max per order.
   Monthly limit can only be enforced server-side (phase 2). Values live in `src/data/robux.ts`; the
-  FAQ repeats them, so update both.
+  FAQ repeats them, so update both (the owner may have edited the FAQ in /admin/content).
 - Robux via Gamepass: shows the Gamepass price to set (`ceil(robux / 0.7)`, Roblox takes 30%).
 - Robux prices/tiers in `src/data/robux.ts` are **placeholders** until the client confirms.
 - **Do not advertise "no password required" / "tanpa password"** — the client asked to remove it.

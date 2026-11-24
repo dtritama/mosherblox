@@ -15,10 +15,11 @@ import { SettingsProvider } from "@/components/providers/settings-provider";
 import { TopUpProvider } from "@/components/topup/topup-provider";
 import { siteConfig } from "@/config/site";
 import { hasLocale, locales, ogLocales } from "@/i18n/config";
-import { getDictionaryFor } from "@/i18n/get-dictionary";
+import { getContentDictionary, getDictionaryFor } from "@/i18n/get-dictionary";
 import { localeAlternates } from "@/i18n/metadata";
 import { I18nProvider } from "@/i18n/i18n-provider";
 import { getSiteSettings } from "@/server/settings";
+import { getSiteContent } from "@/server/site-content";
 import { getPublicStats } from "@/server/stats";
 
 import "../globals.css";
@@ -62,9 +63,14 @@ export const viewport: Viewport = {
 export default async function RootLayout({ children, params }: LayoutProps<"/[lang]">) {
   const { lang } = await params;
   if (!hasLocale(lang)) notFound();
-  const dict = getDictionaryFor(lang);
   // Admin-editable prices + QRIS (cached; refreshed right after a save in /admin/settings).
-  const [{ robuxRates, qris, soldOut, robuxStock }, stats] = await Promise.all([getSiteSettings(), getPublicStats()]);
+  // + home content (/admin/content): texts in the dictionary, contact links.
+  const [{ robuxRates, qris, soldOut, robuxStock }, stats, { contact }, dict] = await Promise.all([
+    getSiteSettings(),
+    getPublicStats(),
+    getSiteContent(),
+    getContentDictionary(lang),
+  ]);
 
   return (
     // suppressHydrationWarning: THEME_SCRIPT sets data-theme on <html> before React loads.
@@ -84,7 +90,7 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[la
         </a>
         <I18nProvider locale={lang} dict={dict}>
           <MotionProvider>
-            <SettingsProvider value={{ robuxRates, qris, soldOut, robuxStock, stats }}>
+            <SettingsProvider value={{ robuxRates, qris, soldOut, robuxStock, stats, contact }}>
               <TopUpProvider>
                 <ScrollProgress />
                 <NightDecor />

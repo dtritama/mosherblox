@@ -8,6 +8,7 @@ import { Container } from "@/components/ui/container";
 import { ContactIcon } from "@/components/ui/contact-icon";
 import { Reveal } from "@/components/ui/reveal";
 import { SectionHeading } from "@/components/ui/section-heading";
+import { useStoreSettings } from "@/components/providers/settings-provider";
 import { useI18n } from "@/i18n/i18n-provider";
 import { getContactChannels, type ContactChannelId } from "@/lib/contact";
 import { cn } from "@/lib/utils";
@@ -20,8 +21,9 @@ const CHANNEL_STYLES: Record<ContactChannelId, string> = {
 
 export function Faq() {
   const { dict } = useI18n();
+  const { contact } = useStoreSettings();
   const t = dict.faq;
-  const channels = useMemo(() => getContactChannels(dict), [dict]);
+  const channels = useMemo(() => getContactChannels(dict, contact), [dict, contact]);
   const [openIndex, setOpenIndex] = useState<number | null>(0);
   const baseId = useId();
 
@@ -72,7 +74,7 @@ export function Faq() {
             const panelId = `${baseId}-a${index}`;
             return (
               <div
-                key={faq.question}
+                key={index}
                 className={cn(
                   "rounded-2xl border transition-colors duration-300",
                   open ? "border-brand-200 bg-brand-50/70" : "border-brand-100 bg-white hover:border-brand-200",

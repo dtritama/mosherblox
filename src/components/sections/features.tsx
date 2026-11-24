@@ -35,7 +35,7 @@ export async function Features() {
             const Icon = ICONS[index] ?? ShieldCheck;
             const highlight = index === 0;
             return (
-              <StaggerItem key={feature.title} className={cn(highlight && "md:col-span-2 lg:row-span-2")}>
+              <StaggerItem key={index} className={cn(highlight && "md:col-span-2 lg:row-span-2")}>
                 <SpotlightCard
                   className={cn(
                     "flex h-full flex-col rounded-3xl border p-6 transition-transform duration-300 hover:-translate-y-1",
@@ -89,9 +89,9 @@ export async function Features() {
 function SafetyChecklist({ items }: { items: readonly string[] }) {
   return (
     <ul className="relative mt-auto grid gap-2 pt-8">
-      {items.map((item) => (
+      {items.map((item, index) => (
         <li
-          key={item}
+          key={index}
           className="flex items-center justify-between rounded-xl bg-white/70 px-4 py-3 text-sm font-medium text-ink-900"
         >
           {item}

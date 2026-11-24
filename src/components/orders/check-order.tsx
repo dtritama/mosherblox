@@ -11,7 +11,7 @@ import { ReviewForm } from "@/components/orders/review-form";
 import { SubmitError } from "@/components/checkout/submit-error";
 import { statusStyles } from "@/components/orders/status-styles";
 import { Button } from "@/components/ui/button";
-import { siteConfig } from "@/config/site";
+import { useStoreSettings } from "@/components/providers/settings-provider";
 import { intlLocales, localize } from "@/i18n/config";
 import { formatIDR, interpolate } from "@/i18n/format";
 import { useI18n } from "@/i18n/i18n-provider";
@@ -220,6 +220,7 @@ function OrderResult({
   onSearchAgain: () => void;
 }) {
   const { locale, dict } = useI18n();
+  const { contact } = useStoreSettings();
   const t = dict.checkOrder;
   const style = statusStyles[result.status];
   const StatusIcon = style.icon;
@@ -228,7 +229,7 @@ function OrderResult({
   const date = new Intl.DateTimeFormat(intlLocales[locale], { dateStyle: "medium", timeStyle: "short" }).format(
     new Date(result.createdAt),
   );
-  const helpHref = `https://wa.me/${siteConfig.contact.whatsapp.number}?text=${encodeURIComponent(
+  const helpHref = `https://wa.me/${contact.whatsapp}?text=${encodeURIComponent(
     `${dict.contact.whatsappMessage} (${result.id})`,
   )}`;
 

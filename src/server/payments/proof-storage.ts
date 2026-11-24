@@ -8,6 +8,7 @@ import { orderConfig } from "@/data/orders";
  * a Docker volume in production):
  * - proofs/  transfer screenshots ("bukti transfer"), shown to admins only via a logged-in route
  * - qris/      the store's QRIS uploaded in /admin/settings, served publicly via /payments/qris/[file]
+ * - banners/   home banners uploaded in /admin/content, served publicly via /banners/[file]
  * - delivery/  "bukti pengiriman" an admin uploads on an order, served via /orders/delivery/[file]
  *              (random name, only revealed to the buyer after an order ID + WhatsApp lookup)
  */
@@ -71,13 +72,13 @@ export async function readProof(relative: string): Promise<{ bytes: Uint8Array<A
   }
 }
 
-/** File names we create for qris/ and delivery/: a UUID + image extension. Anything else is refused. */
+/** File names we create for qris/, banners/ and delivery/: a UUID + image extension. Anything else is refused. */
 const RANDOM_FILE = /^[0-9a-f-]{36}\.(jpg|png|webp)$/;
 export const QRIS_FILE = RANDOM_FILE;
 
 /** Saves an image under a random, never-reused name in `folder`. Returns the file name. */
 async function saveRandomImage(
-  folder: "qris" | "delivery",
+  folder: "qris" | "banners" | "delivery",
   file: File,
 ): Promise<{ ok: true; file: string } | { ok: false; error: ProofError }> {
   if (file.size === 0 || file.size > orderConfig.proofMaxBytes) return { ok: false, error: "tooBig" };
@@ -96,6 +97,17 @@ export const saveQrisImage = (file: File) => saveRandomImage("qris", file);
 
 export async function readQrisImage(file: string) {
   return RANDOM_FILE.test(file) ? readProof(`qris/${file}`) : null;
+}
+
+/** Home banner (admin content). Returns the file name inside banners/. */
+export const saveBannerImage = (file: File) => saveRandomImage("banners", file);
+
+export async function readBannerImage(file: string) {
+  return RANDOM_FILE.test(file) ? readProof(`banners/${file}`) : null;
+}
+
+export async function deleteBannerImage(file: string) {
+  if (RANDOM_FILE.test(file)) await deleteProof(`banners/${file}`);
 }
 
 /** "Bukti pengiriman" (admin, order page). Returns the file name inside delivery/. */

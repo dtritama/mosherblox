@@ -43,7 +43,7 @@ export function HowItWorks() {
           />
           {steps.map((step, index) => (
             <m.li
-              key={step.title}
+              key={index}
               initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-60px" }}

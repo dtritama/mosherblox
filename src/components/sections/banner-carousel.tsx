@@ -16,7 +16,8 @@ import {
 
 import { Container } from "@/components/ui/container";
 import { Reveal } from "@/components/ui/reveal";
-import { banners, type Banner } from "@/data/banners";
+import type { Banner } from "@/lib/banners";
+import { localeHref } from "@/i18n/config";
 import { interpolate } from "@/i18n/format";
 import { useI18n } from "@/i18n/i18n-provider";
 import { cn } from "@/lib/utils";
@@ -33,7 +34,7 @@ const INTERVAL_MS = 5000;
  *   For users who prefer reduced motion it starts paused (they can still press play).
  * - With a single banner, arrows/dots/autoplay are not rendered.
  */
-export function BannerCarousel() {
+export function BannerCarousel({ banners }: { banners: readonly Banner[] }) {
   const { locale, dict } = useI18n();
   const t = dict.banners;
   const reduceMotion = useReducedMotion();
@@ -160,7 +161,9 @@ export function BannerCarousel() {
                       <Image
                         src={banner.image}
                         alt={banner.alt[locale]}
-                        placeholder="blur"
+                        placeholder={typeof banner.image === "string" ? "empty" : "blur"}
+                        // Uploaded banners: the recommended 71:25 frame (object-cover crops the rest).
+                        {...(typeof banner.image === "string" ? { width: 2130, height: 750 } : {})}
                         loading={index === 0 ? "eager" : "lazy"}
                         sizes={
                           hasMany
@@ -239,11 +242,12 @@ export function BannerCarousel() {
 }
 
 function BannerLink({ banner, focusable, children }: { banner: Banner; focusable: boolean; children: ReactNode }) {
+  const { locale } = useI18n();
   if (!banner.href) return <div>{children}</div>;
   const external = /^https?:\/\//.test(banner.href);
   return (
     <a
-      href={banner.href}
+      href={banner.href.startsWith("/") ? localeHref(locale, banner.href) : banner.href}
       // Off-screen/peeking slides are skipped by Tab so keyboard users land on the visible banner.
       tabIndex={focusable ? undefined : -1}
       className="block rounded-[1.75rem]"

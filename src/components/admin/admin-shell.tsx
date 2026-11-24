@@ -17,27 +17,28 @@ export function AdminShell({
   children,
 }: {
   admin: AdminUser;
-  current: "orders" | "reviews" | "settings";
+  current: "orders" | "reviews" | "content" | "settings";
   children: ReactNode;
 }) {
   return (
     <>
       <header className="sticky top-0 z-20 border-b border-brand-100 bg-white/90 backdrop-blur">
-        <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4 sm:px-6">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-3 px-4 pt-1 sm:h-16 sm:flex-nowrap sm:px-6 sm:pt-0">
           <Link
             href="/admin"
-            className="flex min-h-11 items-center gap-2 rounded-xl focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:outline-none"
+            className="flex min-h-11 shrink-0 items-center gap-2 rounded-xl focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:outline-none"
           >
             <Logo eager height={32} />
             <span className="hidden rounded-full bg-ink-900 px-2 py-0.5 text-[11px] font-bold tracking-wider text-white uppercase sm:inline">
               Admin
             </span>
           </Link>
-          <nav aria-label="Admin" className="flex gap-1 sm:ml-2">
+          <nav aria-label="Admin" className="order-last -mx-2 no-scrollbar flex w-full min-w-0 gap-0.5 overflow-x-auto pb-1 sm:order-none sm:mx-0 sm:ml-2 sm:w-auto sm:gap-1 sm:pb-0">
             {(
               [
                 ["orders", "/admin", t.orders],
                 ["reviews", "/admin/reviews", t.reviews],
+                ["content", "/admin/content", t.content],
                 ["settings", "/admin/settings", t.settings],
               ] as const
             ).map(([key, href, label]) => (
@@ -46,7 +47,7 @@ export function AdminShell({
                 href={href}
                 aria-current={current === key ? "page" : undefined}
                 className={cn(
-                  "inline-flex h-11 items-center rounded-xl px-2.5 text-sm font-semibold transition-colors sm:px-3",
+                  "inline-flex h-11 shrink-0 items-center rounded-xl px-2.5 text-sm font-semibold transition-colors sm:px-3",
                   current === key ? "bg-brand-100 text-ink-900" : "text-ink-500 hover:bg-brand-50 hover:text-ink-900",
                 )}
               >
@@ -54,7 +55,7 @@ export function AdminShell({
               </Link>
             ))}
           </nav>
-          <div className="ml-auto flex items-center gap-1">
+          <div className="ml-auto flex shrink-0 items-center gap-1">
             <a
               href="/id"
               target="_blank"

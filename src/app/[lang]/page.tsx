@@ -8,12 +8,15 @@ import { LeaderboardSection } from "@/components/sections/leaderboard-section";
 import { ReviewsSection } from "@/components/sections/reviews-section";
 import { RobuxSection } from "@/components/sections/robux-section";
 import { ShopSection } from "@/components/sections/shop-section";
+import { resolveBanners } from "@/lib/banners";
+import { getSiteContent } from "@/server/site-content";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const { banners } = await getSiteContent();
   return (
     <>
       <Hero />
-      <BannerCarousel />
+      <BannerCarousel banners={resolveBanners(banners)} />
       <RobuxSection />
       <ShopSection />
       <FlashSale />

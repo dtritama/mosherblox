@@ -3,11 +3,13 @@
 import { createContext, useContext, type ReactNode } from "react";
 
 import { defaultSettings, type SiteSettings } from "@/lib/settings";
+import { defaultContact, type ContactContent } from "@/lib/site-content";
 import type { PublicStats } from "@/server/stats";
 
 /** The admin-editable values the shop's client components need (prices, QRIS). */
 export type StoreSettings = Pick<SiteSettings, "robuxRates" | "qris" | "soldOut" | "robuxStock"> & {
   stats: PublicStats;
+  contact: ContactContent;
 };
 
 const SettingsContext = createContext<StoreSettings>({
@@ -16,6 +18,7 @@ const SettingsContext = createContext<StoreSettings>({
   soldOut: defaultSettings.soldOut,
   robuxStock: defaultSettings.robuxStock,
   stats: { sendUsernameCompleted: null },
+  contact: defaultContact,
 });
 
 export function SettingsProvider({ value, children }: { value: StoreSettings; children: ReactNode }) {
