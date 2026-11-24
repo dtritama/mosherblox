@@ -7,7 +7,8 @@ const base =
 
 const variants = {
   primary: "bg-brand-400 text-coal shadow-lg shadow-brand-500/30 hover:bg-brand-300 hover:shadow-brand-400/40",
-  pink: "bg-blush-200 text-blush-900 shadow-lg shadow-blush-300/40 hover:bg-blush-300",
+  // Dark mode: solid pink with fixed dark text (blush-200/900 flip there, blush-300/400 don't).
+  pink: "bg-blush-200 text-blush-900 shadow-lg shadow-blush-300/40 hover:bg-blush-300 dark:bg-blush-400 dark:text-coal dark:shadow-blush-500/20 dark:hover:bg-blush-300",
   soft: "bg-brand-100 text-brand-800 hover:bg-brand-200",
   outline: "border border-brand-200 bg-white/80 text-ink-900 backdrop-blur hover:border-blush-300 hover:bg-white",
   ghost: "text-ink-700 hover:bg-brand-50 hover:text-brand-700",

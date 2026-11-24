@@ -269,7 +269,7 @@ export function RobuxSection() {
           </div>
           <Link
             href={robuxPageHref(locale)}
-            className={buttonVariants({ variant: "pink", className: "w-full sm:w-auto" })}
+            className={buttonVariants({ variant: "pink", className: "w-full sm:w-auto sm:shrink-0" })}
           >
             {t.cta.button}
             <ArrowRight className="size-4 transition-transform group-hover/btn:translate-x-1" aria-hidden="true" />
