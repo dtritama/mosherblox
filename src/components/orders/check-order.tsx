@@ -265,7 +265,8 @@ function OrderResult({
                   <span
                     aria-hidden="true"
                     className={cn(
-                      "absolute top-4 right-1/2 h-0.5 w-full -translate-y-1/2",
+                      // From the previous circle's edge to this one's (circle radius 1rem, grid gap 0.5rem).
+                      "absolute top-4 right-[calc(50%+1rem)] left-[calc(-50%+0.5rem)] h-0.5 -translate-y-1/2",
                       done || current || failedHere ? "bg-brand-400" : "bg-brand-100",
                     )}
                   />
