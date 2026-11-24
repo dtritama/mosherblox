@@ -7,6 +7,11 @@ flock -n 9 || { echo "Another deploy is still running. Wait for it to finish."; 
 cd /opt/mosherblox/app
 compose() { docker compose --env-file /opt/mosherblox/.env -f deploy/compose.yml "$@"; }
 
+# Made once and kept: changing it breaks pages that are open during the next deploy.
+if ! grep -q '^NEXT_SERVER_ACTIONS_ENCRYPTION_KEY=.' /opt/mosherblox/.env; then
+  echo "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY=$(openssl rand -base64 32)" >> /opt/mosherblox/.env
+fi
+
 echo "== Checking the Caddy config"
 docker run --rm -v "$PWD/deploy/Caddyfile:/etc/caddy/Caddyfile:ro" caddy:2-alpine caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile >/dev/null 2>/tmp/caddy-check.log || { cat /tmp/caddy-check.log; exit 1; }
 

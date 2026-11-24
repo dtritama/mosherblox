@@ -404,6 +404,7 @@ export const id = {
     submitErrors: {
       invalid: "Ada data yang belum pas. Cek lagi isian di atas, lalu coba lagi.",
       rateLimited: "Terlalu banyak percobaan. Tunggu beberapa menit, lalu coba lagi.",
+      outdated: "Toko baru saja diperbarui. Muat ulang halaman ini, lalu coba lagi.",
       unavailable: "Pesanan belum bisa dibuat sekarang. Coba lagi sebentar lagi, atau chat CS kami.",
       soldOut: "Maaf, stoknya baru saja habis. Pilih yang lain atau cek lagi nanti.",
       notEnoughStock: "Stok Robux kami tidak cukup untuk jumlah ini. Kurangi jumlahnya, atau chat CS kami.",
@@ -450,6 +451,7 @@ export const id = {
     submittedProof: "Bukti transfer sudah terkirim.",
     errors: {
       rateLimited: "Terlalu banyak percobaan. Tunggu beberapa menit, lalu coba lagi.",
+      outdated: "Toko baru saja diperbarui. Muat ulang halaman ini, lalu coba lagi.",
       unavailable: "Belum bisa terkirim. Coba lagi sebentar lagi, atau chat CS kami.",
       notFound: "Pesanan tidak ditemukan. Cek lagi ID pesanan dan nomor WhatsApp-nya.",
       tooLate: "Batas waktu sudah lewat. Kalau kamu sudah bayar, chat CS dan sertakan ID pesananmu.",
@@ -513,6 +515,7 @@ export const id = {
       orderId: "Masukkan ID pesanan.",
       notFound: "Pesanan tidak ditemukan. Periksa lagi ID pesanan dan nomor WhatsApp-nya.",
       rateLimited: "Terlalu banyak pencarian. Tunggu beberapa menit, lalu coba lagi.",
+      outdated: "Toko baru saja diperbarui. Muat ulang halaman ini, lalu coba lagi.",
       unavailable: "Status pesanan belum bisa dicek sekarang. Coba lagi sebentar lagi.",
     },
     status: {

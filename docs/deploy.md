@@ -37,7 +37,8 @@ mb restart app
 - **Admin account** (create or reset a password; asks for it hidden, at least 12 characters):
   `mb run --rm -it tools npm run admin:create -- --email admin@mosherblox.com --name Admin --role owner`
 - **Secrets**: `/opt/mosherblox/.env` (only the server user can read it). After editing:
-  `mb up -d app worker`. Don't change `POSTGRES_PASSWORD` there: Postgres keeps the old one.
+  `mb up -d app worker`. `NEXT_SERVER_ACTIONS_ENCRYPTION_KEY` is made by the first deploy and stays the
+  same, so pages open during a deploy keep working (never commit it). Don't change `POSTGRES_PASSWORD` there: Postgres keeps the old one.
 - **Never** run `db:seed` here, and never `mb down -v` (deletes the database and uploads).
 
 ## Roll back the code

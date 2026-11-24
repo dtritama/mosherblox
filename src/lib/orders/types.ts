@@ -70,9 +70,10 @@ export interface ProductOrderInput {
  * - unavailable: something went wrong on our side (database down…) — try again later
  * - soldOut:     the Robux method or product is out of stock (admin settings)
  * - notEnoughStock: more Robux than the store has in stock right now
+ * - outdated:    the page is older than the server (opened before an update): reload it
  * - storeClosed: the owner closed the store for new orders
  */
-export type OrderFailure = "invalid" | "rateLimited" | "unavailable" | "soldOut" | "notEnoughStock" | "storeClosed";
+export type OrderFailure = "invalid" | "rateLimited" | "unavailable" | "soldOut" | "notEnoughStock" | "storeClosed" | "outdated";
 
 export type CreateOrderResult =
   { ok: true; order: Order } | { ok: false; error: OrderFailure; fields?: Partial<Record<string, OrderErrorCode>> };

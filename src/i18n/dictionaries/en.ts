@@ -400,6 +400,7 @@ export const en: Dictionary = {
     submitErrors: {
       invalid: "Something in the form isn't right. Check the fields above and try again.",
       rateLimited: "Too many attempts. Wait a few minutes, then try again.",
+      outdated: "The store was just updated. Reload this page, then try again.",
       unavailable: "We couldn't create your order right now. Try again shortly, or chat with support.",
       soldOut: "Sorry, this just sold out. Pick something else or check back later.",
       notEnoughStock: "We don't have enough Robux in stock for this amount. Lower it, or chat with support.",
@@ -447,6 +448,7 @@ export const en: Dictionary = {
     submittedProof: "Transfer screenshot received.",
     errors: {
       rateLimited: "Too many attempts. Wait a few minutes, then try again.",
+      outdated: "The store was just updated. Reload this page, then try again.",
       unavailable: "Couldn't send that right now. Try again shortly, or chat with support.",
       notFound: "Order not found. Double-check the order ID and WhatsApp number.",
       tooLate: "The payment window has passed. If you already paid, chat with support and include your order ID.",
@@ -510,6 +512,7 @@ export const en: Dictionary = {
       orderId: "Enter your order ID.",
       notFound: "Order not found. Double-check the order ID and WhatsApp number.",
       rateLimited: "Too many searches. Wait a few minutes, then try again.",
+      outdated: "The store was just updated. Reload this page, then try again.",
       unavailable: "We can't check orders right now. Try again shortly.",
     },
     status: {

@@ -1,3 +1,5 @@
+import { unstable_isUnrecognizedActionError } from "next/navigation";
+
 import {
   claimPaymentAction,
   createProductOrderAction,
@@ -26,25 +28,25 @@ export interface OrderService {
   claimPayment(input: { orderId: string; whatsapp: string; proof?: File | null }): Promise<ClaimPaymentResult>;
 }
 
-/** A network failure or a stale page after a deploy ("Failed to find Server Action") → retryable error. */
-async function safely<T extends { ok: boolean }>(call: () => Promise<T>, fallback: T): Promise<T> {
+/** Nothing ever throws into the UI: a page from before a deploy → "reload", anything else → "try again". */
+async function safely<T>(call: () => Promise<T>): Promise<T | { ok: false; error: "unavailable" | "outdated" }> {
   try {
     return await call();
-  } catch {
-    return fallback;
+  } catch (error) {
+    return { ok: false, error: unstable_isUnrecognizedActionError(error) ? "outdated" : "unavailable" };
   }
 }
 
 export const orderService: OrderService = {
-  createRobuxOrder: (input) => safely(() => createRobuxOrderAction(input), { ok: false, error: "unavailable" }),
-  createProductOrder: (input) => safely(() => createProductOrderAction(input), { ok: false, error: "unavailable" }),
-  findOrder: (id, whatsapp) => safely(() => findOrderAction(id, whatsapp), { ok: false, error: "unavailable" }),
+  createRobuxOrder: (input) => safely(() => createRobuxOrderAction(input)),
+  createProductOrder: (input) => safely(() => createProductOrderAction(input)),
+  findOrder: (id, whatsapp) => safely(() => findOrderAction(id, whatsapp)),
   claimPayment: ({ orderId, whatsapp, proof }) => {
     const form = new FormData();
     form.set("orderId", orderId);
     form.set("whatsapp", whatsapp);
     if (proof) form.set("proof", proof);
-    return safely(() => claimPaymentAction(form), { ok: false, error: "unavailable" });
+    return safely(() => claimPaymentAction(form));
   },
 };
 

@@ -9,7 +9,11 @@ FROM deps AS build
 ARG NEXT_PUBLIC_SITE_URL
 ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL NEXT_TELEMETRY_DISABLED=1 NEXT_STANDALONE=1
 COPY . .
-RUN npm run build && npm run worker:build
+# Fixed key (from the server's .env, as a build secret so it is in no image layer command): Server Action
+# IDs stay the same between builds, so pages that are open during a deploy keep working.
+RUN --mount=type=secret,id=actions_key,required=true \
+  NEXT_SERVER_ACTIONS_ENCRYPTION_KEY="$(cat /run/secrets/actions_key)" npm run build \
+  && npm run worker:build
 
 # Website: Next.js standalone server, only the files it needs.
 FROM node:22-bookworm-slim AS app

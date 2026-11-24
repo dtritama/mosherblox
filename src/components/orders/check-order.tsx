@@ -58,7 +58,7 @@ export function CheckOrder() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [searching, setSearching] = useState(false);
   const [notFound, setNotFound] = useState(false);
-  const [lookupError, setLookupError] = useState<"rateLimited" | "unavailable" | null>(null);
+  const [lookupError, setLookupError] = useState<"rateLimited" | "unavailable" | "outdated" | null>(null);
   const [order, setOrder] = useState<Order | null>(null);
 
   const search = async (id: string, phone: string) => {
