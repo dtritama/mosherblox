@@ -1,0 +1,12 @@
+.git
+.next
+node_modules
+dist
+storage
+design
+docs
+.claude
+.env*
+*.log
+tsconfig.tsbuildinfo
+next-env.d.ts

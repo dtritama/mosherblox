@@ -22,6 +22,7 @@
     "admin:create": "node scripts/create-admin.mjs",
     "worker": "tsx --conditions=react-server src/worker/index.mts",
     "worker:dev": "tsx watch --conditions=react-server src/worker/index.mts",
+    "deploy": "node scripts/deploy.mjs",
     "worker:build": "esbuild src/worker/index.mts --bundle --platform=node --format=esm --target=node22 --conditions=react-server --packages=external --outfile=dist/worker.mjs"
   },
   "dependencies": {

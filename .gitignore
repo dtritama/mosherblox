@@ -51,3 +51,6 @@ next-env.d.ts
 
 # worker bundle (npm run worker:build)
 /dist/
+
+# server backups copied with scp (docs/deploy.md)
+/backups/

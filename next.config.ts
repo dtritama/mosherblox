@@ -39,6 +39,8 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // Docker image only (Dockerfile): a self-contained server. Plain `next start` keeps working locally.
+  output: process.env.NEXT_STANDALONE === "1" ? "standalone" : undefined,
   reactStrictMode: true,
   poweredByHeader: false,
   cacheComponents: true,

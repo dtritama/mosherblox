@@ -1,0 +1,101 @@
+# Production: website, worker, Postgres, Caddy (HTTPS). Run by deploy/remote-deploy.sh on the VPS.
+# Only Caddy is reachable from the internet. Secrets come from /opt/mosherblox/.env.
+name: mosherblox
+
+x-logging: &logging
+  driver: json-file
+  options: { max-size: "10m", max-file: "5" }
+
+x-env: &app-env
+  # Host "postgres", never "db"/"localhost": the scripts treat those as a local dev database.
+  DATABASE_URL: postgres://mosherblox:${POSTGRES_PASSWORD:?}@postgres:5432/mosherblox
+  NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:?}
+  UPLOAD_DIR: /data/uploads
+  DISCORD_WEBHOOK_URL: ${DISCORD_WEBHOOK_URL:-}
+  DISCORD_MENTION_ROLE_IDS: ${DISCORD_MENTION_ROLE_IDS:-}
+  DISCORD_MENTION_USER_IDS: ${DISCORD_MENTION_USER_IDS:-}
+  DISCORD_NOTIFY_NEW_ORDERS: ${DISCORD_NOTIFY_NEW_ORDERS:-}
+  TZ: Asia/Jakarta
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: mosherblox
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?}
+      POSTGRES_DB: mosherblox
+      TZ: Asia/Jakarta
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mosherblox -d mosherblox"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    logging: *logging
+
+  app:
+    image: mosherblox-app:latest
+    build:
+      context: ..
+      target: app
+      args:
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:?}
+    restart: unless-stopped
+    environment: *app-env
+    volumes:
+      - uploads:/data/uploads
+    depends_on:
+      postgres: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/id').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      start_period: 20s
+      start_interval: 2s
+      retries: 3
+    logging: *logging
+
+  worker:
+    image: mosherblox-tools:latest
+    build:
+      context: ..
+      target: tools
+      args:
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:?}
+    restart: unless-stopped
+    init: true
+    environment: *app-env
+    depends_on:
+      postgres: { condition: service_healthy }
+    logging: *logging
+
+  # One-off commands: migrations and admin accounts (docker compose run --rm tools …).
+  tools:
+    image: mosherblox-tools:latest
+    profiles: [tools]
+    environment: *app-env
+    depends_on:
+      postgres: { condition: service_healthy }
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - app
+    logging: *logging
+
+volumes:
+  db-data:
+  uploads:
+  caddy-data:
+  caddy-config:

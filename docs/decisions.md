@@ -84,7 +84,7 @@ What was decided, by whom, and why — so nobody re-litigates it. Newest first i
 
 - **Orders (step 3, 2026-11-19):** the browser never sends a price; the server prices from
   `src/data/*`. Status machine: pending → paid → processing → completed; pending/paid/processing →
-  failed; pending → expired. Every change is a row in `order_events`. Unique code 1–99 (was 1–499; client asked 2026-11-21 for codes under 100) added to
+  failed; pending → expired. Every change is a row in `order_events`. Unique code 1–50 (was 1–499, then 1–99; client asked 2026-11-24 for 50 at most) added to
   every total, and the DB forbids two _pending_ orders with the same total. Expiry **30 min
   (placeholder, open question 7)** in `src/data/orders.ts`. Expired on lookup now; the worker
   (step 6) will also do it in the background. Rate limits: 20 lookups and 10 new orders per IP per

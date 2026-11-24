@@ -39,9 +39,9 @@ Order of work (each step ends with `npm run check` and a browser test):
    Done: `src/worker` (`npm run worker`), expire job every minute, Discord ping when a buyer presses
    "Saya sudah bayar" (optional ping for every new order). WhatsApp to the buyer is still later
    (needs a WhatsApp API provider — cost/approval to decide with the client).
-7. **Deploy** — Dockerfile (Next.js `output: "standalone"`), docker-compose (app, worker, postgres,
-   caddy), GitHub Actions build → GHCR → deploy on the VPS, Cloudflare DNS for mosherblox.com,
-   nightly DB backup. Set `NEXT_PUBLIC_SITE_URL=https://mosherblox.com`.
+7. **Deploy** — see `docs/deploy.md`: Docker (app, worker, postgres, caddy) on the Biznet Gio VPS,
+   built there by `npm run deploy` (no GitHub Actions), Cloudflare DNS, nightly backups.
+   Later: off-site backups (R2), optional deploy from GitHub.
 
 ## Phase 2.5 — Trust & social features ✅ (2026-11-21)
 

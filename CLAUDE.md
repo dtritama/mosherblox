@@ -24,6 +24,7 @@ npm run admin:create -- --email you@example.com --name "Name" [--role owner|staf
 npm run worker       # background worker (expire unpaid orders, Discord pings) — run next to `npm run dev`
 npm run worker:build # bundle → dist/worker.mjs, run with: node --conditions=react-server dist/worker.mjs
 npm run db:studio | db:down
+npm run deploy       # update https://mosherblox.com on the VPS — see docs/deploy.md
 ```
 
 Node ≥ 20.9 (`.nvmrc` = 22). Must keep working on Windows and macOS (no bash-only npm scripts).
@@ -73,6 +74,7 @@ design/                tokens.json, screens/*.png, README (Figma)
 scripts/export-tokens.mjs
 drizzle/               generated SQL migrations — commit them, never edit applied ones
 docker-compose.yml     local Postgres
+Dockerfile, deploy/    production (VPS): compose, Caddy, deploy + backup scripts — docs/deploy.md
 ```
 
 Rules:
