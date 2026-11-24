@@ -2,20 +2,21 @@
 
 import { ExternalLink, ImageUp, Loader2, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useActionState, useEffect, useId, useState } from "react";
+import { useActionState, useEffect, useEffectEvent, useId, useRef, useState, type DragEvent } from "react";
 
 import { adminCopy } from "@/app/admin/copy";
 import { SubmitError } from "@/components/checkout/submit-error";
 import { Button } from "@/components/ui/button";
 import { orderConfig } from "@/data/orders";
 import { interpolate } from "@/i18n/format";
+import { cn } from "@/lib/utils";
 import { deliveryProofAction, type DeliveryProofState } from "@/server/admin/actions";
 
 const t = adminCopy.delivery;
 
 /**
  * "Bukti pengiriman" on the admin order page: a screenshot showing the Robux / item was sent.
- * Pick an image → preview → upload. Replacing or removing it is one click; the buyer sees the
+ * Pick, drop or paste (Ctrl/Cmd+V) an image → preview → upload. Replacing or removing it is one click; the buyer sees the
  * current one on Check Order.
  */
 export function DeliveryProof({
@@ -36,6 +37,8 @@ export function DeliveryProof({
   const [localError, setLocalError] = useState<string | null>(null);
   const [fileKey, setFileKey] = useState(0);
   const fileId = useId();
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [dragging, setDragging] = useState(false);
 
   // Saved: show the server's version and clear the picker.
   useEffect(() => {
@@ -53,8 +56,57 @@ export function DeliveryProof({
       setPreview(null);
       return setLocalError(t.errors.tooBig);
     }
+    if (!(orderConfig.proofTypes as readonly string[]).includes(file.type)) {
+      setFileKey((key) => key + 1);
+      setPreview(null);
+      return setLocalError(t.errors.badImage);
+    }
     setPreview({ url: URL.createObjectURL(file), name: file.name });
   };
+
+  /** A dropped or pasted file goes into the real file input, so the form submits it as usual. */
+  const take = (files: FileList | undefined) => {
+    const input = inputRef.current;
+    const file = files?.[0];
+    if (!input || !file || pending) return;
+    const transfer = new DataTransfer();
+    transfer.items.add(file);
+    input.files = transfer.files;
+    pick(file);
+  };
+
+  const onPaste = useEffectEvent((event: ClipboardEvent) => {
+    // Only images; pasting text into the note field keeps working.
+    const files = event.clipboardData?.files;
+    if (!files?.length || !files[0].type.startsWith("image/")) return;
+    event.preventDefault();
+    take(files);
+  });
+  useEffect(() => {
+    if (!canUpload) return;
+    const listener = (event: ClipboardEvent) => onPaste(event);
+    document.addEventListener("paste", listener);
+    return () => document.removeEventListener("paste", listener);
+  }, [canUpload]);
+
+  const dropHandlers = canUpload
+    ? {
+        onDragOver: (event: DragEvent) => {
+          if (!event.dataTransfer.types.includes("Files")) return;
+          event.preventDefault();
+          setDragging(true);
+        },
+        onDragLeave: (event: DragEvent) => {
+          if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setDragging(false);
+        },
+        onDrop: (event: DragEvent) => {
+          if (!event.dataTransfer.types.includes("Files")) return;
+          event.preventDefault();
+          setDragging(false);
+          take(event.dataTransfer.files);
+        },
+      }
+    : {};
 
   const submit = (formData: FormData) => {
     formAction(formData);
@@ -68,7 +120,15 @@ export function DeliveryProof({
   const error = localError ?? (state.error ? t.errors[state.error] : null);
 
   return (
-    <form action={submit} className="grid gap-4">
+    <form
+      action={submit}
+      {...dropHandlers}
+      className={cn(
+        "grid gap-4 transition-colors",
+        canUpload && "rounded-2xl border-2 border-dashed p-4",
+        canUpload && (dragging ? "border-brand-500 bg-brand-50" : "border-brand-200"),
+      )}
+    >
       <input type="hidden" name="orderId" value={orderId} />
 
       {shown ? (
@@ -105,6 +165,7 @@ export function DeliveryProof({
         <div className="flex flex-wrap items-center gap-2">
           <input
             key={fileKey}
+            ref={inputRef}
             id={fileId}
             name="image"
             type="file"
@@ -119,6 +180,7 @@ export function DeliveryProof({
             <ImageUp className="size-4" aria-hidden="true" />
             {imageUrl || preview ? t.chooseOther : t.choose}
           </label>
+          <p className="text-sm text-ink-500">{dragging ? t.dropNow : t.dropHint}</p>
           {preview ? (
             <Button type="submit" name="intent" value="upload" disabled={pending}>
               {pending ? <Loader2 className="size-4 animate-spin" aria-hidden="true" /> : null}

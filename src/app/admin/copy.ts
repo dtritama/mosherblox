@@ -109,6 +109,8 @@ export const adminCopy = {
     previewOf: "Pratinjau: {name}. Belum tersimpan.",
     choose: "Pilih gambar",
     chooseOther: "Ganti gambar",
+    dropHint: "atau tarik gambar ke sini, atau tempel dengan Ctrl/Cmd + V",
+    dropNow: "Lepas gambarnya di sini",
     upload: "Upload",
     remove: "Hapus",
     confirmRemove: "Hapus bukti pengiriman ini? Pembeli tidak akan melihatnya lagi.",
