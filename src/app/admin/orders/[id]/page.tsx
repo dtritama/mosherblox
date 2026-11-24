@@ -13,6 +13,7 @@ import { normalizeOrderId } from "@/lib/orders/order-id";
 import { cn } from "@/lib/utils";
 import { getOrderDetail, type AdminOrderDetail } from "@/server/admin/orders";
 import { requireAdmin } from "@/server/auth/admin";
+import { getAvatarUrls } from "@/server/roblox/users";
 
 export const metadata: Metadata = { title: adminCopy.detail.order };
 
@@ -64,6 +65,56 @@ function Row({ label, children }: { label: string; children: ReactNode }) {
       <dt className="text-sm text-ink-500">{label}</dt>
       <dd className="text-right text-sm font-medium break-all text-ink-900">{children}</dd>
     </div>
+  );
+}
+
+/** Avatar + names of the Roblox account the buyer confirmed, linking to its profile. */
+function RobloxHeader({ id, username, displayName }: { id: number; username: string; displayName: string | null }) {
+  const name = displayName ?? username;
+  const initial = (
+    <span
+      aria-hidden="true"
+      className="grid size-16 shrink-0 place-items-center rounded-2xl bg-brand-100 text-2xl font-bold text-brand-700"
+    >
+      {name.charAt(0).toUpperCase()}
+    </span>
+  );
+  return (
+    <a
+      href={`https://www.roblox.com/users/${id}/profile`}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="group mb-3 flex items-center gap-3 rounded-2xl border border-brand-100 bg-brand-50/60 p-3 transition-colors hover:border-brand-300"
+    >
+      {/* Roblox can be slow or down: the order shows at once, the avatar follows. */}
+      <Suspense fallback={initial}>
+        <RobloxAvatar id={id} name={name} fallback={initial} />
+      </Suspense>
+      <span className="min-w-0">
+        <span className="block font-bold break-words text-ink-900">{name}</span>
+        <span className="block text-sm break-all text-ink-500">@{username}</span>
+        <span className="mt-0.5 inline-flex items-center gap-1 text-xs font-semibold text-brand-700 group-hover:underline">
+          {t.robloxProfile}
+          <ExternalLink className="size-3" aria-hidden="true" />
+        </span>
+      </span>
+    </a>
+  );
+}
+
+async function RobloxAvatar({ id, name, fallback }: { id: number; name: string; fallback: ReactNode }) {
+  const url = (await getAvatarUrls([id]).catch(() => ({}) as Record<number, string>))[id];
+  if (!url) return fallback;
+  return (
+    // Roblox CDN headshot (allowed in the CSP).
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={url}
+      alt={interpolate(t.avatarAlt, { name })}
+      width={64}
+      height={64}
+      className="size-16 shrink-0 rounded-2xl bg-brand-100"
+    />
   );
 }
 
@@ -209,8 +260,19 @@ function OrderDetail({ order }: { order: AdminOrderDetail }) {
             <StatusActions key={order.status} orderId={order.id} status={order.status} total={order.total} />
           </Card>
           <Card title={t.buyer}>
+            {order.robloxUserId ? (
+              <RobloxHeader id={order.robloxUserId} username={order.account} displayName={order.robloxDisplayName} />
+            ) : null}
             <dl>
-              <Row label={t.account}>{order.account}</Row>
+              {order.robloxUserId ? (
+                <>
+                  <Row label={t.username}>{order.account}</Row>
+                  <Row label={t.displayName}>{order.robloxDisplayName ?? "—"}</Row>
+                  <Row label={t.robloxId}>{order.robloxUserId}</Row>
+                </>
+              ) : (
+                <Row label={t.account}>{order.account}</Row>
+              )}
               <Row label={t.whatsapp}>{formatWhatsapp(order.whatsapp)}</Row>
             </dl>
             <a

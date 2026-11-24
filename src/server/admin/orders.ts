@@ -157,6 +157,9 @@ export interface AdminOrderDetail {
   robuxMethod: string | null;
   robuxAmount: number | null;
   account: string;
+  /** The Roblox account the buyer confirmed; null for email products or when Roblox was unreachable. */
+  robloxUserId: number | null;
+  robloxDisplayName: string | null;
   whatsapp: string;
   paymentMethod: string;
   subtotal: number;
@@ -221,6 +224,8 @@ export async function getOrderDetail(id: string): Promise<AdminOrderDetail | nul
     robuxMethod: order.robuxMethod,
     robuxAmount: order.robuxAmount,
     account: order.account,
+    robloxUserId: order.robloxUserId,
+    robloxDisplayName: order.robloxDisplayName,
     whatsapp: order.whatsapp,
     paymentMethod: getPaymentMethod(order.paymentMethod)?.name ?? order.paymentMethod,
     subtotal: order.subtotal,
