@@ -30,7 +30,7 @@ export function AdminShell({
   return (
     <>
       <header className="sticky top-0 z-20 border-b border-brand-100 bg-white/90 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-3 px-4 pt-1 sm:h-16 sm:flex-nowrap sm:px-6 sm:pt-0">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-3 px-4 pt-1 sm:px-6 lg:h-16 lg:flex-nowrap lg:pt-0">
           <Link
             href="/admin"
             className="flex min-h-11 shrink-0 items-center gap-2 rounded-xl focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:outline-none"
@@ -40,7 +40,7 @@ export function AdminShell({
               Admin
             </span>
           </Link>
-          <nav aria-label="Admin" className="order-last -mx-2 no-scrollbar flex w-full min-w-0 gap-0.5 overflow-x-auto pb-1 sm:order-none sm:mx-0 sm:ml-2 sm:w-auto sm:gap-1 sm:pb-0">
+          <nav aria-label="Admin" className="order-last -mx-2 no-scrollbar flex w-full min-w-0 gap-0.5 overflow-x-auto pb-1 lg:order-none lg:mx-0 lg:ml-2 lg:w-auto lg:gap-1 lg:pb-0">
             {(
               [
                 ["orders", "/admin", t.orders],

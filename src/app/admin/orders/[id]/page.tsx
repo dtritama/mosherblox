@@ -9,6 +9,8 @@ import { formatAdminDate, formatWhatsapp, StatusBadge } from "@/components/admin
 import { StatusActions } from "@/components/admin/status-actions";
 import { DeliveryProof } from "@/components/admin/delivery-proof";
 import { formatIDR, formatNumber, interpolate } from "@/i18n/format";
+import { getGamepassPrice } from "@/lib/robux-pricing";
+import { RobuxIcon } from "@/components/ui/robux-icon";
 import { normalizeOrderId } from "@/lib/orders/order-id";
 import { cn } from "@/lib/utils";
 import { whatsappDigits } from "@/lib/validation";
@@ -65,6 +67,41 @@ function Row({ label, children }: { label: string; children: ReactNode }) {
     <div className="flex items-baseline justify-between gap-4 py-1.5">
       <dt className="text-sm text-ink-500">{label}</dt>
       <dd className="text-right text-sm font-medium break-all text-ink-900">{children}</dd>
+    </div>
+  );
+}
+
+/** How many Robux this order is about, next to the account they go to. Nothing for other products. */
+function RobuxToSend({ order }: { order: AdminOrderDetail }) {
+  if (!order.robuxAmount) return null;
+  const cancelled = order.status === "failed" || order.status === "expired";
+  const unpaid = order.status === "pending";
+  const label = cancelled ? t.notSent : unpaid ? t.unpaid : order.status === "completed" ? t.sent : t.toSend;
+  return (
+    <div
+      className={cn(
+        "mb-3 rounded-2xl border p-4",
+        cancelled || unpaid ? "border-brand-100 bg-white" : "border-brand-300 bg-brand-100",
+      )}
+    >
+      <p className="text-xs font-semibold text-ink-700">{label}</p>
+      <p
+        className={cn(
+          "mt-1 flex items-center gap-2 text-2xl font-extrabold tracking-tight tabular-nums",
+          cancelled ? "text-ink-500 line-through" : "text-ink-900",
+        )}
+      >
+        <RobuxIcon tone="ink" className="size-6 shrink-0" aria-hidden="true" />
+        {formatNumber(order.robuxAmount, "id")} Robux
+      </p>
+      {order.robuxMethod === "gamepass" && !cancelled && !unpaid ? (
+        <p className="mt-1.5 text-xs text-ink-700">
+          {interpolate(t.viaGamepass, {
+            price: formatNumber(getGamepassPrice(order.robuxAmount), "id"),
+            amount: formatNumber(order.robuxAmount, "id"),
+          })}
+        </p>
+      ) : null}
     </div>
   );
 }
@@ -264,6 +301,7 @@ function OrderDetail({ order }: { order: AdminOrderDetail }) {
             {order.robloxUserId ? (
               <RobloxHeader id={order.robloxUserId} username={order.account} displayName={order.robloxDisplayName} />
             ) : null}
+            <RobuxToSend order={order} />
             <dl>
               {order.robloxUserId ? (
                 <>
