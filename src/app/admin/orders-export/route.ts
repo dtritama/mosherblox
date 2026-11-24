@@ -1,5 +1,6 @@
 import { adminCopy } from "@/app/admin/copy";
 import { formatWhatsapp } from "@/components/admin/status-badge";
+import { formatIDR } from "@/i18n/format";
 import { CSV_SEPARATORS, toCsv, type CsvFormat, type CsvValue } from "@/lib/csv";
 import { EXPORT_PERIODS, exportRange, wibDay, wibTime, type ExportPeriod } from "@/lib/export-period";
 import { isAdminFilter, listOrdersForExport } from "@/server/admin/orders";
@@ -10,10 +11,16 @@ const t = adminCopy.export;
 /** "2026-11-24 14:05" in WIB: sorts correctly and is read as a date in every spreadsheet app. */
 const stamp = (date: Date | null) => (date ? `${wibDay(date)} ${wibTime(date)}` : null);
 
+/**
+ * "Rp 3.000.000". The "Rp" must stay: without it, apps with English settings read "13.500" as 13.5.
+ * Plain space, so Excel with Indonesian settings still recognises it as money.
+ */
+const rupiah = (amount: number) => formatIDR(amount).replace(/\s/g, " ");
+
 /** Starts with "(+…)" abroad: a leading "+" would be read as a formula / number. */
 const phone = (normalized: string) => formatWhatsapp(normalized).replace(/^\+(\S*)/, "(+$1)");
 
-/** Order list as a CSV file (admins only): one header row, one line per order, numbers without "Rp" or dots. */
+/** Order list as a CSV file (admins only): one header row, one line per order, totals last. */
 export async function GET(request: Request) {
   if (!(await getAdmin())) return new Response(null, { status: 303, headers: { Location: "/admin/login" } });
   const params = new URL(request.url).searchParams;
@@ -45,10 +52,10 @@ export async function GET(request: Request) {
         account: order.account,
         displayName: order.robloxDisplayName,
         whatsapp: phone(order.whatsapp),
-        subtotal: order.subtotal,
-        fee: order.fee,
-        uniqueCode: order.uniqueCode,
-        total: order.total,
+        subtotal: rupiah(order.subtotal),
+        fee: rupiah(order.fee),
+        uniqueCode: rupiah(order.uniqueCode),
+        total: rupiah(order.total),
         payment: order.paymentStatus ? adminCopy.paymentStatus[order.paymentStatus] : null,
         confirmedBy: order.confirmedBy,
         paidAt: stamp(order.paidAt),
@@ -57,6 +64,18 @@ export async function GET(request: Request) {
       return (Object.keys(c) as (keyof typeof c)[]).map((key) => row[key]);
     }),
   ];
+
+  // Totals under "Jumlah Robux" and "Total Bayar", each label in the cell to its left (CSV can't merge cells).
+  if (orders.length > 0) {
+    const suffix = status === "all" ? t.mixed : "";
+    const totals: Partial<Record<keyof typeof c, CsvValue>> = {
+      method: t.totalRobux + suffix,
+      robux: orders.reduce((sum, order) => sum + (order.robuxAmount ?? 0), 0),
+      uniqueCode: t.totalMoney + suffix,
+      total: rupiah(orders.reduce((sum, order) => sum + order.total, 0)),
+    };
+    rows.push((Object.keys(c) as (keyof typeof c)[]).map((key) => totals[key] ?? null));
+  }
 
   const first = range.from ? wibDay(range.from) : null;
   const last = range.until ? wibDay(new Date(range.until.getTime() - 1)) : null;

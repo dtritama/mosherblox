@@ -93,6 +93,10 @@ export const adminCopy = {
     submit: "Download CSV",
     invalid: "Pilihan export tidak valid. Kembali ke halaman pesanan, lalu coba lagi.",
     methods: { "send-username": "Send Username", gamepass: "Gamepass" },
+    /** Last row of the file. With mixed statuses the label says so (it counts unpaid / failed orders too). */
+    totalRobux: "Total Robux",
+    totalMoney: "Total Bayar",
+    mixed: " semua status",
     /** CSV header, in this order. */
     columns: {
       no: "No",
@@ -106,10 +110,10 @@ export const adminCopy = {
       account: "Username / Email",
       displayName: "Nama Tampilan",
       whatsapp: "WhatsApp",
-      subtotal: "Harga (Rp)",
-      fee: "Biaya (Rp)",
-      uniqueCode: "Kode Unik (Rp)",
-      total: "Total (Rp)",
+      subtotal: "Harga",
+      fee: "Biaya",
+      uniqueCode: "Kode Unik",
+      total: "Total Bayar",
       payment: "Pembayaran",
       confirmedBy: "Dikonfirmasi Oleh",
       paidAt: "Dibayar (WIB)",
