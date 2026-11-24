@@ -536,6 +536,7 @@ export const id = {
     },
     help: "Butuh bantuan? Chat CS",
     searchAgain: "Cek pesanan lain",
+    live: { on: "Status ter-update otomatis", offline: "Koneksi terputus, mencoba lagi…" },
     failureNote: "Catatan dari admin",
     deliveryProof: {
       title: "Bukti pengiriman",

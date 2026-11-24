@@ -11,6 +11,9 @@ import { localeHref } from "@/i18n/config";
 import { formatIDR, interpolate } from "@/i18n/format";
 import { useI18n } from "@/i18n/i18n-provider";
 import { rememberOrder } from "@/lib/orders/recent-orders";
+import { statusStyles } from "@/components/orders/status-styles";
+import { cn } from "@/lib/utils";
+import { useLiveOrder } from "@/lib/orders/use-live-order";
 import { PAYMENTS_LIVE } from "@/lib/orders/service";
 import type { Order } from "@/lib/orders/types";
 import { RESUME_PARAM } from "@/components/orders/resume-order";
@@ -39,6 +42,8 @@ export function OrderSuccess({
   const [copied, setCopied] = useState(false);
   // Updated after "Saya sudah bayar".
   const [order, setOrder] = useState(created);
+  useLiveOrder(order, setOrder, remember);
+  const StatusIcon = statusStyles[order.status].icon;
 
   useEffect(() => {
     if (!remember) return;
@@ -114,6 +119,22 @@ export function OrderSuccess({
       </p>
 
       {PAYMENTS_LIVE && order.status === "pending" ? <QrisPayment order={order} onChange={setOrder} /> : null}
+
+      {/* Paid, processing, done, …: arrives by itself while this screen is open. */}
+      {order.status !== "pending" ? (
+        <div role="status" className="grid max-w-md justify-items-center gap-2 rounded-2xl bg-brand-50 p-4">
+          <span
+            className={cn(
+              "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-semibold",
+              statusStyles[order.status].badge,
+            )}
+          >
+            <StatusIcon className="size-4" aria-hidden="true" />
+            {dict.checkOrder.status[order.status]}
+          </span>
+          <p className="text-sm text-ink-700">{dict.checkOrder.statusDescription[order.status]}</p>
+        </div>
+      ) : null}
 
       {!PAYMENTS_LIVE ? (
         <p className="max-w-md rounded-xl bg-brand-50 px-4 py-3 text-sm text-brand-800">{t.demo}</p>

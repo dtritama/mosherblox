@@ -112,7 +112,8 @@ Rules:
   Payment: manual QRIS (`server/payments/provider.ts`, image + merchant in `data/payments.ts`
   `manualQris`). After checkout and on Check Order a pending order shows `QrisPayment` (QR, exact
   total, countdown, "Saya sudah bayar" + optional screenshot → payment `submitted`; only an admin
-  marks it paid). **Recent orders:** the success screen remembers the order on the device
+  marks it paid). **Live progress:** an open order (Check Order, success screen) polls `POST /api/order-live`
+  every 6 s (`lib/orders/use-live-order.ts`; own rate limits, WhatsApp in the body). **Recent orders:** the success screen remembers the order on the device
   (`lib/orders/recent-orders.ts`, localStorage, max 5, 30 days) and sets `?order=MB-…` in the URL;
   a page loaded with it goes to Check Order (`components/orders/resume-order.tsx`), which opens a
   remembered order by itself and lists them ("Pesanan terakhir kamu"). Proofs go to `UPLOAD_DIR` (default `storage/uploads`, git-ignored, never public).

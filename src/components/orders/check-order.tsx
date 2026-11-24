@@ -19,6 +19,7 @@ import { DEMO_WHATSAPP, demoOrders, SHOW_DEMO_ORDERS } from "@/lib/orders/demo-o
 import { normalizeOrderId } from "@/lib/orders/order-id";
 import { findRecentOrder, forgetOrder, rememberOrder, useRecentOrders } from "@/lib/orders/recent-orders";
 import { orderService } from "@/lib/orders/service";
+import { useLiveOrder } from "@/lib/orders/use-live-order";
 import type { Order, OrderStatus } from "@/lib/orders/types";
 import { cn } from "@/lib/utils";
 import { LIMITS, normalizeWhatsapp, sanitizeWhatsapp } from "@/lib/validation";
@@ -222,6 +223,7 @@ function OrderResult({
   const { locale, dict } = useI18n();
   const { contact } = useStoreSettings();
   const t = dict.checkOrder;
+  const online = useLiveOrder(result, onChange);
   const style = statusStyles[result.status];
   const StatusIcon = style.icon;
   const step = currentStep[result.status];
@@ -253,6 +255,12 @@ function OrderResult({
             ? dict.payment.submittedTitle
             : t.statusDescription[result.status]}
         </p>
+        {!failed && result.status !== "completed" ? (
+          <p className="mt-2 flex items-center gap-2 text-xs font-medium text-ink-500">
+            <span aria-hidden="true" className={cn("size-2 rounded-full", online ? "bg-brand-500" : "bg-blush-500")} />
+            {online ? t.live.on : t.live.offline}
+          </p>
+        ) : null}
 
         <ol className="mt-6 grid grid-cols-4 gap-2">
           {t.timeline.map((label, index) => {

@@ -47,6 +47,10 @@ export async function clientIp(): Promise<string> {
 export const RATE_LIMITS = {
   /** Check Order: ID + WhatsApp guesses. */
   lookup: { limit: 20, windowMs: 10 * 60_000 },
+  /** Automatic progress checks of an open order (shared mobile IPs: generous). */
+  orderLive: { limit: 3000, windowMs: 10 * 60_000 },
+  /** …and the ones with a wrong ID / WhatsApp. */
+  orderLiveMiss: { limit: 10, windowMs: 10 * 60_000 },
   /** Roblox username preview while typing (debounced in the browser). */
   robloxLookup: { limit: 60, windowMs: 10 * 60_000 },
   /** Writing a review. */
@@ -62,4 +66,10 @@ export const RATE_LIMITS = {
 export async function rateLimit(name: keyof typeof RATE_LIMITS): Promise<boolean> {
   const { limit, windowMs } = RATE_LIMITS[name];
   return hit(`${name}:${await clientIp()}`, limit, windowMs);
+}
+
+/** Whether the limit is already used up, without counting a hit. */
+export async function isOverLimit(name: keyof typeof RATE_LIMITS): Promise<boolean> {
+  const window = buckets.get(`${name}:${await clientIp()}`);
+  return window !== undefined && window.resetAt > Date.now() && window.count >= RATE_LIMITS[name].limit;
 }
