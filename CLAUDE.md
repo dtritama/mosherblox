@@ -197,7 +197,7 @@ Rules:
 
 - **Robux via Send Username (USN / "Visend") is the main, featured method** (default in the panel,
   promoted on home). Requirements: buyer must have **2-Step Verification ON** (confirmation checkbox
-  required); limits **5.000 Robux/day and 10.000 Robux/month per account** — daily limit = max per order.
+  required) and be age-verified 18+ (text only); limits **5.000 Robux/day and 10.000 Robux/month per account** — daily limit = max per order.
   Monthly limit can only be enforced server-side (phase 2). Values live in `src/data/robux.ts`; the
   FAQ repeats them, so update both (the owner may have edited the FAQ in /admin/content).
 - Robux via Gamepass: shows the Gamepass price to set (`ceil(robux / 0.7)`, Roblox takes 30%).

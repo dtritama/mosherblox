@@ -19,6 +19,7 @@ import { getContentDictionary, getDictionaryFor } from "@/i18n/get-dictionary";
 import { localeAlternates } from "@/i18n/metadata";
 import { I18nProvider } from "@/i18n/i18n-provider";
 import { getSiteSettings } from "@/server/settings";
+import { getNavItems } from "@/server/nav";
 import { getSiteContent } from "@/server/site-content";
 import { getPublicStats } from "@/server/stats";
 
@@ -65,11 +66,12 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[la
   if (!hasLocale(lang)) notFound();
   // Admin-editable prices + QRIS (cached; refreshed right after a save in /admin/settings).
   // + home content (/admin/content): texts in the dictionary, contact links.
-  const [{ robuxRates, qris, soldOut, robuxStock }, stats, { contact }, dict] = await Promise.all([
+  const [{ robuxRates, qris, soldOut, robuxStock }, stats, { contact }, dict, navItems] = await Promise.all([
     getSiteSettings(),
     getPublicStats(),
     getSiteContent(),
     getContentDictionary(lang),
+    getNavItems(),
   ]);
 
   return (
@@ -94,7 +96,7 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[la
               <TopUpProvider>
                 <ScrollProgress />
                 <NightDecor />
-                <Navbar />
+                <Navbar items={navItems} />
                 <main id="main" className="overflow-x-clip">{children}</main>
                 <Footer />
                 <BackToTop />

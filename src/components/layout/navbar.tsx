@@ -4,17 +4,17 @@ import { AnimatePresence, m } from "motion/react";
 import { Menu, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { buttonVariants } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { Logo } from "@/components/ui/logo";
-import { navItems } from "@/config/site";
 import { localeHref } from "@/i18n/config";
 import { useI18n } from "@/i18n/i18n-provider";
 import { cn } from "@/lib/utils";
+import type { NavItem } from "@/types";
 import { RobuxIcon } from "@/components/ui/robux-icon";
 
 function useScrolled(threshold = 12) {
@@ -49,10 +49,12 @@ function useActiveSection(ids: readonly string[]) {
   return active;
 }
 
-/** Home-page sections that the navbar highlights while scrolling. */
-const sectionIds = navItems.filter((item) => item.href.startsWith("#")).map((item) => item.href.slice(1));
-
-export function Navbar() {
+export function Navbar({ items: navItems }: { items: readonly NavItem[] }) {
+  // Home-page sections that the navbar highlights while scrolling.
+  const sectionIds = useMemo(
+    () => navItems.filter((item) => item.href.startsWith("#")).map((item) => item.href.slice(1)),
+    [navItems],
+  );
   const scrolled = useScrolled();
   const activeSection = useActiveSection(sectionIds);
   const [open, setOpen] = useState(false);
@@ -87,8 +89,8 @@ export function Navbar() {
           <Logo eager height={48} />
         </Link>
 
-        <nav aria-label={dict.nav.main} className="hidden lg:block">
-          <ul className="flex items-center gap-1 rounded-full border border-brand-100 bg-white/60 p-1 backdrop-blur">
+        <nav aria-label={dict.nav.main} className="hidden xl:block">
+          <ul className="flex items-center gap-0.5 rounded-full border border-brand-100 bg-white/60 p-1 backdrop-blur">
             {navItems.map((item) => {
               const active = isActive(item.href);
               return (
@@ -97,7 +99,7 @@ export function Navbar() {
                     href={localeHref(locale, item.href)}
                     aria-current={active ? (item.href.startsWith("#") ? "true" : "page") : undefined}
                     className={cn(
-                      "block rounded-full px-4 py-2 text-sm font-medium transition-colors duration-200",
+                      "block rounded-full px-3 py-2 text-sm font-medium whitespace-nowrap transition-colors duration-200",
                       active
                         ? "bg-brand-400 text-coal shadow-md shadow-brand-500/30"
                         : "text-ink-700 hover:text-brand-700",
@@ -127,7 +129,7 @@ export function Navbar() {
             aria-expanded={open}
             aria-controls="mobile-nav"
             aria-label={open ? dict.nav.closeMenu : dict.nav.openMenu}
-            className="grid size-10 place-items-center rounded-xl border border-brand-100 bg-white text-ink-900 lg:hidden"
+            className="grid size-10 place-items-center rounded-xl border border-brand-100 bg-white text-ink-900 xl:hidden"
           >
             {open ? <X className="size-5" /> : <Menu className="size-5" />}
           </button>
@@ -143,7 +145,7 @@ export function Navbar() {
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3 }}
-            className="overflow-hidden border-t border-brand-100 lg:hidden"
+            className="overflow-hidden border-t border-brand-100 xl:hidden"
           >
             <Container className="grid gap-1 py-3">
               {navItems.map((item, index) => (

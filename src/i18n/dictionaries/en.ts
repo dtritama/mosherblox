@@ -50,6 +50,8 @@ export const en: Dictionary = {
       gamepass: "Gamepass",
       shop: "Shop",
       deals: "Deals",
+      leaderboard: "Leaderboard",
+      reviews: "Reviews",
       faq: "FAQ",
       checkOrder: "Check Order",
     },
@@ -155,6 +157,7 @@ export const en: Dictionary = {
     requirements: {
       title: "Send Username requirements",
       twoStep: "Your Roblox account must have 2-Step Verification turned on (Settings → Security).",
+      age: "Make sure your account is age-verified as 18+.",
       limit: "Limit {daily} Robux per day and {monthly} Robux per month for each account.",
       confirm: "I have turned on 2-Step Verification on this Roblox account.",
     },
@@ -232,7 +235,7 @@ export const en: Dictionary = {
       {
         question: "What do I need to buy Robux via Send Username (USN)?",
         answer:
-          "Your Roblox account must have 2-Step Verification turned on (Settings → Security). The limit is 5,000 Robux per day and 10,000 Robux per month for each account. Need more? Use the Via Gamepass method.",
+          "Your Roblox account must have 2-Step Verification turned on (Settings → Security) and be age-verified as 18+. The limit is 5,000 Robux per day and 10,000 Robux per month for each account. Need more? Use the Via Gamepass method.",
       },
       {
         question: "Why is my Robux shown as Pending?",

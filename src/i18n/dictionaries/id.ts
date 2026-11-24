@@ -53,6 +53,8 @@ export const id = {
       gamepass: "Gamepass",
       shop: "Toko",
       deals: "Promo",
+      leaderboard: "Leaderboard",
+      reviews: "Ulasan",
       faq: "FAQ",
       checkOrder: "Cek Pesanan",
     },
@@ -157,6 +159,7 @@ export const id = {
     requirements: {
       title: "Syarat Via Send Username",
       twoStep: "Akun Roblox wajib mengaktifkan 2-Step Verification (Settings → Security).",
+      age: "Pastikan akun sudah terverifikasi umur minimal 18+.",
       limit: "Limit {daily} Robux per hari dan {monthly} Robux per bulan untuk setiap akun.",
       confirm: "Saya sudah mengaktifkan 2-Step Verification di akun Roblox ini.",
     },
@@ -236,7 +239,7 @@ export const id = {
       {
         question: "Apa syarat beli Robux via Send Username (USN)?",
         answer:
-          "Akun Roblox kamu wajib mengaktifkan 2-Step Verification (Settings → Security). Limitnya 5.000 Robux per hari dan 10.000 Robux per bulan untuk setiap akun. Butuh lebih banyak? Pakai metode Via Gamepass.",
+          "Akun Roblox kamu wajib mengaktifkan 2-Step Verification (Settings → Security) dan terverifikasi umur minimal 18+. Limitnya 5.000 Robux per hari dan 10.000 Robux per bulan untuk setiap akun. Butuh lebih banyak? Pakai metode Via Gamepass.",
       },
       {
         question: "Kenapa Robux saya berstatus Pending?",

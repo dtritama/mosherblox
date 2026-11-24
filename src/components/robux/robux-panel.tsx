@@ -327,6 +327,10 @@ export function RobuxPanel({ className }: { className?: string }) {
                                 {t.requirements.twoStep}
                               </li>
                               <li className="flex gap-2">
+                                <BadgeCheck className="mt-0.5 size-4 shrink-0 text-brand-600" aria-hidden="true" />
+                                {t.requirements.age}
+                              </li>
+                              <li className="flex gap-2">
                                 <Info className="mt-0.5 size-4 shrink-0 text-brand-600" aria-hidden="true" />
                                 {interpolate(t.requirements.limit, {
                                   daily: n(method.limits.daily),

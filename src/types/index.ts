@@ -60,7 +60,7 @@ export interface PaymentMethod {
   availability: PaymentAvailability;
 }
 
-export type NavKey = "robux" | "gamepass" | "shop" | "deals" | "faq" | "checkOrder";
+export type NavKey = "robux" | "gamepass" | "shop" | "deals" | "leaderboard" | "reviews" | "faq" | "checkOrder";
 
 export interface NavItem {
   /** Key into `dict.nav.items`. */

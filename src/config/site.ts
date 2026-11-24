@@ -36,6 +36,8 @@ export const navItems: readonly NavItem[] = [
   { key: "gamepass", href: "/gamepass" },
   { key: "shop", href: "#shop" },
   { key: "deals", href: "#deals" },
+  { key: "leaderboard", href: "#leaderboard" },
+  { key: "reviews", href: "#reviews" },
   { key: "faq", href: "#faq" },
   { key: "checkOrder", href: "/check-order" },
 ];

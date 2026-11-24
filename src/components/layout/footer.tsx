@@ -7,17 +7,18 @@ import { ContactIcon } from "@/components/ui/contact-icon";
 import { Container } from "@/components/ui/container";
 import { Logo } from "@/components/ui/logo";
 import { RobuxIcon } from "@/components/ui/robux-icon";
-import { navItems, siteConfig } from "@/config/site";
+import { siteConfig } from "@/config/site";
 import { localeHref } from "@/i18n/config";
 import { getI18n } from "@/i18n/get-dictionary";
 import { getContactChannels } from "@/lib/contact";
 import { cn } from "@/lib/utils";
+import { getNavItems } from "@/server/nav";
 import { getSiteContent } from "@/server/site-content";
 
 export async function Footer() {
   const { locale, dict } = await getI18n();
   const t = dict.footer;
-  const { contact } = await getSiteContent();
+  const [{ contact }, navItems] = await Promise.all([getSiteContent(), getNavItems()]);
   const channels = getContactChannels(dict, contact);
 
   return (
