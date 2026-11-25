@@ -10,11 +10,11 @@ import { PgBoss } from "pg-boss";
 export const QUEUES = {
   /** Every minute: expire unpaid orders past their payment window. */
   expireOrders: "orders.expire",
-  /** A Discord message to the store team. Data: NotifyJob. */
+  /** A Discord message to the store team, or a vouch in the buyers' channel. Data: NotifyJob. */
   notify: "notify.discord",
 } as const;
 
-export type NotifyJob = { kind: "paymentClaimed" | "newOrder"; orderId: string };
+export type NotifyJob = { kind: "paymentClaimed" | "newOrder" | "orderCompleted"; orderId: string };
 
 export const QUEUE_OPTIONS = {
   [QUEUES.expireOrders]: { retryLimit: 0, expireInSeconds: 120 },

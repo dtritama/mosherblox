@@ -1,8 +1,10 @@
 import "server-only";
 import { formatIDR, formatNumber } from "@/i18n/format";
+import { maskUsername } from "@/lib/mask";
 
 /**
- * Discord webhook messages for the store team's private channel.
+ * Discord webhook messages for the store team's private channel, and the public vouch
+ * (`vouchMessage`, its own webhook: masked buyer name, no order ID, price or contact data).
  * What the team needs to act: the Roblox account to deliver to (with avatar), what was bought and
  * the exact amount to find in the bank history. No WhatsApp number or other contact data leaves
  * our server; the full details are one click away in the admin panel.
@@ -26,6 +28,7 @@ export interface OrderSummary {
   uniqueCode: number;
   total: number;
   createdAt: string;
+  completedAt: string | null;
   hasProof: boolean;
   /** Bank / e-wallet the buyer transfers to; null = QRIS. */
   paymentName: string | null;
@@ -33,11 +36,14 @@ export interface OrderSummary {
 
 const WEBHOOK = /^https:\/\/(?:canary\.|ptb\.)?(?:discord|discordapp)\.com\/api\/webhooks\/\d+\/[\w-]+$/;
 
-export function discordWebhookUrl(): string | null {
-  const url = process.env.DISCORD_WEBHOOK_URL?.trim();
+/** Team channel by default; `DISCORD_VOUCH_WEBHOOK_URL` = the public "pesanan selesai" channel. */
+export function discordWebhookUrl(
+  name: "DISCORD_WEBHOOK_URL" | "DISCORD_VOUCH_WEBHOOK_URL" = "DISCORD_WEBHOOK_URL",
+): string | null {
+  const url = process.env[name]?.trim();
   if (!url) return null;
   if (!WEBHOOK.test(url)) {
-    console.error("[notify] DISCORD_WEBHOOK_URL is not a Discord webhook URL — ignoring it");
+    console.error(`[notify] ${name} is not a Discord webhook URL — ignoring it`);
     return null;
   }
   return url;
@@ -46,8 +52,13 @@ export function discordWebhookUrl(): string | null {
 const adminUrl = (orderId: string) =>
   `${(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").replace(/\/$/, "")}/admin/orders/${orderId}`;
 
+/** Always the real site: Discord fetches the avatar from it, also for local tests. */
+const SITE_URL = "https://mosherblox.com";
+
 const LIME = 0xa5e34a;
 const PINK = 0xf04f82;
+/** Public vouch. */
+const SOFT_PINK = 0xfbc4d8;
 
 const snowflakes = (value: string | undefined) =>
   (value ?? "")
@@ -160,6 +171,41 @@ export function newOrderMessage(order: OrderSummary, avatarUrl: string | null = 
         color: LIME,
         avatarUrl,
       }),
+    ],
+  };
+}
+
+/**
+ * Public "pesanan selesai" message for buyers. Only what the site's leaderboard shows as well: the
+ * masked Roblox name and avatar. Voucher orders (delivered to an email) show no buyer at all.
+ */
+export function vouchMessage(order: OrderSummary, number: number, avatarUrl: string | null = null) {
+  const isRobux = order.kind === "robux" && order.robuxAmount !== null;
+  const buyer = order.account.includes("@") ? null : maskUsername(order.account);
+  return {
+    username: "MOSHERBLOX",
+    avatar_url: `${SITE_URL}/apple-icon.png`,
+    allowed_mentions: { parse: [] },
+    embeds: [
+      {
+        author: { name: "MOSHERBLOX", url: SITE_URL, icon_url: `${SITE_URL}/apple-icon.png` },
+        title: "୨୧ ﹒ pesanan selesai ﹒ ♡",
+        url: SITE_URL,
+        // Text ornaments (no emoji), the same one on each line, so the text lines up.
+        description: [
+          "₊˚ ⊹ ︶︶︶︶ ୨୧ ︶︶︶︶ ⊹ ˚₊",
+          "",
+          `♡ ﹒ **${md(isRobux ? `${formatNumber(order.robuxAmount!, "id")} Robux` : order.item)}**`,
+          `♡ ﹒ ${isRobux ? METHOD_LABEL[order.robuxMethod ?? "send-username"] : md(order.productName)}`,
+          `♡ ﹒ untuk **${buyer ? md(buyer) : "pembeli tersayang"}**`,
+          "",
+          "*makasih untuk ordernya kak, ditunggu next ordernya yahh >.< !*",
+        ].join("\n"),
+        color: SOFT_PINK,
+        ...(avatarUrl && buyer ? { thumbnail: { url: avatarUrl } } : {}),
+        footer: { text: `pesanan ke-${formatNumber(Math.max(1, number), "id")} ﹒ ♡` },
+        timestamp: order.completedAt ?? order.createdAt,
+      },
     ],
   };
 }

@@ -1,5 +1,5 @@
 import "server-only";
-import { and, desc, eq, inArray, lt, notExists, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, lt, lte, notExists, sql } from "drizzle-orm";
 import { getPaymentMethod } from "@/data/payments";
 import { orderConfig } from "@/data/orders";
 import { getDb, schema } from "@/server/db";
@@ -353,8 +353,14 @@ export async function getOrderSummary(orderId: string) {
     uniqueCode: row.uniqueCode,
     total: row.total,
     createdAt: row.createdAt.toISOString(),
+    completedAt: row.completedAt?.toISOString() ?? null,
     hasProof: Boolean(payment?.proofPath),
     paymentStatus: payment?.status ?? null,
     paymentName: payment?.payTo?.name ?? null,
   };
+}
+
+/** Which completed order of the store this is (1 = the first one ever), for the Discord vouch. */
+export async function getCompletedNumber(completedAt: string): Promise<number> {
+  return getDb().$count(orders, and(eq(orders.status, "completed"), lte(orders.completedAt, new Date(completedAt))));
 }

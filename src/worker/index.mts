@@ -5,7 +5,8 @@
  *
  * Jobs (pg-boss, stored in Postgres):
  * - orders.expire   every minute: expire unpaid orders past their payment window
- * - notify.discord  team pings (buyer pressed "Saya sudah bayar", optional new orders)
+ * - notify.discord  team pings (buyer pressed "Saya sudah bayar", optional new orders) and the
+ *                   public vouch for each completed order
  *
  * It reuses the app's server code, which is marked `server-only`; running Node with the
  * `react-server` condition makes that marker a no-op outside Next.js.
@@ -16,8 +17,8 @@ nextEnv.loadEnvConfig(process.cwd(), process.env.NODE_ENV !== "production");
 
 const { PgBoss } = await import("pg-boss");
 const { QUEUES, QUEUE_OPTIONS } = await import("@/server/jobs/queue");
-const { expireOverdueOrders, getOrderSummary } = await import("@/server/orders/service");
-const { discordWebhookUrl, newOrderMessage, paymentClaimedMessage, postToDiscord } =
+const { expireOverdueOrders, getCompletedNumber, getOrderSummary } = await import("@/server/orders/service");
+const { discordWebhookUrl, newOrderMessage, paymentClaimedMessage, postToDiscord, vouchMessage } =
   await import("@/server/notify/discord");
 const { fetchAvatarUrls } = await import("@/server/roblox/users");
 type NotifyJob = import("@/server/jobs/queue").NotifyJob;
@@ -44,23 +45,31 @@ await boss.work(QUEUES.expireOrders, async () => {
 
 // --- notify.discord --------------------------------------------------------------------------
 const webhook = discordWebhookUrl();
+const vouchWebhook = discordWebhookUrl("DISCORD_VOUCH_WEBHOOK_URL");
 if (!webhook) log("DISCORD_WEBHOOK_URL not set: team notifications are skipped");
+if (!vouchWebhook) log("DISCORD_VOUCH_WEBHOOK_URL not set: completed orders are not posted");
 
 await boss.work<NotifyJob>(QUEUES.notify, async ([job]) => {
-  if (!webhook) return;
+  const target = job.data.kind === "orderCompleted" ? vouchWebhook : webhook;
+  if (!target) return;
   const order = await getOrderSummary(job.data.orderId);
   if (!order) return; // deleted meanwhile: nothing to say
   // The order may have moved on since the job was queued (e.g. an admin already handled it).
   if (job.data.kind === "paymentClaimed" && !(order.status === "pending" && order.paymentStatus === "submitted"))
     return;
+  if (job.data.kind === "orderCompleted" && order.status !== "completed") return;
   // Buyer's Roblox avatar for the message thumbnail; a Roblox hiccup just means no picture.
   const avatarUrl = order.robloxUserId
     ? ((await fetchAvatarUrls([order.robloxUserId]).catch(() => ({}) as Record<number, string>))[order.robloxUserId] ??
       null)
     : null;
   const message =
-    job.data.kind === "paymentClaimed" ? paymentClaimedMessage(order, avatarUrl) : newOrderMessage(order, avatarUrl);
-  await postToDiscord(webhook, message); // throws → pg-boss retries with backoff
+    job.data.kind === "orderCompleted"
+      ? vouchMessage(order, await getCompletedNumber(order.completedAt ?? order.createdAt), avatarUrl)
+      : job.data.kind === "paymentClaimed"
+        ? paymentClaimedMessage(order, avatarUrl)
+        : newOrderMessage(order, avatarUrl);
+  await postToDiscord(target, message); // throws → pg-boss retries with backoff
   log(`notified Discord: ${job.data.kind} ${order.id}`);
 });
 

@@ -2,10 +2,12 @@
 
 import { updateTag } from "next/cache";
 import { orderConfig } from "@/data/orders";
+import { after } from "next/server";
 import { redirect } from "next/navigation";
 import { STATS_TAG } from "@/server/stats";
 import { moderateReview, REVIEWS_TAG } from "@/server/reviews";
 import { checkCredentials, endSession, requireAdmin, startSession } from "@/server/auth/admin";
+import { notifyTeam } from "@/server/jobs/queue";
 import { hit, rateLimit } from "@/server/rate-limit";
 import { canTransition } from "@/lib/orders/status";
 import type { OrderStatus } from "@/lib/orders/types";
@@ -78,6 +80,8 @@ export async function setOrderStatusAction(_prev: StatusState, formData: FormDat
     if (to === "completed") {
       updateTag("settings");
       updateTag(STATS_TAG);
+      // Vouch in the public Discord channel; after the response, so Discord never slows the admin down.
+      after(() => notifyTeam({ kind: "orderCompleted", orderId }));
     }
     return { ok: true };
   } catch (error) {
