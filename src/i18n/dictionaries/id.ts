@@ -157,6 +157,7 @@ export const id = {
     fromRate: "mulai {price}/Robux",
     successCount: "{count} pesanan berhasil terkirim",
     stock: "Stok: {amount} Robux",
+    overStock: "Stok tinggal {amount} Robux.",
     soldOutMethod: "Stok habis. Pilih metode lain atau cek lagi nanti.",
     allSoldOut: "Robux sedang habis untuk semua metode. Cek lagi nanti, atau chat CS kami.",
     amountLabel: "Jumlah Robux",

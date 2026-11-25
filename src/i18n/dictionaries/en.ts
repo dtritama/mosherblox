@@ -158,6 +158,7 @@ export const en: Dictionary = {
     soldOutMethod: "Sold out. Pick another method or check back later.",
     allSoldOut: "Robux is sold out for every method right now. Check back later, or chat with support.",
     amountLabel: "Robux amount",
+    overStock: "Only {amount} Robux left in stock.",
     amountHint: "Min {min} · Max {max} Robux",
     decrease: "Remove {step} Robux",
     increase: "Add {step} Robux",

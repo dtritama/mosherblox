@@ -162,8 +162,8 @@ Rules:
   from the fresh setting: closed without `acceptedPreorder` → `storeClosed` (a page opened before then shows the consent);
   open → normal order. Marked on Check Order (`PreorderNote`), Discord, CSV and in admin (badge + "Pre-order" tab =
   paid/claimed pre-orders not finished). Sold-out and stock rules still apply.
-- **Robux stock** (`robuxStock` setting, admin): shown on the Robux page/home; 0 = every Robux
-  method sold out; bigger orders are refused (`notEnoughStock`); completing a Robux order subtracts
+- **Robux stock** (`robuxStock` setting, admin): shown on the Robux page/home; less than the minimum = every Robux
+  method sold out; presets, slider and +/- stop at the stock (`getRobuxOrderMax()`); bigger orders are refused (`notEnoughStock`); completing a Robux order subtracts
   its amount inside `transitionOrder()`. **Public stats / leaderboard / reviews** are cached
   (`server/stats.ts` tag `stats`, `server/leaderboard.ts`, `server/reviews.ts` tag `reviews`) and
   refreshed by admin actions (`updateTag`). Counter = real completed Send Username orders (always

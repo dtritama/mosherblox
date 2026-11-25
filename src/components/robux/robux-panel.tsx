@@ -44,9 +44,10 @@ import {
   getGamepassPrice,
   getLowestRobuxRate,
   getNextRobuxTier,
-  getRobuxMaxAmount,
+  getRobuxOrderMax,
   getRobuxMethod,
   getRobuxTier,
+  isRobuxOutOfStock,
   type RobuxRates,
 } from "@/lib/robux-pricing";
 import { useCheckoutPayments } from "@/lib/use-checkout-payments";
@@ -101,14 +102,19 @@ export function RobuxPanel({ className }: { className?: string }) {
   // Admin-editable prices (falls back to src/data/robux.ts).
   const { robuxRates: rates, soldOut, robuxStock, storeOpen, stats } = useStoreSettings();
   // No Robux left in stock = every method is sold out.
-  const isSoldOut = (id: RobuxMethodId) => robuxStock === 0 || soldOut.robuxMethods.includes(id);
+  const outOfStock = isRobuxOutOfStock(robuxStock);
+  const isSoldOut = (id: RobuxMethodId) => outOfStock || soldOut.robuxMethods.includes(id);
   const available = robuxConfig.methods.filter((item) => !isSoldOut(item.id));
   const allSoldOut = available.length === 0;
   const searchParams = useSearchParams();
+  /** Never more than the method's limit or the stock. */
+  const capAmount = (value: number | null, id: RobuxMethodId) =>
+    value === null ? null : Math.min(value, getRobuxOrderMax(id, robuxStock));
   const [draft, setDraft] = useState<RobuxOrderDraft>(() => {
     const fromUrl = draftFromParams(searchParams);
     // A sold-out method (e.g. from an old link) starts on the first method that is available.
-    return isSoldOut(fromUrl.method) && available[0] ? { ...fromUrl, method: available[0].id } : fromUrl;
+    const method = isSoldOut(fromUrl.method) && available[0] ? available[0].id : fromUrl.method;
+    return { ...fromUrl, method, amount: capAmount(fromUrl.amount, method) };
   });
   const [touched, setTouched] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -122,19 +128,19 @@ export function RobuxPanel({ className }: { className?: string }) {
     setDraft((prev) => ({ ...prev, [key]: value }));
 
   const method = getRobuxMethod(draft.method);
-  /** Per-order max: Send Username is capped by its daily limit. */
-  const methodMax = getRobuxMaxAmount(draft.method);
+  /** Per-order max: the method's limit (Send Username: daily) or what is left in stock. */
+  const orderMax = getRobuxOrderMax(draft.method, robuxStock);
 
   const errorText = (code?: OrderErrorCode) =>
     code
-      ? interpolate(c.errors[code], { min: formatNumber(minAmount, locale), max: formatNumber(methodMax, locale) })
+      ? interpolate(c.errors[code], { min: formatNumber(minAmount, locale), max: formatNumber(orderMax, locale) })
       : undefined;
 
   const amount = draft.amount;
   const subtotal = priceFor(draft.method, amount, rates);
   const tier = getRobuxTier(draft.method, amount ?? 0, rates);
   const upcomingTier = amount !== null ? getNextRobuxTier(draft.method, amount, rates) : undefined;
-  const nextTier = upcomingTier && upcomingTier.minAmount <= methodMax ? upcomingTier : undefined;
+  const nextTier = upcomingTier && upcomingTier.minAmount <= orderMax ? upcomingTier : undefined;
   const payments = useCheckoutPayments();
   // Picked earlier but too expensive for it now (QRIS limit) = nothing picked.
   const payment = payments.find((item) => item.id === draft.paymentId && acceptsAmount(item, subtotal ?? 0));
@@ -146,6 +152,8 @@ export function RobuxPanel({ className }: { className?: string }) {
   const total = subtotal !== null ? subtotal + (payment?.fee ?? 0) : null;
   const methodName = t.methods[draft.method].name;
   const preorder = !storeOpen || closedMeanwhile;
+  /** Typed more than the stock: said under the step title at once. */
+  const overStock = robuxStock !== null && !outOfStock && amount !== null && amount > robuxStock;
   const n = (value: number) => formatNumber(value, locale);
 
   const setAmountFromInput = (raw: string) => {
@@ -157,15 +165,12 @@ export function RobuxPanel({ className }: { className?: string }) {
     // Snap to the step grid first, so 1.250 → 1.300 (+) or 1.200 (−).
     const snapped =
       direction === 1 ? Math.floor(current / step) * step + step : Math.ceil(current / step) * step - step;
-    update("amount", Math.min(methodMax, Math.max(minAmount, snapped)));
+    update("amount", Math.min(orderMax, Math.max(minAmount, snapped)));
   };
 
   /** Switching to a method with a lower limit pulls the amount down to that limit. */
   const selectMethod = (id: RobuxMethodId) =>
-    setDraft((prev) => {
-      const max = getRobuxMaxAmount(id);
-      return { ...prev, method: id, amount: prev.amount !== null && prev.amount > max ? max : prev.amount };
-    });
+    setDraft((prev) => ({ ...prev, method: id, amount: capAmount(prev.amount, id) }));
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -219,7 +224,12 @@ export function RobuxPanel({ className }: { className?: string }) {
     setSubmitError(null);
     setTouched(false);
     setAcceptedPreorder(false);
-    setDraft((prev) => ({ ...initialDraft, method: prev.method, whatsapp: prev.whatsapp }));
+    setDraft((prev) => ({
+      ...initialDraft,
+      method: prev.method,
+      amount: capAmount(initialDraft.amount, prev.method),
+      whatsapp: prev.whatsapp,
+    }));
   };
 
   const buyNow = preorder ? dict.preorder.buy : c.buyNow;
@@ -403,7 +413,7 @@ export function RobuxPanel({ className }: { className?: string }) {
                   <Step
                     number={2}
                     title={t.steps.amount}
-                    error={errorText(errors.amount)}
+                    error={overStock ? interpolate(t.overStock, { amount: n(robuxStock) }) : errorText(errors.amount)}
                     aside={robuxStock !== null ? interpolate(t.stock, { amount: n(robuxStock) }) : undefined}
                   >
                     <div className="flex items-stretch gap-2">
@@ -424,14 +434,14 @@ export function RobuxPanel({ className }: { className?: string }) {
                           inputMode="numeric"
                           autoComplete="off"
                           aria-label={t.amountLabel}
-                          aria-invalid={Boolean(errors.amount)}
+                          aria-invalid={overStock || Boolean(errors.amount)}
                           aria-describedby={amountHintId}
                           value={amount === null ? "" : n(amount)}
                           onChange={(e) => setAmountFromInput(e.target.value)}
                           onFocus={(e) => e.target.select()}
                           placeholder={n(defaultAmount)}
                           className={cn(
-                            inputClass(Boolean(errors.amount)),
+                            inputClass(overStock || Boolean(errors.amount)),
                             "h-16 pr-14 pl-11 text-2xl font-extrabold tabular-nums sm:pr-20 sm:pl-13 sm:text-3xl",
                           )}
                         />
@@ -441,14 +451,14 @@ export function RobuxPanel({ className }: { className?: string }) {
                       </div>
                       <AmountButton
                         label={interpolate(t.increase, { step: n(step) })}
-                        disabled={amount !== null && amount >= methodMax}
+                        disabled={amount !== null && amount >= orderMax}
                         onClick={() => stepAmount(1)}
                       >
                         <Plus className="size-5" aria-hidden="true" />
                       </AmountButton>
                     </div>
                     <p id={amountHintId} className="mt-2 text-xs text-ink-500">
-                      {interpolate(t.amountHint, { min: n(minAmount), max: n(methodMax) })}
+                      {interpolate(t.amountHint, { min: n(minAmount), max: n(orderMax) })}
                     </p>
 
                     <fieldset className="mt-4">
@@ -456,8 +466,8 @@ export function RobuxPanel({ className }: { className?: string }) {
                       <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 xl:grid-cols-6">
                         {presets.map((preset) => {
                           const selected = amount === preset;
-                          // Above this method's limit (e.g. 10.000 with Send Username): shown but not selectable.
-                          const overLimit = preset > methodMax;
+                          // Above this method's limit or the stock: shown but not selectable.
+                          const overLimit = outOfStock || preset > orderMax;
                           return (
                             <button
                               key={preset}

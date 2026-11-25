@@ -16,17 +16,15 @@ import { robuxConfig } from "@/data/robux";
 import { localeHref } from "@/i18n/config";
 import { formatIDR, formatNumber, interpolate } from "@/i18n/format";
 import { useI18n } from "@/i18n/i18n-provider";
-import { calculateRobuxPrice, getRobuxMaxAmount, getRobuxMethod, getRobuxTier } from "@/lib/robux-pricing";
+import { calculateRobuxPrice, getRobuxMaxAmount, getRobuxMethod, getRobuxOrderMax, getRobuxTier, isRobuxOutOfStock } from "@/lib/robux-pricing";
 import { cn } from "@/lib/utils";
 
 /** The home-page section promotes Robux via Send Username (USN); the full panel lives on /robux. */
 const METHOD = "send-username";
 const LIMITS = getRobuxMethod(METHOD).limits;
 /** Only amounts one Send Username order can have (its daily limit). */
-const presets = robuxConfig.presets.filter((amount) => amount <= getRobuxMaxAmount(METHOD));
+const presets: readonly number[] = robuxConfig.presets.filter((amount) => amount <= getRobuxMaxAmount(METHOD));
 const DEFAULT_INDEX = Math.max(0, presets.indexOf(robuxConfig.defaultAmount));
-/** Largest single Send Username order (its daily limit). */
-const MAX_AMOUNT = getRobuxMaxAmount(METHOD);
 
 /** Link into the Robux page with the amount (and method) already picked. */
 function robuxPageHref(locale: Parameters<typeof localeHref>[0], amount?: number, soldOut = false) {
@@ -41,18 +39,24 @@ export function RobuxSection() {
   const amountId = useId();
   const hintId = useId();
   // The amount can be typed freely; the slider and quick buttons set it to a preset.
-  const [amount, setAmount] = useState<number | null>(presets[DEFAULT_INDEX]);
   const { robuxRates: rates, soldOut, robuxStock, storeOpen, stats } = useStoreSettings();
-  const methodSoldOut = robuxStock === 0 || soldOut.robuxMethods.includes(METHOD);
+  const outOfStock = isRobuxOutOfStock(robuxStock);
+  /** Largest order right now: the daily limit or what is left in stock. */
+  const maxAmount = getRobuxOrderMax(METHOD, robuxStock);
+  /** Slider stops: the presets that fit, then everything left in stock. */
+  const stops = presets.filter((preset) => preset <= maxAmount);
+  if (stops.at(-1) !== maxAmount) stops.push(maxAmount);
+  const [amount, setAmount] = useState<number | null>(Math.min(presets[DEFAULT_INDEX], maxAmount));
+  const methodSoldOut = outOfStock || soldOut.robuxMethods.includes(METHOD);
 
-  const valid = amount !== null && amount >= robuxConfig.minAmount && amount <= MAX_AMOUNT;
+  const valid = amount !== null && amount >= robuxConfig.minAmount && amount <= maxAmount;
   const amountValue = amount ?? 0;
   const price = valid ? calculateRobuxPrice(METHOD, amountValue, rates) : null;
   const { rate } = getRobuxTier(METHOD, amountValue, rates);
-  /** Slider position: the largest preset not above the typed amount. */
+  /** Slider position: the largest stop not above the typed amount. */
   const index = Math.max(
     0,
-    presets.findLastIndex((preset) => preset <= amountValue),
+    stops.findLastIndex((preset) => preset <= amountValue),
   );
 
   const setFromInput = (raw: string) => {
@@ -127,19 +131,19 @@ export function RobuxSection() {
             <p id={hintId} className={cn("mt-2 text-xs", valid ? "text-ink-500" : "font-medium text-blush-700")}>
               {interpolate(dict.robux.amountHint, {
                 min: formatNumber(robuxConfig.minAmount, locale),
-                max: formatNumber(MAX_AMOUNT, locale),
+                max: formatNumber(maxAmount, locale),
               })}
             </p>
 
             <input
               type="range"
               min={0}
-              max={presets.length - 1}
+              max={stops.length - 1}
               step={1}
               value={index}
-              onChange={(event) => setAmount(presets[Number(event.target.value)])}
+              onChange={(event) => setAmount(stops[Number(event.target.value)])}
               aria-label={t.sliderLabel}
-              aria-valuetext={`${formatNumber(presets[index], locale)} Robux`}
+              aria-valuetext={`${formatNumber(stops[index], locale)} Robux`}
               className="mt-5 h-2 w-full cursor-pointer appearance-auto accent-brand-500"
             />
 
@@ -155,12 +159,13 @@ export function RobuxSection() {
                     key={preset}
                     type="button"
                     aria-pressed={active}
+                    disabled={outOfStock || preset > maxAmount}
                     onClick={() => setAmount(preset)}
                     className={cn(
-                      "rounded-xl border-2 px-1 py-2 text-xs font-bold transition-[border-color,background-color,color,transform] duration-150 active:scale-95 sm:px-2 sm:text-sm",
+                      "rounded-xl border-2 px-1 py-2 text-xs font-bold transition-[border-color,background-color,color,transform] duration-150 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 disabled:active:scale-100 sm:px-2 sm:text-sm",
                       active
                         ? "border-brand-500 bg-brand-50 text-brand-800"
-                        : "border-brand-100 text-ink-700 hover:border-brand-300",
+                        : "border-brand-100 text-ink-700 enabled:hover:border-brand-300",
                     )}
                   >
                     {formatNumber(preset, locale)}

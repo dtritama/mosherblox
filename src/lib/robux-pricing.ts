@@ -62,3 +62,12 @@ export function clampRobuxAmount(amount: number, methodId?: RobuxMethodId) {
   const max = methodId ? getRobuxMaxAmount(methodId) : robuxConfig.maxAmount;
   return Math.min(max, Math.max(robuxConfig.minAmount, Math.round(amount)));
 }
+
+/** Too little Robux left for even the smallest order (null = stock not tracked). */
+export const isRobuxOutOfStock = (stock: number | null) => stock !== null && stock < robuxConfig.minAmount;
+
+/** Most Robux one order can have right now: the method's limit or what is left in stock. */
+export function getRobuxOrderMax(method: RobuxMethodId, stock: number | null) {
+  const max = getRobuxMaxAmount(method);
+  return stock === null || isRobuxOutOfStock(stock) ? max : Math.min(max, stock);
+}
