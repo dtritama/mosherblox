@@ -491,6 +491,7 @@ export const en: Dictionary = {
     titleStart: "Top buyers",
     titleHighlight: "of all time",
     description: "Buyers with the most completed orders per category. Names are masked.",
+    sold: { label: "Total Robux sold, all time", orders: "From {count} completed Robux orders." },
     tabsLabel: "Leaderboard categories",
     tabs: { robux: "Robux", gamepass: "Gamepass", items: "Game items" },
     units: { robux: "{count} Robux", gamepass: "{count} gamepasses", items: "{count} items" },

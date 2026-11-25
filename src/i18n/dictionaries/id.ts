@@ -494,6 +494,7 @@ export const id = {
     titleStart: "Top buyer",
     titleHighlight: "sepanjang masa",
     description: "Pembeli dengan pesanan selesai terbanyak per kategori. Nama disamarkan.",
+    sold: { label: "Total Robux yang sudah terjual di website", orders: "Dari {count} pesanan Robux yang sudah selesai." },
     tabsLabel: "Kategori leaderboard",
     tabs: { robux: "Robux", gamepass: "Gamepass", items: "Item game" },
     units: { robux: "{count} Robux", gamepass: "{count} gamepass", items: "{count} item" },

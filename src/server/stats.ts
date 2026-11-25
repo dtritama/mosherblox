@@ -1,5 +1,5 @@
 import "server-only";
-import { and, count, eq } from "drizzle-orm";
+import { and, count, eq, sql } from "drizzle-orm";
 import { cacheLife, cacheTag } from "next/cache";
 import { getDb, schema } from "@/server/db";
 
@@ -13,6 +13,8 @@ export const STATS_TAG = "stats";
 export interface PublicStats {
   /** Completed Robux orders via Send Username (all time). null = couldn't be read. */
   sendUsernameCompleted: number | null;
+  /** Robux in completed orders, every method, all time, and how many orders that is. */
+  robuxSold: { total: number; orders: number } | null;
 }
 
 export async function getPublicStats(): Promise<PublicStats> {
@@ -21,12 +23,19 @@ export async function getPublicStats(): Promise<PublicStats> {
   cacheLife("minutes");
   try {
     const [row] = await getDb()
-      .select({ n: count() })
+      .select({
+        sendUsername: sql<number>`(count(*) filter (where ${schema.orders.robuxMethod} = 'send-username'))::int`,
+        total: sql<number>`coalesce(sum(${schema.orders.robuxAmount}), 0)::float8`,
+        orders: count(),
+      })
       .from(schema.orders)
-      .where(and(eq(schema.orders.status, "completed"), eq(schema.orders.robuxMethod, "send-username")));
-    return { sendUsernameCompleted: row?.n ?? 0 };
+      .where(and(eq(schema.orders.status, "completed"), eq(schema.orders.kind, "robux")));
+    return {
+      sendUsernameCompleted: row?.sendUsername ?? 0,
+      robuxSold: { total: row?.total ?? 0, orders: row?.orders ?? 0 },
+    };
   } catch (error) {
     console.warn("[stats] using none:", error instanceof Error ? error.message : error);
-    return { sendUsernameCompleted: null };
+    return { sendUsernameCompleted: null, robuxSold: null };
   }
 }

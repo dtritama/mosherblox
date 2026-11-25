@@ -167,7 +167,7 @@ Rules:
   its amount inside `transitionOrder()`. **Public stats / leaderboard / reviews** are cached
   (`server/stats.ts` tag `stats`, `server/leaderboard.ts`, `server/reviews.ts` tag `reviews`) and
   refreshed by admin actions (`updateTag`). Counter = real completed Send Username orders (always
-  shown). Leaderboard = completed orders only, all time, masked names (`lib/mask.ts`), no voucher
+  shown). Total Robux sold (`sections/robux-sold.tsx`, next to the leaderboard) = Robux in completed orders, all methods. Leaderboard = completed orders only, all time, masked names (`lib/mask.ts`), no voucher
   products. Reviews: one per completed order (Check Order, order ID + WhatsApp), shown only after
   admin approval in `/admin/reviews`; home shows 9 per page (`sections/review-pages.tsx`, more from `GET /api/reviews?page=`); the home sections hide themselves while empty — never add
   placeholder or invented reviews/numbers.

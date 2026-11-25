@@ -22,7 +22,7 @@ const SettingsContext = createContext<StoreSettings>({
   robuxStock: defaultSettings.robuxStock,
   storeOpen: defaultSettings.storeOpen,
   closedMessage: defaultSettings.closedMessage,
-  stats: { sendUsernameCompleted: null },
+  stats: { sendUsernameCompleted: null, robuxSold: null },
   contact: defaultContact,
   paymentOptions: [],
 });
