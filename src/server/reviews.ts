@@ -71,11 +71,14 @@ export interface PublicReview {
 export interface PublicReviews {
   items: PublicReview[];
   total: number;
+  pages: number;
   average: number | null;
 }
 
-/** Approved reviews for the home page (cached; refreshed when an admin moderates). */
-export async function getPublicReviews(limit = 9): Promise<PublicReviews> {
+const REVIEWS_PER_PAGE = 9;
+
+/** One page of approved reviews for the home page, newest first (cached; refreshed when an admin moderates). */
+export async function getPublicReviews(page = 1): Promise<PublicReviews> {
   "use cache";
   cacheTag(REVIEWS_TAG);
   cacheLife("hours");
@@ -95,8 +98,9 @@ export async function getPublicReviews(limit = 9): Promise<PublicReviews> {
         .from(reviews)
         .innerJoin(orders, eq(orders.id, reviews.orderId))
         .where(eq(reviews.status, "approved"))
-        .orderBy(desc(reviews.createdAt))
-        .limit(limit),
+        .orderBy(desc(reviews.createdAt), desc(reviews.id))
+        .limit(REVIEWS_PER_PAGE)
+        .offset((page - 1) * REVIEWS_PER_PAGE),
       db
         .select({ total: count(), average: avg(reviews.rating) })
         .from(reviews)
@@ -107,6 +111,7 @@ export async function getPublicReviews(limit = 9): Promise<PublicReviews> {
     );
     return {
       total: stats?.total ?? 0,
+      pages: Math.ceil((stats?.total ?? 0) / REVIEWS_PER_PAGE),
       average: stats?.average ? Math.round(Number(stats.average) * 10) / 10 : null,
       items: rows.map((row) => ({
         id: row.id,
@@ -120,7 +125,7 @@ export async function getPublicReviews(limit = 9): Promise<PublicReviews> {
     };
   } catch (error) {
     console.warn("[reviews] none shown:", error instanceof Error ? error.message : error);
-    return { items: [], total: 0, average: null };
+    return { items: [], total: 0, pages: 0, average: null };
   }
 }
 

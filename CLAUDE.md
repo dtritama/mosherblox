@@ -166,7 +166,7 @@ Rules:
   refreshed by admin actions (`updateTag`). Counter = real completed Send Username orders (always
   shown). Leaderboard = completed orders only, all time, masked names (`lib/mask.ts`), no voucher
   products. Reviews: one per completed order (Check Order, order ID + WhatsApp), shown only after
-  admin approval in `/admin/reviews`; the home sections hide themselves while empty — never add
+  admin approval in `/admin/reviews`; home shows 9 per page (`sections/review-pages.tsx`, more from `GET /api/reviews?page=`); the home sections hide themselves while empty — never add
   placeholder or invented reviews/numbers.
 - Order IDs: `MB-` + 8 chars from an unambiguous alphabet (`lib/orders/order-id.ts`).
 - Server Components by default; `"use client"` only for interactivity. Motion via `LazyMotion` +

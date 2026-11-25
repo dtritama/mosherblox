@@ -53,6 +53,8 @@ export const RATE_LIMITS = {
   orderLiveMiss: { limit: 10, windowMs: 10 * 60_000 },
   /** Roblox username preview while typing (debounced in the browser). */
   robloxLookup: { limit: 60, windowMs: 10 * 60_000 },
+  /** Paging through the reviews on the home page. */
+  reviews: { limit: 600, windowMs: 10 * 60_000 },
   /** Writing a review. */
   review: { limit: 5, windowMs: 10 * 60_000 },
   /** New orders from one connection. */

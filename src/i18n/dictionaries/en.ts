@@ -491,6 +491,14 @@ export const en: Dictionary = {
     average: "{average} out of 5 · {count} reviews",
     verified: "Verified buyer",
     stars: "{count} out of 5 stars",
+    pager: {
+      label: "Review pages",
+      prev: "Previous reviews",
+      next: "Next reviews",
+      page: "Page {page}",
+      position: "Page {page} of {pages}",
+      failed: "Couldn't load the reviews. Try again.",
+    },
     form: {
       title: "How was your order?",
       description: "Help other buyers with a short review. It appears on the site after an admin checks it.",

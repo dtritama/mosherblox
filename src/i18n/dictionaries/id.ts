@@ -494,6 +494,14 @@ export const id = {
     average: "{average} dari 5 · {count} ulasan",
     verified: "Pembeli terverifikasi",
     stars: "{count} dari 5 bintang",
+    pager: {
+      label: "Halaman ulasan",
+      prev: "Ulasan sebelumnya",
+      next: "Ulasan berikutnya",
+      page: "Halaman {page}",
+      position: "Halaman {page} dari {pages}",
+      failed: "Ulasan belum bisa dimuat. Coba lagi.",
+    },
     form: {
       title: "Gimana pesananmu?",
       description: "Bantu pembeli lain dengan ulasan singkat. Ulasanmu tampil di website setelah dicek admin.",
