@@ -32,7 +32,16 @@ export const id = {
     free: "Gratis",
     perRobux: "per Robux",
   },
-  storeClosed: { title: "Toko lagi offline" },
+  storeClosed: { title: "Toko lagi tutup, kamu bisa pre-order" },
+  preorder: {
+    badge: "Pre-order",
+    info: "Kamu bisa pesan dan bayar sekarang. Pembayaran dicek dan pesanan diproses setelah toko buka lagi.",
+    confirm: "Saya paham ini pre-order: bayar sekarang, diproses setelah toko buka lagi.",
+    confirmError: "Centang ini dulu untuk melanjutkan pre-order.",
+    buy: "Pre-order",
+    buyRobux: "Pre-order {amount} Robux",
+    waiting: "Ini pre-order. Pembayaran dicek dan pesanan diproses setelah toko buka lagi.",
+  },
   theme: {
     toDark: "Ganti ke mode gelap",
     toLight: "Ganti ke mode terang",
@@ -409,7 +418,7 @@ export const id = {
       unavailable: "Pesanan belum bisa dibuat sekarang. Coba lagi sebentar lagi, atau chat CS kami.",
       soldOut: "Maaf, stoknya baru saja habis. Pilih yang lain atau cek lagi nanti.",
       notEnoughStock: "Stok Robux kami tidak cukup untuk jumlah ini. Kurangi jumlahnya, atau chat CS kami.",
-      storeClosed: "Toko lagi offline, jadi belum bisa menerima pesanan baru. Cek lagi nanti ya.",
+      storeClosed: "Toko baru saja tutup. Kamu masih bisa pre-order: baca infonya, centang persetujuannya, lalu pesan lagi.",
     },
     success: {
       title: "Pesanan dibuat",

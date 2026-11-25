@@ -3,10 +3,12 @@
 import { AnimatePresence, m } from "motion/react";
 import { Lock, ShieldCheck, X, Zap } from "lucide-react";
 import { useId, useMemo, useRef, useState, type FormEvent } from "react";
+import { flushSync } from "react-dom";
 
 import { Field, inputClass, Step, SummaryRow } from "@/components/checkout/form-parts";
 import { OrderSuccess } from "@/components/checkout/order-success";
 import { PaymentPicker } from "@/components/checkout/payment-picker";
+import { PreorderConsent } from "@/components/checkout/preorder";
 import { RobloxAccountCheck } from "@/components/checkout/roblox-account-check";
 import { PhoneInput } from "@/components/checkout/phone-input";
 import { SubmitError } from "@/components/checkout/submit-error";
@@ -65,8 +67,12 @@ export function TopUpDialog({ product, initialOptionId, onClose }: TopUpDialogPr
   const [submitting, setSubmitting] = useState(false);
   const [order, setOrder] = useState<Order | null>(null);
   const [submitError, setSubmitError] = useState<OrderFailure | null>(null);
+  // Closed = the order is a pre-order the buyer has to agree to.
+  const [closedMeanwhile, setClosedMeanwhile] = useState(false);
+  const [acceptedPreorder, setAcceptedPreorder] = useState(false);
 
   const { soldOut, storeOpen } = useStoreSettings();
+  const preorder = !storeOpen || closedMeanwhile;
   const isSoldOut = soldOut.products.includes(product.slug);
   const errors: OrderErrors = useMemo(
     () => (touched ? validateOrder(product.delivery, optionIds, draft) : {}),
@@ -82,19 +88,16 @@ export function TopUpDialog({ product, initialOptionId, onClose }: TopUpDialogPr
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setTouched(true);
+    // Rendered at once, so the first invalid field can be found and focused below.
+    flushSync(() => setTouched(true));
     const result = validateOrder(product.delivery, optionIds, draft);
     const whatsapp = normalizeWhatsapp(draft.whatsapp);
     setSubmitError(null);
-    if (!storeOpen) {
-      setSubmitError("storeClosed");
-      return;
-    }
     if (isSoldOut) {
       setSubmitError("soldOut");
       return;
     }
-    if (Object.keys(result).length > 0 || !option || !payment || !whatsapp) {
+    if (Object.keys(result).length > 0 || (preorder && !acceptedPreorder) || !option || !payment || !whatsapp) {
       const firstInvalid = panelRef.current?.querySelector<HTMLElement>("[aria-invalid='true']");
       firstInvalid?.focus({ preventScroll: true });
       firstInvalid?.scrollIntoView({ block: "center", behavior: "smooth" });
@@ -110,9 +113,13 @@ export function TopUpDialog({ product, initialOptionId, onClose }: TopUpDialogPr
         whatsapp,
         paymentId: payment.id,
         confirmedAccount: draft.confirmedAccount,
+        acceptedPreorder: preorder && acceptedPreorder,
       });
       if (created.ok) setOrder(created.order);
-      else setSubmitError(created.error);
+      else {
+        if (created.error === "storeClosed") setClosedMeanwhile(true);
+        setSubmitError(created.error);
+      }
     } finally {
       setSubmitting(false);
     }
@@ -175,11 +182,11 @@ export function TopUpDialog({ product, initialOptionId, onClose }: TopUpDialogPr
             <m.div
               key="form"
               exit={{ opacity: 0, y: -12 }}
-              className="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)] overflow-y-auto lg:grid-cols-[minmax(0,1fr)_20rem]"
+              className="relative grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)] overflow-y-auto lg:grid-cols-[minmax(0,1fr)_20rem]"
             >
               <form id={formId} onSubmit={handleSubmit} noValidate className="grid grid-cols-[minmax(0,1fr)] gap-6 p-4 sm:p-6">
                 {/* First thing in the form, so nobody fills it in for nothing. */}
-                <StoreClosedNotice />
+                <StoreClosedNotice show={closedMeanwhile} />
                 {isSoldOut ? (
                   <p role="status" className="rounded-xl bg-ink-300/15 px-3 py-2.5 text-sm text-ink-700">
                     <strong className="font-semibold text-ink-900">{dict.common.soldOut}.</strong> {t.soldOutNotice}
@@ -297,6 +304,13 @@ export function TopUpDialog({ product, initialOptionId, onClose }: TopUpDialogPr
                     invalid={Boolean(errors.payment)}
                   />
                 </Step>
+                {preorder ? (
+                  <PreorderConsent
+                    checked={acceptedPreorder}
+                    onChange={setAcceptedPreorder}
+                    invalid={touched && !acceptedPreorder}
+                  />
+                ) : null}
               </form>
 
               {/* Summary */}
@@ -335,10 +349,10 @@ export function TopUpDialog({ product, initialOptionId, onClose }: TopUpDialogPr
                     form={formId}
                     size="lg"
                     className="mt-5 w-full"
-                    disabled={submitting || isSoldOut || !storeOpen}
+                    disabled={submitting || isSoldOut}
                   >
                     <Zap className="size-4" aria-hidden="true" />
-                    {submitting ? t.processing : t.buyNow}
+                    {submitting ? t.processing : preorder ? dict.preorder.buy : t.buyNow}
                   </Button>
                   <p className="mt-3 flex items-center justify-center gap-1.5 text-xs text-ink-500">
                     <ShieldCheck className="size-4 text-brand-600" aria-hidden="true" />

@@ -156,9 +156,12 @@ Rules:
   order action looks the account up again on the server: unknown username → refused
   (`robloxNotFound`); found → stores canonical `account`, `roblox_user_id`, `roblox_display_name`;
   Roblox unreachable → order still allowed. Avatars come from `tr.rbxcdn.com` (in the CSP).
-- **Open / closed** (`storeOpen` setting, switch in the admin header; text = `closedMessage`): closed →
-  `StoreClosedNotice` on Robux page/home/product dialog, buy buttons off, server refuses new orders
-  (`storeClosed`). Existing orders can still be paid and checked.
+- **Open / closed = pre-order** (`storeOpen` setting, switch in the admin header; text = `closedMessage`): closed →
+  buyers can still order and pay, as a **pre-order** (`orders.is_preorder`): `StoreClosedNotice` (fixed pre-order info
+  + owner's text) on Robux page/home/product dialog, required `PreorderConsent`, "Pre-order" buttons. The server decides
+  from the fresh setting: closed without `acceptedPreorder` → `storeClosed` (a page opened before then shows the consent);
+  open → normal order. Marked on Check Order (`PreorderNote`), Discord, CSV and in admin (badge + "Pre-order" tab =
+  paid/claimed pre-orders not finished). Sold-out and stock rules still apply.
 - **Robux stock** (`robuxStock` setting, admin): shown on the Robux page/home; 0 = every Robux
   method sold out; bigger orders are refused (`notEnoughStock`); completing a Robux order subtracts
   its amount inside `transitionOrder()`. **Public stats / leaderboard / reviews** are cached

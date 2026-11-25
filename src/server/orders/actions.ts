@@ -31,9 +31,11 @@ import { hasReview } from "@/server/reviews";
 
 const str = (value: unknown, max = 300) => (typeof value === "string" ? value.slice(0, max) : "");
 
-async function create(quote: QuoteResult, settings: SiteSettings): Promise<CreateOrderResult> {
-  // Closed by the owner: refused even from a page that was opened before.
-  if (!settings.storeOpen) return { ok: false, error: "storeClosed" };
+async function create(quote: QuoteResult, settings: SiteSettings, acceptedPreorder: boolean): Promise<CreateOrderResult> {
+  // Closed by the owner: only as a pre-order the buyer agreed to (a page opened before shows the
+  // disclaimer after this error). Open again meanwhile = a normal order, whatever the page showed.
+  const isPreorder = !settings.storeOpen;
+  if (isPreorder && !acceptedPreorder) return { ok: false, error: "storeClosed" };
   if (!quote.ok) return { ok: false, error: "invalid", fields: quote.fields };
   // Out of stock (admin settings), checked on the server whatever the page showed.
   const { kind, robuxMethod, productSlug } = quote.quote;
@@ -65,7 +67,10 @@ async function create(quote: QuoteResult, settings: SiteSettings): Promise<Creat
   }
 
   try {
-    const order = await createOrder({ ...quote.quote, ...roblox }, { expiryMinutes: settings.orderExpiryMinutes });
+    const order = await createOrder({ ...quote.quote, ...roblox }, {
+      expiryMinutes: settings.orderExpiryMinutes,
+      isPreorder,
+    });
     // Optional ping for every new order (DISCORD_NOTIFY_NEW_ORDERS=1); after the response is sent.
     if (process.env.DISCORD_NOTIFY_NEW_ORDERS === "1") after(() => notifyTeam({ kind: "newOrder", orderId: order.id }));
     return { ok: true, order };
@@ -100,11 +105,13 @@ export async function createRobuxOrderAction(input: RobuxOrderInput): Promise<Cr
         paymentId: str(raw.paymentId, 40),
         confirmed2sv: raw.confirmed2sv === true,
         confirmedAccount: raw.confirmedAccount === true,
+        acceptedPreorder: raw.acceptedPreorder === true,
       },
       payment,
       settings.robuxRates,
     ),
     settings,
+    raw.acceptedPreorder === true,
   );
 }
 
@@ -120,8 +127,10 @@ export async function createProductOrderAction(input: ProductOrderInput): Promis
       whatsapp: str(raw.whatsapp, 32),
       paymentId: str(raw.paymentId, 40),
       confirmedAccount: raw.confirmedAccount === true,
+      acceptedPreorder: raw.acceptedPreorder === true,
     }, payment),
     settings,
+    raw.acceptedPreorder === true,
   );
 }
 

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { PaymentStep } from "@/components/checkout/payment-step";
+import { PreorderNote } from "@/components/checkout/preorder";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { localeHref } from "@/i18n/config";
 import { formatIDR, interpolate } from "@/i18n/format";
@@ -117,6 +118,8 @@ export function OrderSuccess({
           total: formatIDR(order.total),
         })}
       </p>
+
+      <PreorderNote order={order} className="max-w-md" />
 
       {PAYMENTS_LIVE && order.status === "pending" ? <PaymentStep order={order} onChange={setOrder} /> : null}
 

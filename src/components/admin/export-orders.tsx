@@ -10,7 +10,7 @@ import type { CsvFormat } from "@/lib/csv";
 import { EXPORT_PERIODS, type ExportPeriod } from "@/lib/export-period";
 
 const t = adminCopy.export;
-const STATUSES = ["all", "check", "pending", "paid", "processing", "completed", "failed", "expired"] as const;
+const STATUSES = ["all", "check", "preorder", "pending", "paid", "processing", "completed", "failed", "expired"] as const;
 type Status = (typeof STATUSES)[number];
 const STATUS_OPTIONS = STATUSES.map((value) => ({ value, label: adminCopy.filters[value] }));
 const PERIOD_OPTIONS = EXPORT_PERIODS.map((value) => ({ value, label: t.periods[value] }));

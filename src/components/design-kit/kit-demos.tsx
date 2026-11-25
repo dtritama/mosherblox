@@ -205,6 +205,7 @@ const sampleOrder: Order = {
   paymentStatus: "confirmed",
   hasProof: false,
   hasReview: false,
+  isPreorder: false,
   deliveryProofUrls: [],
   adminNote: null,
 };

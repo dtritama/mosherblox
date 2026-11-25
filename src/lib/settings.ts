@@ -37,7 +37,7 @@ export interface SiteSettings {
    * automatically. null = not tracked (hidden, no limit).
    */
   robuxStock: number | null;
-  /** false = the store takes no new orders (existing ones can still be paid and checked). */
+  /** false = new orders are pre-orders, processed after the store opens again. */
   storeOpen: boolean;
   /** Shown to buyers while the store is closed. Empty English = the Indonesian text. */
   closedMessage: LocalizedText;
@@ -51,8 +51,8 @@ export const defaultSettings: SiteSettings = {
   robuxStock: null,
   storeOpen: true,
   closedMessage: {
-    id: "Kami lagi istirahat, jadi belum bisa menerima pesanan baru. Cek lagi nanti ya!",
-    en: "We're taking a break and can't take new orders right now. Please check back later!",
+    id: "Kami lagi istirahat sebentar. Pesananmu kami proses begitu toko buka lagi ya!",
+    en: "We're taking a short break. We'll process your order as soon as we're back!",
   },
 };
 

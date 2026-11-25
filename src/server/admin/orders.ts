@@ -1,5 +1,5 @@
 import "server-only";
-import { and, asc, count, desc, eq, gte, ilike, lt, max, or, type SQL } from "drizzle-orm";
+import { and, asc, count, desc, eq, gte, ilike, inArray, lt, max, or, type SQL } from "drizzle-orm";
 import type { PayTo } from "@/lib/payment-methods";
 import { getPaymentMethod } from "@/data/payments";
 import { deliveryProofUrl } from "@/server/payments/proof-storage";
@@ -15,9 +15,10 @@ import { normalizeWhatsapp } from "@/lib/validation";
 
 const { orders, payments, orderEvents, admins } = schema;
 
-/** "check" = pending orders where the buyer pressed "Saya sudah bayar": the admin's to-do list. */
+/** "check" = pending orders where the buyer pressed "Saya sudah bayar": the admin's to-do list. "preorder" = paid (or said so) pre-orders still to be delivered. */
 export const ADMIN_FILTERS = [
   "check",
+  "preorder",
   "pending",
   "paid",
   "processing",
@@ -44,6 +45,7 @@ export interface AdminOrderListItem {
   total: number;
   paymentStatus: PaymentStatus | null;
   hasProof: boolean;
+  isPreorder: boolean;
 }
 
 /** Latest payment per order (one row per order). */
@@ -60,9 +62,20 @@ function latestPayments() {
     .as("lp");
 }
 
+function openPreorders(lp: ReturnType<typeof latestPayments>) {
+  return and(
+    eq(orders.isPreorder, true),
+    or(
+      inArray(orders.status, ["paid", "processing"]),
+      and(eq(orders.status, "pending"), eq(lp.status, "submitted")),
+    ),
+  );
+}
+
 function filterWhere(filter: AdminFilter, lp: ReturnType<typeof latestPayments>): SQL | undefined {
   if (filter === "all") return undefined;
   if (filter === "check") return and(eq(orders.status, "pending"), eq(lp.status, "submitted"));
+  if (filter === "preorder") return openPreorders(lp);
   return eq(orders.status, filter);
 }
 
@@ -90,8 +103,8 @@ export async function listOrders({ filter, q, page }: { filter: AdminFilter; q: 
       .from(orders)
       .leftJoin(lp, eq(lp.orderId, orders.id))
       .where(where)
-      // Oldest first in the to-do list (first come, first served); newest first elsewhere.
-      .orderBy(filter === "check" ? asc(orders.createdAt) : desc(orders.createdAt))
+      // Oldest first in the to-do lists (first come, first served); newest first elsewhere.
+      .orderBy(filter === "check" || filter === "preorder" ? asc(orders.createdAt) : desc(orders.createdAt))
       .limit(PAGE_SIZE)
       .offset((page - 1) * PAGE_SIZE),
     db.select({ total: count() }).from(orders).leftJoin(lp, eq(lp.orderId, orders.id)).where(where),
@@ -108,6 +121,7 @@ export async function listOrders({ filter, q, page }: { filter: AdminFilter; q: 
     total: order.total,
     paymentStatus: paymentStatus ?? null,
     hasProof: Boolean(proofPath),
+    isPreorder: order.isPreorder,
   }));
   return { items, total, pages: Math.max(1, Math.ceil(total / PAGE_SIZE)) };
 }
@@ -146,13 +160,14 @@ export async function getOrdersVersion(): Promise<string> {
 export async function countByFilter(): Promise<Record<AdminFilter, number>> {
   const db = getDb();
   const lp = latestPayments();
-  const [byStatus, [{ check }]] = await Promise.all([
+  const [byStatus, [{ check }], [{ preorder }]] = await Promise.all([
     db.select({ status: orders.status, n: count() }).from(orders).groupBy(orders.status),
     db
       .select({ check: count() })
       .from(orders)
       .innerJoin(lp, eq(lp.orderId, orders.id))
       .where(and(eq(orders.status, "pending"), eq(lp.status, "submitted"))),
+    db.select({ preorder: count() }).from(orders).leftJoin(lp, eq(lp.orderId, orders.id)).where(openPreorders(lp)),
   ]);
   const result = Object.fromEntries(ADMIN_FILTERS.map((f) => [f, 0])) as Record<AdminFilter, number>;
   for (const { status, n } of byStatus) {
@@ -160,12 +175,14 @@ export async function countByFilter(): Promise<Record<AdminFilter, number>> {
     result.all += n;
   }
   result.check = check;
+  result.preorder = preorder;
   return result;
 }
 
 export interface AdminOrderDetail {
   id: string;
   status: OrderStatus;
+  isPreorder: boolean;
   kind: "robux" | "product";
   createdAt: string;
   expiresAt: string;
@@ -236,6 +253,7 @@ export async function getOrderDetail(id: string): Promise<AdminOrderDetail | nul
   return {
     id: order.id,
     status: order.status,
+    isPreorder: order.isPreorder,
     kind: order.kind,
     createdAt: order.createdAt.toISOString(),
     expiresAt: order.expiresAt.toISOString(),

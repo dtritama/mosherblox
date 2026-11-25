@@ -20,6 +20,15 @@ export function StatusBadge({ status, className }: { status: OrderStatus; classN
   );
 }
 
+/** Made while the store was closed. */
+export function PreorderBadge() {
+  return (
+    <span className="rounded-full bg-blush-100 px-2.5 py-1 text-xs font-semibold whitespace-nowrap text-blush-800">
+      {adminCopy.orders.preorder}
+    </span>
+  );
+}
+
 /** Dates in the store's time zone (WIB), whatever the admin's device is set to. */
 const dateTime = new Intl.DateTimeFormat("id-ID", {
   dateStyle: "medium",

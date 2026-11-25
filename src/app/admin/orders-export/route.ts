@@ -45,6 +45,7 @@ export async function GET(request: Request) {
         id: order.id,
         created: stamp(order.createdAt),
         status: adminCopy.status[order.status],
+        preorder: order.isPreorder ? t.yes : null,
         product: order.productName,
         item: order.itemLabel.id,
         method: order.robuxMethod ? t.methods[order.robuxMethod] : null,

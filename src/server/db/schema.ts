@@ -136,6 +136,8 @@ export const orders = pgTable(
     uniqueCode: integer("unique_code").notNull().default(0),
     total: integer("total").notNull(),
 
+    /** Made while the store was closed: processed after it opens again (the buyer agreed at checkout). */
+    isPreorder: boolean("is_preorder").notNull().default(false),
     expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
     paidAt: timestamp("paid_at", { withTimezone: true }),
     completedAt: timestamp("completed_at", { withTimezone: true }),

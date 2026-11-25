@@ -16,6 +16,7 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 
 import { Field, inputClass, SummaryRow } from "@/components/checkout/form-parts";
+import { PreorderNote } from "@/components/checkout/preorder";
 import { PaymentStep } from "@/components/checkout/payment-step";
 import { ReviewForm } from "@/components/orders/review-form";
 import { PhoneInput } from "@/components/checkout/phone-input";
@@ -245,7 +246,14 @@ function OrderResult({
     <m.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }}>
       <div className="border-b border-brand-100 bg-linear-to-r from-brand-50 to-white p-5 sm:p-8">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <p className="font-mono text-xl font-bold tracking-wider text-ink-900">{result.id}</p>
+          <p className="flex flex-wrap items-center gap-2 font-mono text-xl font-bold tracking-wider text-ink-900">
+            {result.id}
+            {result.isPreorder ? (
+              <span className="rounded-full bg-blush-100 px-2.5 py-1 font-sans text-xs font-semibold tracking-normal text-blush-800">
+                {dict.preorder.badge}
+              </span>
+            ) : null}
+          </p>
           <span
             className={cn("inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-semibold", style.badge)}
           >
@@ -261,6 +269,7 @@ function OrderResult({
             ? dict.payment.submittedTitle
             : t.statusDescription[result.status]}
         </p>
+        <PreorderNote order={result} className="mt-3" />
         {!failed && result.status !== "completed" ? (
           <p className="mt-2 flex items-center gap-2 text-xs font-medium text-ink-500">
             <span aria-hidden="true" className={cn("size-2 rounded-full", online ? "bg-brand-500" : "bg-blush-500")} />

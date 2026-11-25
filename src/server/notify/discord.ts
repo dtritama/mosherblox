@@ -10,6 +10,8 @@ import { formatIDR, formatNumber } from "@/i18n/format";
 
 export interface OrderSummary {
   id: string;
+  /** Made while the store was closed. */
+  isPreorder: boolean;
   kind: "robux" | "product";
   item: string;
   productName: string;
@@ -104,12 +106,14 @@ function orderEmbed(
     { name: "Pesanan", value: `\`${order.id}\``, inline: true },
   ];
   return {
-    author: { name: options.heading },
+    author: { name: order.isPreorder ? `${options.heading} · PRE-ORDER` : options.heading },
     title: isRobux
       ? `${robux} untuk ${order.robloxDisplayName ?? order.account}`
       : `${order.item} · ${order.productName}`,
     url: adminUrl(order.id),
-    description: options.description,
+    description: order.isPreorder
+      ? `${options.description}\n**Pre-order:** dibuat saat toko tutup, dikirim setelah toko buka lagi.`
+      : options.description,
     color: options.color,
     ...(options.avatarUrl ? { thumbnail: { url: options.avatarUrl } } : {}),
     fields,
@@ -130,7 +134,7 @@ export function paymentClaimedMessage(
     content: [
       ...mentions.roles.map((id) => `<@&${id}>`),
       ...mentions.users.map((id) => `<@${id}>`),
-      `Pembayaran perlu dicek: \`${order.id}\``,
+      `Pembayaran perlu dicek${order.isPreorder ? " (pre-order)" : ""}: \`${order.id}\``,
     ].join(" "),
     // Only these roles/users may be pinged — never @everyone/@here, whatever ends up in the text.
     allowed_mentions: { parse: [], roles: mentions.roles, users: mentions.users },

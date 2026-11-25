@@ -17,6 +17,8 @@ export interface Order {
   expiresAt: string;
   /** ISO 8601 timestamp: "Saya sudah bayar" is still accepted until this (expiresAt + grace). */
   claimUntil: string;
+  /** Made while the store was closed: processed after it opens again. */
+  isPreorder: boolean;
   product: string;
   item: LocalizedText;
   /** Roblox username or email (for vouchers). */
@@ -56,6 +58,8 @@ export interface RobuxOrderInput {
   paymentId: string;
   confirmed2sv: boolean;
   confirmedAccount: boolean;
+  /** The buyer agreed that this is a pre-order (needed while the store is closed). */
+  acceptedPreorder: boolean;
 }
 
 export interface ProductOrderInput {
@@ -65,6 +69,8 @@ export interface ProductOrderInput {
   whatsapp: string;
   paymentId: string;
   confirmedAccount: boolean;
+  /** The buyer agreed that this is a pre-order (needed while the store is closed). */
+  acceptedPreorder: boolean;
 }
 
 /**
@@ -74,7 +80,7 @@ export interface ProductOrderInput {
  * - soldOut:     the Robux method or product is out of stock (admin settings)
  * - notEnoughStock: more Robux than the store has in stock right now
  * - outdated:    the page is older than the server (opened before an update): reload it
- * - storeClosed: the owner closed the store for new orders
+ * - storeClosed: the store closed meanwhile and the buyer has not agreed to a pre-order yet
  */
 export type OrderFailure = "invalid" | "rateLimited" | "unavailable" | "soldOut" | "notEnoughStock" | "storeClosed" | "outdated";
 

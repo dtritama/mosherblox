@@ -18,10 +18,12 @@ import {
 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useId, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
+import { flushSync } from "react-dom";
 
 import { Field, inputClass, Step, SummaryRow } from "@/components/checkout/form-parts";
 import { OrderSuccess } from "@/components/checkout/order-success";
 import { PaymentPicker } from "@/components/checkout/payment-picker";
+import { PreorderConsent } from "@/components/checkout/preorder";
 import { RobloxAccountCheck } from "@/components/checkout/roblox-account-check";
 import { useStoreSettings } from "@/components/providers/settings-provider";
 import { PhoneInput } from "@/components/checkout/phone-input";
@@ -112,6 +114,9 @@ export function RobuxPanel({ className }: { className?: string }) {
   const [submitting, setSubmitting] = useState(false);
   const [order, setOrder] = useState<Order | null>(null);
   const [submitError, setSubmitError] = useState<OrderFailure | null>(null);
+  // Closed = the order is a pre-order the buyer has to agree to.
+  const [closedMeanwhile, setClosedMeanwhile] = useState(false);
+  const [acceptedPreorder, setAcceptedPreorder] = useState(false);
 
   const update = <K extends keyof RobuxOrderDraft>(key: K, value: RobuxOrderDraft[K]) =>
     setDraft((prev) => ({ ...prev, [key]: value }));
@@ -135,6 +140,7 @@ export function RobuxPanel({ className }: { className?: string }) {
   const payment = payments.find((item) => item.id === draft.paymentId);
   const total = subtotal !== null ? subtotal + (payment?.fee ?? 0) : null;
   const methodName = t.methods[draft.method].name;
+  const preorder = !storeOpen || closedMeanwhile;
   const n = (value: number) => formatNumber(value, locale);
 
   const setAmountFromInput = (raw: string) => {
@@ -158,14 +164,11 @@ export function RobuxPanel({ className }: { className?: string }) {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setTouched(true);
+    // Rendered at once, so the first invalid field can be found and focused below.
+    flushSync(() => setTouched(true));
     const result = validateRobuxOrder(draft);
     const whatsapp = normalizeWhatsapp(draft.whatsapp);
     setSubmitError(null);
-    if (!storeOpen) {
-      setSubmitError("storeClosed");
-      return;
-    }
     if (isSoldOut(draft.method)) {
       setSubmitError("soldOut");
       return;
@@ -174,7 +177,8 @@ export function RobuxPanel({ className }: { className?: string }) {
       setSubmitError("notEnoughStock");
       return;
     }
-    if (Object.keys(result).length > 0 || draft.amount === null || !whatsapp || !payment) {
+    const needsConsent = preorder && !acceptedPreorder;
+    if (Object.keys(result).length > 0 || needsConsent || draft.amount === null || !whatsapp || !payment) {
       const firstInvalid = formRef.current?.querySelector<HTMLElement>("[aria-invalid='true']");
       firstInvalid?.focus({ preventScroll: true });
       firstInvalid?.scrollIntoView({ block: "center", behavior: "smooth" });
@@ -191,8 +195,10 @@ export function RobuxPanel({ className }: { className?: string }) {
         paymentId: payment.id,
         confirmed2sv: draft.confirmed2sv,
         confirmedAccount: draft.confirmedAccount,
+        acceptedPreorder: preorder && acceptedPreorder,
       });
       if (!result.ok) {
+        if (result.error === "storeClosed") setClosedMeanwhile(true);
         setSubmitError(result.error);
         return;
       }
@@ -207,10 +213,12 @@ export function RobuxPanel({ className }: { className?: string }) {
     setOrder(null);
     setSubmitError(null);
     setTouched(false);
+    setAcceptedPreorder(false);
     setDraft((prev) => ({ ...initialDraft, method: prev.method, whatsapp: prev.whatsapp }));
   };
 
-  const buyLabel = amount ? interpolate(t.buy, { amount: n(amount) }) : c.buyNow;
+  const buyNow = preorder ? dict.preorder.buy : c.buyNow;
+  const buyLabel = amount ? interpolate(preorder ? dict.preorder.buyRobux : t.buy, { amount: n(amount) }) : buyNow;
 
   return (
     <section id="robux-panel" aria-labelledby="robux-panel-title" className={cn("relative scroll-mt-20", className)}>
@@ -239,7 +247,7 @@ export function RobuxPanel({ className }: { className?: string }) {
               >
                 <form ref={formRef} id={formId} onSubmit={handleSubmit} noValidate className="grid grid-cols-[minmax(0,1fr)] gap-8 p-5 sm:p-8">
                   {/* First thing in the form, so nobody fills it in for nothing. */}
-                  <StoreClosedNotice />
+                  <StoreClosedNotice show={closedMeanwhile} />
                   {/* 1 — Method */}
                   <Step number={1} title={t.steps.method}>
                     <fieldset className="grid gap-3 sm:grid-cols-2">
@@ -574,6 +582,13 @@ export function RobuxPanel({ className }: { className?: string }) {
                       columns={3}
                     />
                   </Step>
+                  {preorder ? (
+                    <PreorderConsent
+                      checked={acceptedPreorder}
+                      onChange={setAcceptedPreorder}
+                      invalid={touched && !acceptedPreorder}
+                    />
+                  ) : null}
                 </form>
 
                 {/* Summary — sticky sidebar on desktop */}
@@ -603,7 +618,7 @@ export function RobuxPanel({ className }: { className?: string }) {
                       form={formId}
                       size="lg"
                       className="mt-5 w-full"
-                      disabled={submitting || allSoldOut || !storeOpen}
+                      disabled={submitting || allSoldOut}
                     >
                       <Zap className="size-4" aria-hidden="true" />
                       {submitting ? c.processing : buyLabel}
@@ -625,9 +640,9 @@ export function RobuxPanel({ className }: { className?: string }) {
                       </p>
                       <Total value={total} />
                     </div>
-                    <Button type="submit" form={formId} disabled={submitting || allSoldOut || !storeOpen}>
+                    <Button type="submit" form={formId} disabled={submitting || allSoldOut}>
                       <Zap className="size-4" aria-hidden="true" />
-                      {submitting ? c.processing : c.buyNow}
+                      {submitting ? c.processing : buyNow}
                     </Button>
                   </div>
                 </div>

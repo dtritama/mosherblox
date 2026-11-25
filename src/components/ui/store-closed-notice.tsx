@@ -6,11 +6,14 @@ import { useStoreSettings } from "@/components/providers/settings-provider";
 import { useI18n } from "@/i18n/i18n-provider";
 import { cn } from "@/lib/utils";
 
-/** "Toko lagi offline" + the owner's text (admin settings). Nothing while the store is open. */
-export function StoreClosedNotice({ className }: { className?: string }) {
+/**
+ * Store closed = orders are pre-orders: says so, with the owner's own text (admin settings) below.
+ * Nothing while the store is open. `show`: it closed after this page was loaded.
+ */
+export function StoreClosedNotice({ show = false, className }: { show?: boolean; className?: string }) {
   const { locale, dict } = useI18n();
   const { storeOpen, closedMessage } = useStoreSettings();
-  if (storeOpen) return null;
+  if (storeOpen && !show) return null;
   return (
     <div
       role="status"
@@ -21,7 +24,8 @@ export function StoreClosedNotice({ className }: { className?: string }) {
       </span>
       <div className="min-w-0">
         <p className="font-bold text-ink-900">{dict.storeClosed.title}</p>
-        <p className="mt-0.5 text-sm break-words whitespace-pre-line text-ink-700">
+        <p className="mt-0.5 text-sm text-ink-700">{dict.preorder.info}</p>
+        <p className="mt-2 text-sm break-words whitespace-pre-line text-ink-700">
           {closedMessage[locale] || closedMessage.id}
         </p>
       </div>

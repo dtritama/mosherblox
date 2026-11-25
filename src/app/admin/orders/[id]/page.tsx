@@ -5,7 +5,7 @@ import { Suspense, type ReactNode } from "react";
 
 import { adminCopy } from "@/app/admin/copy";
 import { AdminShell } from "@/components/admin/admin-shell";
-import { formatAdminDate, formatWhatsapp, StatusBadge } from "@/components/admin/status-badge";
+import { formatAdminDate, formatWhatsapp, PreorderBadge, StatusBadge } from "@/components/admin/status-badge";
 import { StatusActions } from "@/components/admin/status-actions";
 import { DeliveryProof } from "@/components/admin/delivery-proof";
 import { formatIDR, formatNumber, interpolate } from "@/i18n/format";
@@ -167,6 +167,7 @@ function OrderDetail({ order }: { order: AdminOrderDetail }) {
       <div className="mt-2 flex flex-wrap items-center gap-3">
         <h1 className="font-mono text-2xl font-bold tracking-wider text-ink-900">{order.id}</h1>
         <StatusBadge status={order.status} />
+        {order.isPreorder ? <PreorderBadge /> : null}
         {claimed ? (
           <span className="rounded-full bg-blush-100 px-2.5 py-1 text-xs font-semibold text-blush-800">
             {adminCopy.paymentStatus.submitted}
@@ -176,6 +177,7 @@ function OrderDetail({ order }: { order: AdminOrderDetail }) {
       <p className="mt-1 text-sm text-ink-500">
         {t.created} {formatAdminDate(order.createdAt)}
       </p>
+      {order.isPreorder ? <p className="mt-1 text-sm text-blush-800">{adminCopy.orders.preorderHint}</p> : null}
 
       {/* Action first on phones; on desktop it sits in the right column next to the facts. */}
       <div className="mt-6 grid gap-4 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">

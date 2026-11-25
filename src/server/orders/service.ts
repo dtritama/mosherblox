@@ -45,6 +45,7 @@ export function toOrder(row: OrderRow, payment?: PaymentRow | null): Order {
     createdAt: row.createdAt.toISOString(),
     expiresAt: row.expiresAt.toISOString(),
     claimUntil: new Date(row.expiresAt.getTime() + graceMs).toISOString(),
+    isPreorder: row.isPreorder,
     product: row.productName,
     item: row.itemLabel,
     account: row.account,
@@ -85,7 +86,10 @@ function isUniqueViolation(error: unknown) {
 
 export async function createOrder(
   { payTo, ...quote }: OrderQuote,
-  { expiryMinutes = orderConfig.expiryMinutes }: { expiryMinutes?: number } = {},
+  {
+    expiryMinutes = orderConfig.expiryMinutes,
+    isPreorder = false,
+  }: { expiryMinutes?: number; isPreorder?: boolean } = {},
 ): Promise<Order> {
   const db = getDb();
   const provider = providerFor(quote.paymentMethod, payTo);
@@ -104,6 +108,7 @@ export async function createOrder(
             ...quote,
             uniqueCode,
             total,
+            isPreorder,
             expiresAt: new Date(Date.now() + expiryMinutes * 60_000),
           })
           .returning();
@@ -334,6 +339,7 @@ export async function getOrderSummary(orderId: string) {
   return {
     id: row.id,
     status: row.status,
+    isPreorder: row.isPreorder,
     kind: row.kind,
     item: row.itemLabel.id,
     productName: row.productName,

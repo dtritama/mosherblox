@@ -189,16 +189,16 @@ export function RobuxSection() {
                   ) : null}
                 </p>
               </div>
-              {valid && storeOpen ? (
+              {valid ? (
                 <Link
                   href={robuxPageHref(locale, amountValue, methodSoldOut)}
                   className={buttonVariants({ size: "lg", className: "w-full sm:w-auto" })}
                 >
                   <Zap className="size-4" aria-hidden="true" />
-                  {interpolate(t.buy, { amount: formatNumber(amountValue, locale) })}
+                  {interpolate(storeOpen ? t.buy : dict.preorder.buyRobux, { amount: formatNumber(amountValue, locale) })}
                 </Link>
               ) : (
-                // Not a link while the amount is out of range or the store is closed (said above).
+                // Not a link while the amount is out of range (said above).
                 <span
                   aria-disabled="true"
                   className={buttonVariants({

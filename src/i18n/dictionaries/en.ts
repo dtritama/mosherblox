@@ -29,7 +29,16 @@ export const en: Dictionary = {
     free: "Free",
     perRobux: "per Robux",
   },
-  storeClosed: { title: "The store is offline" },
+  storeClosed: { title: "The store is closed, but you can pre-order" },
+  preorder: {
+    badge: "Pre-order",
+    info: "You can order and pay now. We check the payment and process your order after the store opens again.",
+    confirm: "I understand this is a pre-order: I pay now and it's processed after the store opens again.",
+    confirmError: "Tick this box to continue with your pre-order.",
+    buy: "Pre-order",
+    buyRobux: "Pre-order {amount} Robux",
+    waiting: "This is a pre-order. We check the payment and process it after the store opens again.",
+  },
   theme: {
     toDark: "Switch to dark mode",
     toLight: "Switch to light mode",
@@ -405,7 +414,7 @@ export const en: Dictionary = {
       unavailable: "We couldn't create your order right now. Try again shortly, or chat with support.",
       soldOut: "Sorry, this just sold out. Pick something else or check back later.",
       notEnoughStock: "We don't have enough Robux in stock for this amount. Lower it, or chat with support.",
-      storeClosed: "The store is offline and can't take new orders right now. Please check back later.",
+      storeClosed: "The store just closed. You can still pre-order: read the note, tick the box, then order again.",
     },
     success: {
       title: "Order created",

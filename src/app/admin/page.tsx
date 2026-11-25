@@ -7,7 +7,7 @@ import { adminCopy } from "@/app/admin/copy";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { ExportOrders } from "@/components/admin/export-orders";
 import { LiveOrders } from "@/components/admin/live-orders";
-import { formatAdminDate, formatWhatsapp, StatusBadge } from "@/components/admin/status-badge";
+import { formatAdminDate, formatWhatsapp, PreorderBadge, StatusBadge } from "@/components/admin/status-badge";
 import { formatIDR, interpolate } from "@/i18n/format";
 import { cn } from "@/lib/utils";
 import {
@@ -255,6 +255,7 @@ function OrderTable({ items }: { items: AdminOrderListItem[] }) {
               <td className="px-5 py-3">
                 <div className="flex flex-col items-start gap-1">
                   <StatusBadge status={item.status} />
+                  {item.isPreorder ? <PreorderBadge /> : null}
                   <PaymentFlags item={item} />
                 </div>
               </td>
@@ -278,7 +279,10 @@ function OrderCards({ items }: { items: AdminOrderListItem[] }) {
           >
             <div className="flex items-start justify-between gap-2">
               <span className="font-mono font-bold tracking-wide text-ink-900">{item.id}</span>
-              <StatusBadge status={item.status} />
+              <span className="flex flex-col items-end gap-1">
+                <StatusBadge status={item.status} />
+                {item.isPreorder ? <PreorderBadge /> : null}
+              </span>
             </div>
             <p className="mt-2 text-sm font-medium text-ink-900">{item.item}</p>
             <p className="text-xs text-ink-500">
