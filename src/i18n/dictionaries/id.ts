@@ -369,6 +369,11 @@ export const id = {
       country: "Negara / kode telepon",
       hint: "Untuk update status & cek pesanan.",
     },
+    paymentLimit: {
+      max: "Maks. {amount}",
+      pickOther: "Pembelian di atas {amount} tidak bisa pakai {method}. Pilih metode pembayaran lain ya.",
+      noOther: "Pembelian di atas {amount} tidak bisa pakai {method}. Kurangi jumlahnya, atau chat CS kami.",
+    },
     paymentGroups: {
       QRIS: "QRIS",
       "E-Wallet": "E-Wallet",

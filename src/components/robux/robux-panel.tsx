@@ -33,7 +33,7 @@ import { Container } from "@/components/ui/container";
 import { Reveal } from "@/components/ui/reveal";
 import { StoreClosedNotice } from "@/components/ui/store-closed-notice";
 import { SectionHeading } from "@/components/ui/section-heading";
-import { defaultPaymentId } from "@/data/payments";
+import { acceptsAmount, defaultPaymentId } from "@/data/payments";
 import { robuxConfig, type RobuxMethodId } from "@/data/robux";
 import { formatIDR, formatNumber, interpolate } from "@/i18n/format";
 import { useI18n } from "@/i18n/i18n-provider";
@@ -125,7 +125,6 @@ export function RobuxPanel({ className }: { className?: string }) {
   /** Per-order max: Send Username is capped by its daily limit. */
   const methodMax = getRobuxMaxAmount(draft.method);
 
-  const errors = useMemo(() => (touched ? validateRobuxOrder(draft) : {}), [touched, draft]);
   const errorText = (code?: OrderErrorCode) =>
     code
       ? interpolate(c.errors[code], { min: formatNumber(minAmount, locale), max: formatNumber(methodMax, locale) })
@@ -137,7 +136,13 @@ export function RobuxPanel({ className }: { className?: string }) {
   const upcomingTier = amount !== null ? getNextRobuxTier(draft.method, amount, rates) : undefined;
   const nextTier = upcomingTier && upcomingTier.minAmount <= methodMax ? upcomingTier : undefined;
   const payments = useCheckoutPayments();
-  const payment = payments.find((item) => item.id === draft.paymentId);
+  // Picked earlier but too expensive for it now (QRIS limit) = nothing picked.
+  const payment = payments.find((item) => item.id === draft.paymentId && acceptsAmount(item, subtotal ?? 0));
+  const paymentId = payment?.id ?? "";
+  const errors = useMemo(
+    () => (touched ? validateRobuxOrder({ ...draft, paymentId }) : {}),
+    [touched, draft, paymentId],
+  );
   const total = subtotal !== null ? subtotal + (payment?.fee ?? 0) : null;
   const methodName = t.methods[draft.method].name;
   const preorder = !storeOpen || closedMeanwhile;
@@ -166,7 +171,7 @@ export function RobuxPanel({ className }: { className?: string }) {
     event.preventDefault();
     // Rendered at once, so the first invalid field can be found and focused below.
     flushSync(() => setTouched(true));
-    const result = validateRobuxOrder(draft);
+    const result = validateRobuxOrder({ ...draft, paymentId });
     const whatsapp = normalizeWhatsapp(draft.whatsapp);
     setSubmitError(null);
     if (isSoldOut(draft.method)) {
@@ -578,6 +583,7 @@ export function RobuxPanel({ className }: { className?: string }) {
                       name="robux-payment"
                       value={draft.paymentId}
                       onChange={(id) => update("paymentId", id)}
+                      price={subtotal}
                       invalid={Boolean(errors.payment)}
                       columns={3}
                     />

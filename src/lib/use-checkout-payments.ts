@@ -12,6 +12,7 @@ export interface CheckoutPaymentOption {
   name: string;
   group: PaymentGroup;
   fee: number;
+  maxAmount?: number;
   brand: string;
   logo: string | null;
 }
@@ -21,11 +22,12 @@ export function useCheckoutPayments(): CheckoutPaymentOption[] {
   const { paymentOptions } = useStoreSettings();
   return useMemo(
     () => [
-      ...checkoutPaymentMethods.map(({ id, name, group, fee }) => ({
+      ...checkoutPaymentMethods.map(({ id, name, group, fee, maxAmount }) => ({
         id,
         name,
         group,
         fee,
+        maxAmount,
         brand: id,
         logo: id === "qris" ? QRIS_LOGO : null,
       })),

@@ -57,6 +57,8 @@ export interface PaymentMethod {
   group: PaymentGroup;
   /** Flat fee in IDR. */
   fee: number;
+  /** Highest order price (IDR, before fee and unique code) this method takes. Not set = no limit. */
+  maxAmount?: number;
   availability: PaymentAvailability;
 }
 

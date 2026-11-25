@@ -1,5 +1,6 @@
 import "server-only";
 import { robuxConfig, type RobuxMethodId } from "@/data/robux";
+import { acceptsAmount } from "@/data/payments";
 import type { LocalizedText } from "@/i18n/config";
 import { en } from "@/i18n/dictionaries/en";
 import { id } from "@/i18n/dictionaries/id";
@@ -47,7 +48,9 @@ export function quoteRobuxOrder(input: RobuxOrderInput, payment: CheckoutPayment
   const amount = Number.isSafeInteger(input.amount) ? input.amount : null;
   const fields = validateRobuxOrder({ ...input, amount });
   const whatsapp = normalizeWhatsapp(input.whatsapp);
-  if (!payment) fields.payment = "pickPayment";
+  const subtotal = amount !== null && !fields.amount ? calculateRobuxPrice(input.method, amount, rates) : 0;
+  // Too expensive for this method (QRIS limit), whatever the page showed.
+  if (!payment || !acceptsAmount(payment, subtotal)) fields.payment = "pickPayment";
   if (Object.keys(fields).length > 0 || amount === null || !whatsapp || !payment) return { ok: false, fields };
 
   // Method names are the same in both languages; only the number format differs.
@@ -69,7 +72,7 @@ export function quoteRobuxOrder(input: RobuxOrderInput, payment: CheckoutPayment
       whatsapp,
       paymentMethod: payment.method,
       payTo: payment.payTo,
-      subtotal: calculateRobuxPrice(input.method, amount, rates),
+      subtotal,
       fee: payment.fee,
     },
   };
@@ -82,7 +85,7 @@ export function quoteProductOrder(input: ProductOrderInput, payment: CheckoutPay
   const fields: Partial<Record<string, OrderErrorCode>> = validateOrder(product.delivery, optionIds, input);
   const option = product.options.find((item) => item.id === input.optionId);
   const whatsapp = normalizeWhatsapp(input.whatsapp);
-  if (!payment) fields.payment = "pickPayment";
+  if (!payment || !acceptsAmount(payment, option?.price ?? 0)) fields.payment = "pickPayment";
   if (Object.keys(fields).length > 0 || !option || !whatsapp || !payment) return { ok: false, fields };
 
   return {

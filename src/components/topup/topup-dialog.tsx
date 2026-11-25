@@ -16,7 +16,7 @@ import { useStoreSettings } from "@/components/providers/settings-provider";
 import { StoreClosedNotice } from "@/components/ui/store-closed-notice";
 import { Button } from "@/components/ui/button";
 import { ProductArt } from "@/components/ui/product-art";
-import { defaultPaymentId } from "@/data/payments";
+import { acceptsAmount, defaultPaymentId } from "@/data/payments";
 import { useDialogA11y } from "@/hooks/use-dialog-a11y";
 import { formatIDR } from "@/i18n/format";
 import { useI18n } from "@/i18n/i18n-provider";
@@ -74,13 +74,15 @@ export function TopUpDialog({ product, initialOptionId, onClose }: TopUpDialogPr
   const { soldOut, storeOpen } = useStoreSettings();
   const preorder = !storeOpen || closedMeanwhile;
   const isSoldOut = soldOut.products.includes(product.slug);
-  const errors: OrderErrors = useMemo(
-    () => (touched ? validateOrder(product.delivery, optionIds, draft) : {}),
-    [touched, product.delivery, optionIds, draft],
-  );
   const option = product.options.find((item) => item.id === draft.optionId);
   const payments = useCheckoutPayments();
-  const payment = payments.find((item) => item.id === draft.paymentId);
+  // Picked earlier but too expensive for it now (QRIS limit) = nothing picked.
+  const payment = payments.find((item) => item.id === draft.paymentId && acceptsAmount(item, option?.price ?? 0));
+  const paymentId = payment?.id ?? "";
+  const errors: OrderErrors = useMemo(
+    () => (touched ? validateOrder(product.delivery, optionIds, { ...draft, paymentId }) : {}),
+    [touched, product.delivery, optionIds, draft, paymentId],
+  );
   const total = option ? option.price + (payment?.fee ?? 0) : 0;
 
   const update = <K extends keyof OrderDraft>(key: K, value: OrderDraft[K]) =>
@@ -90,7 +92,7 @@ export function TopUpDialog({ product, initialOptionId, onClose }: TopUpDialogPr
     event.preventDefault();
     // Rendered at once, so the first invalid field can be found and focused below.
     flushSync(() => setTouched(true));
-    const result = validateOrder(product.delivery, optionIds, draft);
+    const result = validateOrder(product.delivery, optionIds, { ...draft, paymentId });
     const whatsapp = normalizeWhatsapp(draft.whatsapp);
     setSubmitError(null);
     if (isSoldOut) {
@@ -301,6 +303,7 @@ export function TopUpDialog({ product, initialOptionId, onClose }: TopUpDialogPr
                     name="payment"
                     value={draft.paymentId}
                     onChange={(id) => update("paymentId", id)}
+                    price={option?.price ?? null}
                     invalid={Boolean(errors.payment)}
                   />
                 </Step>

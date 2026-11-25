@@ -51,6 +51,8 @@ export interface CheckoutPayment {
   /** Stored on the order ("qris" or the brand id). */
   method: string;
   fee: number;
+  /** Highest order price; null = no limit. */
+  maxAmount: number | null;
   /** null = the store's QRIS. */
   payTo: PayTo | null;
 }
@@ -58,14 +60,14 @@ export interface CheckoutPayment {
 /** What a checkout choice means right now, read fresh. null = not offered (any more). */
 export async function resolveCheckoutPayment(id: string): Promise<CheckoutPayment | null> {
   const builtIn = getCheckoutPaymentMethod(id);
-  if (builtIn) return { method: builtIn.id, fee: builtIn.fee, payTo: null };
+  if (builtIn) return { method: builtIn.id, fee: builtIn.fee, maxAmount: builtIn.maxAmount ?? null, payTo: null };
   if (!isPaymentMethodId(id)) return null;
   const [row] = await getDb()
     .select()
     .from(paymentMethods)
     .where(and(eq(paymentMethods.id, id), eq(paymentMethods.active, true)))
     .limit(1);
-  return row ? { method: row.brand, fee: 0, payTo: toPayTo(row) } : null;
+  return row ? { method: row.brand, fee: 0, maxAmount: null, payTo: toPayTo(row) } : null;
 }
 
 export async function listPaymentMethods(): Promise<AdminPaymentMethod[]> {

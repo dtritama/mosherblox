@@ -365,6 +365,11 @@ export const en: Dictionary = {
       country: "Country code",
       hint: "For status updates & order lookup.",
     },
+    paymentLimit: {
+      max: "Max. {amount}",
+      pickOther: "Orders above {amount} can't be paid with {method}. Please pick another payment method.",
+      noOther: "Orders above {amount} can't be paid with {method}. Lower the amount, or chat with support.",
+    },
     paymentGroups: {
       QRIS: "QRIS",
       "E-Wallet": "E-Wallet",

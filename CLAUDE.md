@@ -234,6 +234,8 @@ Rules:
 - Payment today = the store's own static QRIS (merchant shown to buyers: "Kautsars, Gaming") plus the
   bank / e-wallet accounts the owner adds in /admin/payments (manual transfer, confirmed by an admin).
   VA / Alfamart / Indomaret are hidden (`availability: "later"`) until a payment gateway exists.
+- **QRIS limit:** orders priced above Rp 500.000 (before unique code) can't use QRIS (`maxAmount` in `data/payments.ts`,
+  `acceptsAmount()`; checked in the picker and in `server/orders/quote.ts`). Exactly 500.000 is fine.
 - Contacts: Discord https://discord.gg/5Y82ZH7GgP · WhatsApp 081211980741 ·
   WA group https://chat.whatsapp.com/KqW18a2Li0YDZjwQccxHRY (in `config/site.ts`).
 

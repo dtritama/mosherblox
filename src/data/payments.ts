@@ -6,7 +6,7 @@ import type { PaymentMethod } from "@/types";
  * (phase 3): flip their `availability` when it is connected.
  */
 export const allPaymentMethods: readonly PaymentMethod[] = [
-  { id: "qris", name: "QRIS", group: "QRIS", fee: 0, availability: "checkout" },
+  { id: "qris", name: "QRIS", group: "QRIS", fee: 0, maxAmount: 500_000, availability: "checkout" },
   { id: "gopay", name: "GoPay", group: "E-Wallet", fee: 0, availability: "via-qris" },
   { id: "ovo", name: "OVO", group: "E-Wallet", fee: 0, availability: "via-qris" },
   { id: "dana", name: "DANA", group: "E-Wallet", fee: 0, availability: "via-qris" },
@@ -30,6 +30,11 @@ export const checkoutPaymentMethods: readonly PaymentMethod[] = allPaymentMethod
 
 /** Preselected when it is the only option. */
 export const defaultPaymentId = checkoutPaymentMethods.length === 1 ? checkoutPaymentMethods[0].id : "";
+
+/** Whether a method takes an order of this price (exactly the limit is still fine). */
+export function acceptsAmount(method: { maxAmount?: number | null }, price: number) {
+  return !method.maxAmount || price <= method.maxAmount;
+}
 
 /** Any known method (old orders may reference one that is no longer offered). */
 export function getPaymentMethod(id: string) {
