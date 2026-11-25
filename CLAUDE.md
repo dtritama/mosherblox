@@ -147,7 +147,7 @@ Rules:
   The web app only enqueues, via `after()` so a queue problem never slows or breaks a buyer's
   request. First "Saya sudah bayar" → Discord ping; `DISCORD_NOTIFY_NEW_ORDERS=1` adds new-order
   pings; `DISCORD_MENTION_ROLE_IDS` / `DISCORD_MENTION_USER_IDS` (comma-separated Discord role / user IDs) are tagged in the "Saya sudah
-  bayar" ping only. **Vouch:** completing an order queues `orderCompleted` → `vouchMessage()` to `DISCORD_VOUCH_WEBHOOK_URL` (public channel: masked name + avatar, item, running number; no order ID, price, email). Locally that variable points at the test channel. `DISCORD_WEBHOOK_URL` is a secret (only in `.env.local` / server env). The worker reuses
+  bayar" ping only. **Vouch:** completing an order queues `orderCompleted` → `vouchMessage()` to `DISCORD_VOUCH_WEBHOOK_URL` (public channel: masked name + avatar, item, running number; sent silently; no order ID, price, email). Locally that variable points at the test channel. `DISCORD_WEBHOOK_URL` is a secret (only in `.env.local` / server env). The worker reuses
   `server-only` code, so it runs with Node's `--conditions=react-server` (tsx in dev, esbuild bundle
   in prod; `pg-boss` is in `serverExternalPackages`).
 - **Roblox account check:** username fields (Robux panel, product dialog for username delivery)

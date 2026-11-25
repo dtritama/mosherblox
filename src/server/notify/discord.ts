@@ -59,6 +59,8 @@ const LIME = 0xa5e34a;
 const PINK = 0xf04f82;
 /** Public vouch. */
 const SOFT_PINK = 0xfbc4d8;
+/** Discord message flag (1 << 12). */
+const SUPPRESS_NOTIFICATIONS = 4096;
 
 const snowflakes = (value: string | undefined) =>
   (value ?? "")
@@ -186,6 +188,8 @@ export function vouchMessage(order: OrderSummary, number: number, avatarUrl: str
     username: "MOSHERBLOX",
     avatar_url: `${SITE_URL}/apple-icon.png`,
     allowed_mentions: { parse: [] },
+    // Like "@silent": no sound or push for members.
+    flags: SUPPRESS_NOTIFICATIONS,
     embeds: [
       {
         author: { name: "MOSHERBLOX", url: SITE_URL, icon_url: `${SITE_URL}/apple-icon.png` },
