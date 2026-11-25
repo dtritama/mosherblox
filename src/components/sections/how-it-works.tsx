@@ -4,7 +4,9 @@ import { m } from "motion/react";
 
 import { Container } from "@/components/ui/container";
 import { SectionHeading } from "@/components/ui/section-heading";
-import { paymentMethods } from "@/data/payments";
+import { useStoreSettings } from "@/components/providers/settings-provider";
+import { PaymentLogo } from "@/components/ui/payment-logo";
+import { waysToPay } from "@/lib/ways-to-pay";
 import { interpolate } from "@/i18n/format";
 import { useI18n } from "@/i18n/i18n-provider";
 import { cn } from "@/lib/utils";
@@ -13,6 +15,7 @@ export function HowItWorks() {
   const { dict } = useI18n();
   const t = dict.how;
   const steps = t.steps;
+  const ways = waysToPay(useStoreSettings().paymentOptions);
 
   return (
     <section id="how" aria-labelledby="how-title" className="relative overflow-hidden bg-brand-50/70 py-14 lg:py-20">
@@ -68,16 +71,17 @@ export function HowItWorks() {
           <p className="shrink-0 text-sm font-semibold text-ink-900">
             {t.payYourWay}{" "}
             <span className="font-normal text-ink-500">
-              · {interpolate(t.methods, { count: paymentMethods.length })}
+              · {interpolate(t.methods, { count: ways.length })}
             </span>
           </p>
           <ul className="flex flex-wrap gap-2">
-            {paymentMethods.map((method) => (
+            {ways.map((method) => (
               <li
                 key={method.id}
-                className="rounded-xl border border-brand-100 bg-brand-50/60 px-3 py-1.5 text-xs font-semibold text-ink-700 transition-colors hover:border-brand-300 hover:bg-brand-100 hover:text-brand-800"
+                className="flex items-center gap-2 rounded-xl border border-brand-100 bg-brand-50/60 py-1 pr-3 pl-1 text-xs font-semibold text-ink-700 transition-colors hover:border-brand-300 hover:bg-brand-100 hover:text-brand-800"
               >
-                {method.name.replace(" Virtual Account", " VA")}
+                <PaymentLogo name={method.name} brand={method.brand} logo={method.logo} className="h-8" />
+                {method.name}
               </li>
             ))}
           </ul>

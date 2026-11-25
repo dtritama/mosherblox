@@ -1,9 +1,10 @@
 import "server-only";
+import type { PayTo } from "@/lib/payment-methods";
 import type { NewPaymentRow } from "@/server/db/schema";
 
 /**
- * A way to get paid. `manual-qris` (the store's static QRIS, confirmed by an admin) is the first;
- * a gateway (Duitku / Midtrans, phase 3) becomes a second implementation with its own webhook.
+ * A way to get paid. `manual-qris` (the store's static QRIS) and `manual-transfer` (a bank / e-wallet
+ * account) are confirmed by an admin; a gateway (Duitku / Midtrans, phase 3) becomes another one with its own webhook.
  */
 export interface PaymentProvider {
   readonly id: string;
@@ -22,8 +23,21 @@ export const manualQrisProvider: PaymentProvider = {
   }),
 };
 
-/** Which provider handles a checkout payment method. Only QRIS exists today. */
-export function providerFor(paymentMethodId: string): PaymentProvider {
+const manualTransferProvider = (payTo: PayTo): PaymentProvider => ({
+  id: "manual-transfer",
+  createPayment: (order) => ({
+    orderId: order.id,
+    provider: "manual-transfer",
+    status: "pending",
+    amount: order.total,
+    uniqueCode: order.uniqueCode,
+    payTo,
+  }),
+});
+
+/** Which provider handles a checkout payment method. */
+export function providerFor(paymentMethodId: string, payTo: PayTo | null): PaymentProvider {
+  if (payTo) return manualTransferProvider(payTo);
   if (paymentMethodId === "qris") return manualQrisProvider;
   throw new Error(`No payment provider for method "${paymentMethodId}"`);
 }

@@ -199,6 +199,7 @@ const sampleOrder: Order = {
   account: "Builderman_01",
   whatsapp: "6281234567890",
   payment: "QRIS",
+  payTo: null,
   total: 89047,
   uniqueCode: 47,
   paymentStatus: "confirmed",

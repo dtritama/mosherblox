@@ -15,6 +15,7 @@ import { normalizeOrderId } from "@/lib/orders/order-id";
 import { cn } from "@/lib/utils";
 import { whatsappDigits } from "@/lib/validation";
 import { getOrderDetail, type AdminOrderDetail } from "@/server/admin/orders";
+import { formatAccountNumber } from "@/lib/payment-methods";
 import { requireAdmin } from "@/server/auth/admin";
 import { getAvatarUrls } from "@/server/roblox/users";
 
@@ -198,7 +199,17 @@ function OrderDetail({ order }: { order: AdminOrderDetail }) {
               <>
                 <dl>
                   <Row label={t.provider}>
-                    {order.paymentMethod} · {payment.provider}
+                    {order.paymentMethod}
+                    {payment.payTo ? (
+                      <span className="block text-xs font-normal text-ink-500 tabular-nums">
+                        {formatAccountNumber(payment.payTo.number)}
+                        <span className="block">
+                          {t.holder} {payment.payTo.holder}
+                        </span>
+                      </span>
+                    ) : (
+                      ` · ${payment.provider}`
+                    )}
                   </Row>
                   <Row label={adminCopy.orders.columns.status}>{adminCopy.paymentStatus[payment.status]}</Row>
                   {payment.confirmedBy && payment.confirmedAt ? (
@@ -295,7 +306,7 @@ function OrderDetail({ order }: { order: AdminOrderDetail }) {
         <div className="grid gap-4 max-lg:row-start-1 lg:sticky lg:top-24 lg:col-start-2 lg:row-start-1">
           <Card title={adminCopy.actions.title}>
             {/* key: a new status gets a fresh form (new options, cleared note). */}
-            <StatusActions key={order.status} orderId={order.id} status={order.status} total={order.total} />
+            <StatusActions key={order.status} orderId={order.id} status={order.status} total={order.total} method={order.paymentMethod} />
           </Card>
           <Card title={t.buyer}>
             {order.robloxUserId ? (

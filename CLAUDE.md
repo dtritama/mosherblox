@@ -98,6 +98,13 @@ Rules:
   `useStoreSettings().contact` / `getSiteContent()` — never read `siteConfig.contact` in components.
   Uploaded banners: `UPLOAD_DIR/banners`, served by `app/banners/[file]`. To make another text
   editable, add its path to `TEXT_GROUPS` (not texts with {placeholders}).
+- **Transfer payments** (`/admin/payments`, owner edits, staff view; table `payment_methods`, max 20):
+  brands + logos in `data/payment-brands.ts` (`public/payments/logos`, Wikimedia SVGs; DANA and
+  ShopeePay have name badges), shared validation `lib/payment-methods.ts`, `server/payment-methods.ts`
+  (`getPaymentOptions()` cached, tag `payment-methods`, no account numbers; `resolveCheckoutPayment()`
+  fresh), `server/admin/payment-actions.ts`. An order copies the account into `payments.pay_to`, so
+  edits/deletes never change existing orders; buyers get the number only with their order
+  (`PaymentStep`). Own logos: `UPLOAD_DIR/payment-logos`, served by `app/payments/logo/[file]`, never deleted.
 - **Validation & pricing are pure functions** (`lib/validation.ts`, `lib/robux-pricing.ts`) so the
   phase-2 server reuses them. The server must recompute every price — never trust a client total.
 - **Orders go through `orderService`** (`lib/orders/service.ts`) → Server Actions
@@ -110,7 +117,7 @@ Rules:
   in-memory: one instance only). Dev sample orders: `npm run db:seed` (`MB-PEND2026`, `MB-PROC2026`,
   `MB-DONE2026`, `MB-FAIL2026`, WhatsApp `081234567890`), listed on /check-order in dev only.
   Payment: manual QRIS (`server/payments/provider.ts`, image + merchant in `data/payments.ts`
-  `manualQris`). After checkout and on Check Order a pending order shows `QrisPayment` (QR, exact
+  `manualQris`). After checkout and on Check Order a pending order shows `PaymentStep` (QR or transfer account, exact
   total, countdown, "Saya sudah bayar" + optional screenshot → payment `submitted`; only an admin
   marks it paid). **Live progress:** an open order (Check Order, success screen) polls `POST /api/order-live`
   every 6 s (`lib/orders/use-live-order.ts`; own rate limits, WhatsApp in the body). **Recent orders:** the success screen remembers the order on the device
@@ -221,7 +228,8 @@ Rules:
   /admin/settings. It stays visible with a badge, can't be selected or bought, flash deals hide it,
   and the server refuses the order (`soldOut` error) even from a stale page. Shop "Blox Fruits"
   items and the "Blox Fruits" gamepass game are separate switches.
-- Payment today = the store's own static QRIS only (merchant shown to buyers: "Kautsars, Gaming").
+- Payment today = the store's own static QRIS (merchant shown to buyers: "Kautsars, Gaming") plus the
+  bank / e-wallet accounts the owner adds in /admin/payments (manual transfer, confirmed by an admin).
   VA / Alfamart / Indomaret are hidden (`availability: "later"`) until a payment gateway exists.
 - Contacts: Discord https://discord.gg/5Y82ZH7GgP · WhatsApp 081211980741 ·
   WA group https://chat.whatsapp.com/KqW18a2Li0YDZjwQccxHRY (in `config/site.ts`).

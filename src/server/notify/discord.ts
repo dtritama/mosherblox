@@ -25,6 +25,8 @@ export interface OrderSummary {
   total: number;
   createdAt: string;
   hasProof: boolean;
+  /** Bank / e-wallet the buyer transfers to; null = QRIS. */
+  paymentName: string | null;
 }
 
 const WEBHOOK = /^https:\/\/(?:canary\.|ptb\.)?(?:discord|discordapp)\.com\/api\/webhooks\/\d+\/[\w-]+$/;
@@ -97,6 +99,7 @@ function orderEmbed(
       value: `**${formatIDR(order.total)}**\n${formatIDR(order.subtotal)} + kode unik ${order.uniqueCode}`,
       inline: true,
     },
+    { name: "Bayar lewat", value: order.paymentName ? md(order.paymentName) : "QRIS", inline: true },
     { name: "Bukti transfer", value: order.hasProof ? "Ada, lihat di admin" : "Tidak ada", inline: true },
     { name: "Pesanan", value: `\`${order.id}\``, inline: true },
   ];
@@ -134,7 +137,7 @@ export function paymentClaimedMessage(
     embeds: [
       orderEmbed(order, {
         heading: "Pembeli bilang sudah bayar",
-        description: `Cek mutasi GoPay merchant: harus ada uang masuk **tepat ${formatIDR(order.total)}**.`,
+        description: `Cek mutasi ${order.paymentName ? md(order.paymentName) : "GoPay merchant (QRIS)"}: harus ada uang masuk **tepat ${formatIDR(order.total)}**.`,
         color: PINK,
         avatarUrl,
       }),

@@ -3,6 +3,7 @@
 import { createContext, useContext, type ReactNode } from "react";
 
 import { defaultSettings, type SiteSettings } from "@/lib/settings";
+import type { PaymentOption } from "@/lib/payment-methods";
 import { defaultContact, type ContactContent } from "@/lib/site-content";
 import type { PublicStats } from "@/server/stats";
 
@@ -10,6 +11,8 @@ import type { PublicStats } from "@/server/stats";
 export type StoreSettings = Pick<SiteSettings, "robuxRates" | "qris" | "soldOut" | "robuxStock" | "storeOpen" | "closedMessage"> & {
   stats: PublicStats;
   contact: ContactContent;
+  /** Transfer accounts offered next to the QRIS (names and logos only). */
+  paymentOptions: PaymentOption[];
 };
 
 const SettingsContext = createContext<StoreSettings>({
@@ -21,6 +24,7 @@ const SettingsContext = createContext<StoreSettings>({
   closedMessage: defaultSettings.closedMessage,
   stats: { sendUsernameCompleted: null },
   contact: defaultContact,
+  paymentOptions: [],
 });
 
 export function SettingsProvider({ value, children }: { value: StoreSettings; children: ReactNode }) {

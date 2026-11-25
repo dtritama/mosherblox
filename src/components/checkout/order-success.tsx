@@ -5,7 +5,7 @@ import { Check, CheckCircle2, Copy, Search } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-import { QrisPayment } from "@/components/checkout/qris-payment";
+import { PaymentStep } from "@/components/checkout/payment-step";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { localeHref } from "@/i18n/config";
 import { formatIDR, interpolate } from "@/i18n/format";
@@ -118,7 +118,7 @@ export function OrderSuccess({
         })}
       </p>
 
-      {PAYMENTS_LIVE && order.status === "pending" ? <QrisPayment order={order} onChange={setOrder} /> : null}
+      {PAYMENTS_LIVE && order.status === "pending" ? <PaymentStep order={order} onChange={setOrder} /> : null}
 
       {/* Paid, processing, done, …: arrives by itself while this screen is open. */}
       {order.status !== "pending" ? (

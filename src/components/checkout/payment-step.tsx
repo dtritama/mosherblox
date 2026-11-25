@@ -1,7 +1,19 @@
 "use client";
 
 import { AnimatePresence, m } from "motion/react";
-import { Check, Clock, Copy, Download, Hourglass, ImageUp, Loader2, ScanLine, ShieldCheck, X } from "lucide-react";
+import {
+  Check,
+  Clock,
+  Copy,
+  Download,
+  Hourglass,
+  ImageUp,
+  Landmark,
+  Loader2,
+  ScanLine,
+  ShieldCheck,
+  X,
+} from "lucide-react";
 import Image from "next/image";
 import { useEffect, useId, useState, type FormEvent } from "react";
 
@@ -10,8 +22,10 @@ import { useStoreSettings } from "@/components/providers/settings-provider";
 import { Button } from "@/components/ui/button";
 import { orderConfig } from "@/data/orders";
 import { intlLocales } from "@/i18n/config";
+import { PaymentLogo } from "@/components/ui/payment-logo";
 import { formatIDR, interpolate } from "@/i18n/format";
 import { useI18n } from "@/i18n/i18n-provider";
+import { formatAccountNumber, type PayTo } from "@/lib/payment-methods";
 import { orderService } from "@/lib/orders/service";
 import type { ClaimPaymentResult, Order } from "@/lib/orders/types";
 import { cn } from "@/lib/utils";
@@ -38,11 +52,11 @@ function formatCountdown(ms: number) {
 }
 
 /**
- * Manual QRIS payment: the store's QRIS, the exact amount (with unique code), a countdown, and
+ * Manual payment: the store's QRIS (or the bank / e-wallet account the buyer picked), the exact amount (with unique code), a countdown, and
  * "Saya sudah bayar" with an optional screenshot. Used right after checkout and on Check Order
  * for orders that are still waiting for payment.
  */
-export function QrisPayment({ order, onChange }: { order: Order; onChange: (order: Order) => void }) {
+export function PaymentStep({ order, onChange }: { order: Order; onChange: (order: Order) => void }) {
   const { locale, dict } = useI18n();
   const t = dict.payment;
   const titleId = useId();
@@ -51,8 +65,8 @@ export function QrisPayment({ order, onChange }: { order: Order; onChange: (orde
   const now = useNow();
   // The store's current QRIS (admin settings; default in src/data/payments.ts).
   const { qris } = useStoreSettings();
+  const { payTo } = order;
 
-  const [copied, setCopied] = useState(false);
   const [proof, setProof] = useState<File | null>(null);
   const [proofKey, setProofKey] = useState(0);
   const [sending, setSending] = useState(false);
@@ -64,16 +78,6 @@ export function QrisPayment({ order, onChange }: { order: Order; onChange: (orde
   const submitted = order.paymentStatus === "submitted";
   const timeUp = now >= expiresAt;
   const closed = now >= claimUntil && !submitted;
-
-  const copyAmount = async () => {
-    try {
-      await navigator.clipboard.writeText(String(order.total));
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // Clipboard blocked: the amount is still visible and selectable.
-    }
-  };
 
   const pickProof = (file: File | null) => {
     setError(null);
@@ -150,11 +154,17 @@ export function QrisPayment({ order, onChange }: { order: Order; onChange: (orde
     >
       <div className="px-5 pt-5 sm:px-6 sm:pt-6">
         <h3 id={titleId} className="flex items-center gap-2 font-bold text-ink-900">
-          <ScanLine className="size-5 text-brand-600" aria-hidden="true" />
-          {t.title}
+          {payTo ? (
+            <Landmark className="size-5 text-brand-600" aria-hidden="true" />
+          ) : (
+            <ScanLine className="size-5 text-brand-600" aria-hidden="true" />
+          )}
+          {payTo ? interpolate(t.transfer.title, { name: payTo.name }) : t.title}
         </h3>
-        <p className="mt-1 text-sm text-ink-500">{t.apps}</p>
-        <p className="mt-1 text-sm text-ink-700">{interpolate(t.merchant, { name: qris.merchantName })}</p>
+        <p className="mt-1 text-sm text-ink-500">{payTo ? t.transfer.apps[payTo.kind] : t.apps}</p>
+        {payTo ? null : (
+          <p className="mt-1 text-sm text-ink-700">{interpolate(t.merchant, { name: qris.merchantName })}</p>
+        )}
       </div>
       <div className="grid gap-6 p-5 pt-4 sm:p-6 sm:pt-5 md:grid-cols-[minmax(0,17rem)_minmax(0,1fr)] md:grid-rows-[auto_1fr] md:items-start">
         <div className="rounded-2xl bg-brand-50 p-4 md:col-start-2 md:row-start-1">
@@ -163,46 +173,41 @@ export function QrisPayment({ order, onChange }: { order: Order; onChange: (orde
             <p className="text-3xl font-extrabold tracking-tight text-ink-900 tabular-nums select-all">
               {formatIDR(order.total)}
             </p>
-            <button
-              type="button"
-              onClick={copyAmount}
-              className="inline-flex h-11 items-center gap-1.5 rounded-xl border border-brand-200 bg-white px-3 text-xs font-semibold text-ink-900 transition-colors hover:border-brand-400 active:scale-[0.97]"
-            >
-              {copied ? (
-                <Check className="size-3.5 text-brand-700" aria-hidden="true" />
-              ) : (
-                <Copy className="size-3.5" aria-hidden="true" />
-              )}
-              {copied ? t.amountCopied : t.copyAmount}
-            </button>
+            <CopyButton value={String(order.total)} label={t.copyAmount} copiedLabel={t.amountCopied} />
           </div>
-          <p className="mt-2 text-sm text-ink-700">{interpolate(t.exactNote, { code: formatIDR(order.uniqueCode) })}</p>
+          <p className="mt-2 text-sm text-ink-700">
+            {interpolate(payTo ? t.transfer.exactNote : t.exactNote, { code: formatIDR(order.uniqueCode) })}
+          </p>
         </div>
 
         {/* Phone: amount first, then the QR. Desktop: QR on the left, amount + steps on the right. */}
-        <div className="grid justify-items-center gap-3 md:col-start-1 md:row-span-2 md:row-start-1">
-          <div className="w-full max-w-[17rem] overflow-hidden rounded-2xl border border-brand-100 bg-white">
-            <Image
-              src={qris.image}
-              width={qris.width}
-              height={qris.height}
-              alt={interpolate(t.qrAlt, { name: qris.merchantName })}
-              // Exact pixels: re-compressing a QR code can make it harder to scan.
-              unoptimized
-              className="h-auto w-full"
-              priority
-            />
+        {payTo ? (
+          <TransferAccount payTo={payTo} />
+        ) : (
+          <div className="grid justify-items-center gap-3 md:col-start-1 md:row-span-2 md:row-start-1">
+            <div className="w-full max-w-[17rem] overflow-hidden rounded-2xl border border-brand-100 bg-white">
+              <Image
+                src={qris.image}
+                width={qris.width}
+                height={qris.height}
+                alt={interpolate(t.qrAlt, { name: qris.merchantName })}
+                // Exact pixels: re-compressing a QR code can make it harder to scan.
+                unoptimized
+                className="h-auto w-full"
+                priority
+              />
+            </div>
+            <a
+              href={qris.image}
+              download={`qris-${order.id}.${qris.image.split(".").pop() ?? "jpg"}`}
+              className="inline-flex h-11 w-full max-w-[17rem] items-center justify-center gap-2 rounded-2xl border border-brand-200 bg-white text-sm font-semibold text-ink-900 transition-colors hover:border-blush-300 active:scale-[0.97]"
+            >
+              <Download className="size-4 text-brand-600" aria-hidden="true" />
+              {t.saveQr}
+            </a>
+            <p className="max-w-[17rem] text-center text-xs text-ink-500">{t.phoneHint}</p>
           </div>
-          <a
-            href={qris.image}
-            download={`qris-${order.id}.${qris.image.split(".").pop() ?? "jpg"}`}
-            className="inline-flex h-11 w-full max-w-[17rem] items-center justify-center gap-2 rounded-2xl border border-brand-200 bg-white text-sm font-semibold text-ink-900 transition-colors hover:border-blush-300 active:scale-[0.97]"
-          >
-            <Download className="size-4 text-brand-600" aria-hidden="true" />
-            {t.saveQr}
-          </a>
-          <p className="max-w-[17rem] text-center text-xs text-ink-500">{t.phoneHint}</p>
-        </div>
+        )}
 
         <div className="grid gap-5 md:col-start-2 md:row-start-2">
           <div
@@ -238,7 +243,7 @@ export function QrisPayment({ order, onChange }: { order: Order; onChange: (orde
           </AnimatePresence>
 
           <ol className="grid gap-2">
-            {t.steps.map((step, index) => (
+            {(payTo ? t.transfer.steps : t.steps).map((step, index) => (
               <li key={step} className="flex items-center gap-2 text-sm text-ink-700">
                 <span className="grid size-6 shrink-0 place-items-center rounded-lg bg-brand-100 text-xs font-bold text-brand-800">
                   {index + 1}
@@ -309,5 +314,71 @@ export function QrisPayment({ order, onChange }: { order: Order; onChange: (orde
         </div>
       </div>
     </section>
+  );
+}
+
+function CopyButton({
+  value,
+  label,
+  copiedLabel,
+  className,
+}: {
+  value: string;
+  label: string;
+  copiedLabel: string;
+  className?: string;
+}) {
+  const [copied, setCopied] = useState(false);
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Clipboard blocked: the text is still visible and selectable.
+    }
+  };
+  return (
+    <button
+      type="button"
+      onClick={copy}
+      className={cn(
+        "inline-flex h-11 items-center justify-center gap-1.5 rounded-xl border border-brand-200 bg-white px-3 text-xs font-semibold text-ink-900 transition-colors hover:border-brand-400 active:scale-[0.97]",
+        className,
+      )}
+    >
+      {copied ? (
+        <Check className="size-3.5 text-brand-700" aria-hidden="true" />
+      ) : (
+        <Copy className="size-3.5" aria-hidden="true" />
+      )}
+      <span aria-live="polite">{copied ? copiedLabel : label}</span>
+    </button>
+  );
+}
+
+/** Where to send the money: logo, account number (copyable) and the holder's name to check. */
+function TransferAccount({ payTo }: { payTo: PayTo }) {
+  const { dict } = useI18n();
+  const t = dict.payment.transfer;
+  return (
+    <div className="grid min-w-0 gap-4 rounded-2xl border border-brand-100 p-4 md:col-start-1 md:row-span-2 md:row-start-1">
+      <div className="flex min-w-0 items-center gap-3">
+        <PaymentLogo name={payTo.name} brand={payTo.brand} logo={payTo.logo} className="h-12 w-24 p-2" />
+        <p className="min-w-0 font-bold break-words text-ink-900">{payTo.name}</p>
+      </div>
+      <div>
+        <p className="text-xs text-ink-500">{t.number[payTo.kind]}</p>
+        <p className="mt-0.5 font-mono text-xl font-bold break-words text-ink-900 tabular-nums">
+          {formatAccountNumber(payTo.number)}
+        </p>
+        <CopyButton value={payTo.number} label={t.copyNumber} copiedLabel={t.numberCopied} className="mt-2 w-full" />
+      </div>
+      <div className="border-t border-dashed border-brand-200 pt-4">
+        <p className="text-xs text-ink-500">{t.holder}</p>
+        <p className="mt-0.5 font-semibold break-words text-ink-900">{payTo.holder}</p>
+        <p className="mt-2 text-xs text-ink-500">{t.checkHolder}</p>
+      </div>
+    </div>
   );
 }

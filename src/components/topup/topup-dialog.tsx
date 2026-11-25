@@ -14,13 +14,14 @@ import { useStoreSettings } from "@/components/providers/settings-provider";
 import { StoreClosedNotice } from "@/components/ui/store-closed-notice";
 import { Button } from "@/components/ui/button";
 import { ProductArt } from "@/components/ui/product-art";
-import { defaultPaymentId, getPaymentMethod } from "@/data/payments";
+import { defaultPaymentId } from "@/data/payments";
 import { useDialogA11y } from "@/hooks/use-dialog-a11y";
 import { formatIDR } from "@/i18n/format";
 import { useI18n } from "@/i18n/i18n-provider";
 import { orderService } from "@/lib/orders/service";
 import type { Order, OrderFailure } from "@/lib/orders/types";
 import { cn, discountPercent } from "@/lib/utils";
+import { useCheckoutPayments } from "@/lib/use-checkout-payments";
 import {
   LIMITS,
   getAccountFieldType,
@@ -72,7 +73,8 @@ export function TopUpDialog({ product, initialOptionId, onClose }: TopUpDialogPr
     [touched, product.delivery, optionIds, draft],
   );
   const option = product.options.find((item) => item.id === draft.optionId);
-  const payment = getPaymentMethod(draft.paymentId);
+  const payments = useCheckoutPayments();
+  const payment = payments.find((item) => item.id === draft.paymentId);
   const total = option ? option.price + (payment?.fee ?? 0) : 0;
 
   const update = <K extends keyof OrderDraft>(key: K, value: OrderDraft[K]) =>

@@ -16,7 +16,7 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 
 import { Field, inputClass, SummaryRow } from "@/components/checkout/form-parts";
-import { QrisPayment } from "@/components/checkout/qris-payment";
+import { PaymentStep } from "@/components/checkout/payment-step";
 import { ReviewForm } from "@/components/orders/review-form";
 import { PhoneInput } from "@/components/checkout/phone-input";
 import { SubmitError } from "@/components/checkout/submit-error";
@@ -321,7 +321,7 @@ function OrderResult({
 
       {result.status === "pending" ? (
         <div className="border-b border-brand-100 bg-brand-50/40 p-4 sm:p-6">
-          <QrisPayment order={result} onChange={onChange} />
+          <PaymentStep order={result} onChange={onChange} />
         </div>
       ) : null}
 

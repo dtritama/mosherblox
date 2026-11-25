@@ -20,6 +20,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 import type { LocalizedText } from "@/i18n/config";
+import type { PayTo } from "@/lib/payment-methods";
 
 const createdAt = () => timestamp("created_at", { withTimezone: true }).notNull().defaultNow();
 const updatedAt = () =>
@@ -125,7 +126,7 @@ export const orders = pgTable(
     robloxDisplayName: text("roblox_display_name"),
     /** Normalised: 628… or, outside Indonesia, +<country code>…. Needed together with the ID to look an order up. */
     whatsapp: text("whatsapp").notNull(),
-    /** Payment method id from src/data/payments.ts (e.g. "qris"). */
+    /** "qris", or for a transfer the brand id (src/data/payment-brands.ts); the account is in payments.pay_to. */
     paymentMethod: text("payment_method").notNull(),
 
     // Money (IDR), all computed on the server: total = subtotal + fee + unique_code.
@@ -203,9 +204,11 @@ export const payments = pgTable(
     orderId: text("order_id")
       .notNull()
       .references(() => orders.id, { onDelete: "cascade" }),
-    /** PaymentProvider id: "manual-qris" now, a gateway (duitku / midtrans) later. */
+    /** PaymentProvider id: "manual-qris" / "manual-transfer" now, a gateway (duitku / midtrans) later. */
     provider: text("provider").notNull(),
     status: paymentStatus("status").notNull().default("pending"),
+    /** Transfer: the account shown to the buyer, copied when the order was made. Null for QRIS. */
+    payTo: jsonb("pay_to").$type<PayTo>(),
     /** Exact amount the buyer must pay (= order total). */
     amount: integer("amount").notNull(),
     uniqueCode: integer("unique_code").notNull().default(0),
@@ -231,6 +234,30 @@ export const payments = pgTable(
     index("payments_status_idx").on(t.status),
     check("payments_amount_check", sql`${t.amount} > 0 AND ${t.uniqueCode} >= 0`),
   ],
+);
+
+export const paymentKind = pgEnum("payment_kind", ["ewallet", "bank"]);
+
+/** Bank / e-wallet accounts buyers can transfer to (/admin/payments). The QRIS is a setting instead. */
+export const paymentMethods = pgTable(
+  "payment_methods",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    /** src/data/payment-brands.ts, or "other". */
+    brand: text("brand").notNull(),
+    kind: paymentKind("kind").notNull(),
+    name: text("name").notNull(),
+    accountNumber: text("account_number").notNull(),
+    accountHolder: text("account_holder").notNull(),
+    /** Own logo: random file name in UPLOAD_DIR/payment-logos. Null = the brand's logo. */
+    logoFile: text("logo_file"),
+    active: boolean("active").notNull().default(true),
+    position: integer("position").notNull().default(0),
+    updatedBy: uuid("updated_by").references(() => admins.id, { onDelete: "set null" }),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [uniqueIndex("payment_methods_account_unique").on(t.name, t.accountNumber)],
 );
 
 // ---------------------------------------------------------------------------------------------
@@ -280,5 +307,6 @@ export type NewOrderRow = typeof orders.$inferInsert;
 export type OrderEventRow = typeof orderEvents.$inferSelect;
 export type PaymentRow = typeof payments.$inferSelect;
 export type NewPaymentRow = typeof payments.$inferInsert;
+export type PaymentMethodRow = typeof paymentMethods.$inferSelect;
 export type SettingRow = typeof settings.$inferSelect;
 export type ReviewRow = typeof reviews.$inferSelect;

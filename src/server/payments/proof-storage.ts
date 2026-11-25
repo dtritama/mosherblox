@@ -9,6 +9,7 @@ import { orderConfig } from "@/data/orders";
  * - proofs/  transfer screenshots ("bukti transfer"), shown to admins only via a logged-in route
  * - qris/      the store's QRIS uploaded in /admin/settings, served publicly via /payments/qris/[file]
  * - banners/   home banners uploaded in /admin/content, served publicly via /banners/[file]
+ * - payment-logos/ own logos of payment methods (/admin/payments), served publicly via /payments/logo/[file]
  * - delivery/  "bukti pengiriman" an admin uploads on an order, served via /orders/delivery/[file]
  *              (random name, only revealed to the buyer after an order ID + WhatsApp lookup)
  */
@@ -78,7 +79,7 @@ export const QRIS_FILE = RANDOM_FILE;
 
 /** Saves an image under a random, never-reused name in `folder`. Returns the file name. */
 async function saveRandomImage(
-  folder: "qris" | "banners" | "delivery",
+  folder: "qris" | "banners" | "delivery" | "payment-logos",
   file: File,
 ): Promise<{ ok: true; file: string } | { ok: false; error: ProofError }> {
   if (file.size === 0 || file.size > orderConfig.proofMaxBytes) return { ok: false, error: "tooBig" };
@@ -97,6 +98,13 @@ export const saveQrisImage = (file: File) => saveRandomImage("qris", file);
 
 export async function readQrisImage(file: string) {
   return RANDOM_FILE.test(file) ? readProof(`qris/${file}`) : null;
+}
+
+/** Payment method logo (/admin/payments). Never deleted: orders may still show it. */
+export const savePaymentLogo = (file: File) => saveRandomImage("payment-logos", file);
+
+export async function readPaymentLogo(file: string) {
+  return RANDOM_FILE.test(file) ? readProof(`payment-logos/${file}`) : null;
 }
 
 /** Home banner (admin content). Returns the file name inside banners/. */

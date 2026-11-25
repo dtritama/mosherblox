@@ -49,7 +49,8 @@ export function toOrder(row: OrderRow, payment?: PaymentRow | null): Order {
     item: row.itemLabel,
     account: row.account,
     whatsapp: row.whatsapp,
-    payment: getPaymentMethod(row.paymentMethod)?.name ?? row.paymentMethod,
+    payment: payment?.payTo?.name ?? getPaymentMethod(row.paymentMethod)?.name ?? row.paymentMethod,
+    payTo: payment?.payTo ?? null,
     total: row.total,
     uniqueCode: row.uniqueCode,
     paymentStatus: payment?.status ?? null,
@@ -83,11 +84,11 @@ function isUniqueViolation(error: unknown) {
 }
 
 export async function createOrder(
-  quote: OrderQuote,
+  { payTo, ...quote }: OrderQuote,
   { expiryMinutes = orderConfig.expiryMinutes }: { expiryMinutes?: number } = {},
 ): Promise<Order> {
   const db = getDb();
-  const provider = providerFor(quote.paymentMethod);
+  const provider = providerFor(quote.paymentMethod, payTo);
   // The order ID and unique code are random; on the rare clash with another order, roll again.
   // With 99 possible codes, re-roll generously before giving up.
   for (let attempt = 0; attempt < 20; attempt++) {
@@ -348,5 +349,6 @@ export async function getOrderSummary(orderId: string) {
     createdAt: row.createdAt.toISOString(),
     hasProof: Boolean(payment?.proofPath),
     paymentStatus: payment?.status ?? null,
+    paymentName: payment?.payTo?.name ?? null,
   };
 }

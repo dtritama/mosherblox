@@ -1,5 +1,6 @@
 import type { LocalizedText } from "@/i18n/config";
 import type { RobuxMethodId } from "@/data/robux";
+import type { PayTo } from "@/lib/payment-methods";
 import type { OrderErrorCode } from "@/lib/validation";
 
 /** Mirrors the `order_status` enum in the database (src/server/db/schema.ts). */
@@ -24,6 +25,8 @@ export interface Order {
   whatsapp: string;
   /** Payment method display name (e.g. "QRIS"). */
   payment: string;
+  /** Account to transfer to; null = the store's QRIS. */
+  payTo: PayTo | null;
   /** Exact amount to pay in IDR, including fee and unique code. */
   total: number;
   /** Small amount added to the total so a QRIS transfer can be matched to this order. */

@@ -363,6 +363,7 @@ export const id = {
     paymentGroups: {
       QRIS: "QRIS",
       "E-Wallet": "E-Wallet",
+      Bank: "Transfer bank",
       "Virtual Account": "Virtual Account",
       Retail: "Gerai retail",
     },
@@ -439,6 +440,21 @@ export const id = {
     saveQr: "Simpan gambar QR",
     phoneHint: "Belanja dari HP? Simpan gambar QR, buka e-wallet atau m-banking, pilih Scan, lalu ambil dari galeri.",
     steps: ["Scan kode QR", "Masukkan nominal persis", "Tekan “Saya sudah bayar”"],
+    transfer: {
+      title: "Transfer ke {name}",
+      apps: {
+        ewallet: "Kirim saldo dari aplikasi e-wallet kamu ke nomor ini.",
+        bank: "Transfer dari m-banking, ATM, atau e-wallet kamu ke rekening ini.",
+      },
+      number: { ewallet: "Nomor e-wallet", bank: "Nomor rekening" },
+      copyNumber: "Salin nomor",
+      numberCopied: "Nomor tersalin",
+      holder: "Atas nama",
+      checkHolder: "Pastikan nama penerima di aplikasimu sama sebelum mengirim.",
+      exactNote:
+        "Transfer persis sampai digit terakhir. Sudah termasuk kode unik {code}. Biaya admin dari bank atau e-wallet-mu tidak termasuk.",
+      steps: ["Salin nomornya dan buka aplikasimu", "Kirim nominal persis", "Tekan “Saya sudah bayar”"],
+    },
     proofLabel: "Bukti transfer",
     proofHint: "Screenshot JPG, PNG, atau WebP, maks. 4 MB. Bikin pengecekan lebih cepat.",
     proofChoose: "Pilih screenshot",

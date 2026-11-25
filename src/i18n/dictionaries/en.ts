@@ -359,6 +359,7 @@ export const en: Dictionary = {
     paymentGroups: {
       QRIS: "QRIS",
       "E-Wallet": "E-Wallet",
+      Bank: "Bank transfer",
       "Virtual Account": "Virtual Account",
       Retail: "Retail stores",
     },
@@ -436,6 +437,21 @@ export const en: Dictionary = {
     phoneHint:
       "Shopping on your phone? Save the QR image, open your e-wallet or banking app, tap Scan and pick it from your gallery.",
     steps: ["Scan the QR code", "Enter the exact amount", "Press “I've paid”"],
+    transfer: {
+      title: "Transfer to {name}",
+      apps: {
+        ewallet: "Send the balance from your e-wallet app to this number.",
+        bank: "Transfer to this account from mobile banking, an ATM, or your e-wallet.",
+      },
+      number: { ewallet: "E-wallet number", bank: "Account number" },
+      copyNumber: "Copy number",
+      numberCopied: "Number copied",
+      holder: "Account holder",
+      checkHolder: "Check that the recipient name in your app matches before sending.",
+      exactNote:
+        "Transfer the exact amount, down to the last digit. It includes the unique code {code}. Fees from your bank or e-wallet are not included.",
+      steps: ["Copy the number and open your app", "Send the exact amount", "Press “I've paid”"],
+    },
     proofLabel: "Transfer screenshot",
     proofHint: "JPG, PNG, or WebP screenshot, max 4 MB. Helps us check faster.",
     proofChoose: "Choose screenshot",

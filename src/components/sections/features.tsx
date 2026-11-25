@@ -4,7 +4,8 @@ import { Container } from "@/components/ui/container";
 import { Stagger, StaggerItem } from "@/components/ui/reveal";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { SpotlightCard } from "@/components/ui/spotlight-card";
-import { paymentMethods } from "@/data/payments";
+import { waysToPay } from "@/lib/ways-to-pay";
+import { getPaymentOptions } from "@/server/payment-methods";
 import { getI18n } from "@/i18n/get-dictionary";
 import { cn } from "@/lib/utils";
 
@@ -13,6 +14,7 @@ const ICONS: readonly LucideIcon[] = [ShieldCheck, BadgePercent, Zap, Headphones
 
 export async function Features() {
   const { dict } = await getI18n();
+  const ways = waysToPay(await getPaymentOptions());
   const t = dict.features;
 
   return (
@@ -76,7 +78,7 @@ export async function Features() {
           <StaggerItem className="md:col-span-2 lg:col-span-1">
             <div className="flex h-full flex-col justify-between rounded-3xl bg-brand-100 p-6">
               <p className="text-sm font-medium text-brand-800">{t.waysToPay}</p>
-              <p className="mt-4 text-5xl font-extrabold text-brand-600">{paymentMethods.length}</p>
+              <p className="mt-4 text-5xl font-extrabold text-brand-600">{ways.length}</p>
               <p className="mt-2 text-sm text-brand-900/70">{t.waysToPayDescription}</p>
             </div>
           </StaggerItem>

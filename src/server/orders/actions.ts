@@ -13,6 +13,7 @@ import { quoteProductOrder, quoteRobuxOrder, type QuoteResult } from "@/server/o
 import { claimPayment, createOrder, findOrder } from "@/server/orders/service";
 import { deleteProof, saveProof } from "@/server/payments/proof-storage";
 import { rateLimit } from "@/server/rate-limit";
+import { resolveCheckoutPayment } from "@/server/payment-methods";
 import { getFreshSettings } from "@/server/settings";
 import { notifyTeam } from "@/server/jobs/queue";
 import { after } from "next/server";
@@ -74,10 +75,21 @@ async function create(quote: QuoteResult, settings: SiteSettings): Promise<Creat
   }
 }
 
+/** The payment method as it is now (a deleted or switched-off one → null → "pick a payment"). */
+async function paymentChoice(id: unknown) {
+  try {
+    return await resolveCheckoutPayment(str(id, 40));
+  } catch (error) {
+    console.error("[orders] payment method lookup failed", error);
+    return "unavailable" as const;
+  }
+}
+
 export async function createRobuxOrderAction(input: RobuxOrderInput): Promise<CreateOrderResult> {
   const raw = (input ?? {}) as Partial<Record<keyof RobuxOrderInput, unknown>>;
   // Prices and expiry come from the admin settings, read fresh (never the cached copy the page used).
-  const settings = await getFreshSettings();
+  const [settings, payment] = await Promise.all([getFreshSettings(), paymentChoice(raw.paymentId)]);
+  if (payment === "unavailable") return { ok: false, error: "unavailable" };
   return create(
     quoteRobuxOrder(
       {
@@ -85,10 +97,11 @@ export async function createRobuxOrderAction(input: RobuxOrderInput): Promise<Cr
         amount: typeof raw.amount === "number" ? raw.amount : Number.NaN,
         account: str(raw.account),
         whatsapp: str(raw.whatsapp, 32),
-        paymentId: str(raw.paymentId, 32),
+        paymentId: str(raw.paymentId, 40),
         confirmed2sv: raw.confirmed2sv === true,
         confirmedAccount: raw.confirmedAccount === true,
       },
+      payment,
       settings.robuxRates,
     ),
     settings,
@@ -97,16 +110,17 @@ export async function createRobuxOrderAction(input: RobuxOrderInput): Promise<Cr
 
 export async function createProductOrderAction(input: ProductOrderInput): Promise<CreateOrderResult> {
   const raw = (input ?? {}) as Partial<Record<keyof ProductOrderInput, unknown>>;
-  const settings = await getFreshSettings();
+  const [settings, payment] = await Promise.all([getFreshSettings(), paymentChoice(raw.paymentId)]);
+  if (payment === "unavailable") return { ok: false, error: "unavailable" };
   return create(
     quoteProductOrder({
       productSlug: str(raw.productSlug, 100),
       optionId: str(raw.optionId, 100),
       account: str(raw.account),
       whatsapp: str(raw.whatsapp, 32),
-      paymentId: str(raw.paymentId, 32),
+      paymentId: str(raw.paymentId, 40),
       confirmedAccount: raw.confirmedAccount === true,
-    }),
+    }, payment),
     settings,
   );
 }

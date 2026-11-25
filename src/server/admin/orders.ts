@@ -1,5 +1,6 @@
 import "server-only";
 import { and, asc, count, desc, eq, gte, ilike, lt, max, or, type SQL } from "drizzle-orm";
+import type { PayTo } from "@/lib/payment-methods";
 import { getPaymentMethod } from "@/data/payments";
 import { deliveryProofUrl } from "@/server/payments/proof-storage";
 import { getDb, schema } from "@/server/db";
@@ -190,6 +191,8 @@ export interface AdminOrderDetail {
   payments: {
     id: string;
     provider: string;
+    /** Transfer account shown to the buyer; null = QRIS. */
+    payTo: PayTo | null;
     status: PaymentStatus;
     amount: number;
     hasProof: boolean;
@@ -248,7 +251,7 @@ export async function getOrderDetail(id: string): Promise<AdminOrderDetail | nul
     robloxUserId: order.robloxUserId,
     robloxDisplayName: order.robloxDisplayName,
     whatsapp: order.whatsapp,
-    paymentMethod: getPaymentMethod(order.paymentMethod)?.name ?? order.paymentMethod,
+    paymentMethod: paymentRows[0]?.payment.payTo?.name ?? getPaymentMethod(order.paymentMethod)?.name ?? order.paymentMethod,
     subtotal: order.subtotal,
     fee: order.fee,
     uniqueCode: order.uniqueCode,
@@ -256,6 +259,7 @@ export async function getOrderDetail(id: string): Promise<AdminOrderDetail | nul
     payments: paymentRows.map(({ payment, confirmedBy }) => ({
       id: payment.id,
       provider: payment.provider,
+      payTo: payment.payTo,
       status: payment.status,
       amount: payment.amount,
       hasProof: Boolean(payment.proofPath),

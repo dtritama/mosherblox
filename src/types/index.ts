@@ -42,7 +42,7 @@ export interface Product {
   options: readonly ProductOption[];
 }
 
-export type PaymentGroup = "QRIS" | "E-Wallet" | "Virtual Account" | "Retail";
+export type PaymentGroup = "QRIS" | "E-Wallet" | "Bank" | "Virtual Account" | "Retail";
 
 /**
  * - checkout: selectable at checkout now (manual QRIS)

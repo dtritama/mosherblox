@@ -22,7 +22,18 @@ const defaultNote = (to: OrderStatus | "" | undefined) => (to === "completed" ? 
  * Choose the next status (only moves the status machine allows), confirm, add a note, save.
  * "Paid" needs an explicit tick that the exact amount is in the bank history; "failed" needs a note.
  */
-export function StatusActions({ orderId, status, total }: { orderId: string; status: OrderStatus; total: number }) {
+export function StatusActions({
+  orderId,
+  status,
+  total,
+  method,
+}: {
+  orderId: string;
+  status: OrderStatus;
+  total: number;
+  /** Where the money should arrive, e.g. "BCA". */
+  method: string;
+}) {
   const router = useRouter();
   const [state, formAction, pending] = useActionState<StatusState, FormData>(setOrderStatusAction, {});
   const options = ORDER_TRANSITIONS[status].filter((to) => to !== "expired");
@@ -84,7 +95,7 @@ export function StatusActions({ orderId, status, total }: { orderId: string; sta
 
       {to && t.hint[to] ? (
         <p className="rounded-xl bg-brand-50 px-3 py-2.5 text-sm text-ink-700">
-          {interpolate(t.hint[to], { total: totalText })}
+          {interpolate(t.hint[to], { total: totalText, method })}
         </p>
       ) : null}
 

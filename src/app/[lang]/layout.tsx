@@ -18,6 +18,7 @@ import { hasLocale, locales, ogLocales } from "@/i18n/config";
 import { getContentDictionary, getDictionaryFor } from "@/i18n/get-dictionary";
 import { localeAlternates } from "@/i18n/metadata";
 import { I18nProvider } from "@/i18n/i18n-provider";
+import { getPaymentOptions } from "@/server/payment-methods";
 import { getSiteSettings } from "@/server/settings";
 import { getNavItems } from "@/server/nav";
 import { getSiteContent } from "@/server/site-content";
@@ -66,12 +67,13 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[la
   if (!hasLocale(lang)) notFound();
   // Admin-editable prices + QRIS (cached; refreshed right after a save in /admin/settings).
   // + home content (/admin/content): texts in the dictionary, contact links.
-  const [{ robuxRates, qris, soldOut, robuxStock, storeOpen, closedMessage }, stats, { contact }, dict, navItems] = await Promise.all([
+  const [{ robuxRates, qris, soldOut, robuxStock, storeOpen, closedMessage }, stats, { contact }, dict, navItems, paymentOptions] = await Promise.all([
     getSiteSettings(),
     getPublicStats(),
     getSiteContent(),
     getContentDictionary(lang),
     getNavItems(),
+    getPaymentOptions(),
   ]);
 
   return (
@@ -92,7 +94,7 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[la
         </a>
         <I18nProvider locale={lang} dict={dict}>
           <MotionProvider>
-            <SettingsProvider value={{ robuxRates, qris, soldOut, robuxStock, storeOpen, closedMessage, stats, contact }}>
+            <SettingsProvider value={{ robuxRates, qris, soldOut, robuxStock, storeOpen, closedMessage, stats, contact, paymentOptions }}>
               <TopUpProvider>
                 <ScrollProgress />
                 <NightDecor />

@@ -31,7 +31,7 @@ import { Container } from "@/components/ui/container";
 import { Reveal } from "@/components/ui/reveal";
 import { StoreClosedNotice } from "@/components/ui/store-closed-notice";
 import { SectionHeading } from "@/components/ui/section-heading";
-import { defaultPaymentId, getPaymentMethod } from "@/data/payments";
+import { defaultPaymentId } from "@/data/payments";
 import { robuxConfig, type RobuxMethodId } from "@/data/robux";
 import { formatIDR, formatNumber, interpolate } from "@/i18n/format";
 import { useI18n } from "@/i18n/i18n-provider";
@@ -47,6 +47,7 @@ import {
   getRobuxTier,
   type RobuxRates,
 } from "@/lib/robux-pricing";
+import { useCheckoutPayments } from "@/lib/use-checkout-payments";
 import { cn } from "@/lib/utils";
 import {
   LIMITS,
@@ -130,7 +131,8 @@ export function RobuxPanel({ className }: { className?: string }) {
   const tier = getRobuxTier(draft.method, amount ?? 0, rates);
   const upcomingTier = amount !== null ? getNextRobuxTier(draft.method, amount, rates) : undefined;
   const nextTier = upcomingTier && upcomingTier.minAmount <= methodMax ? upcomingTier : undefined;
-  const payment = getPaymentMethod(draft.paymentId);
+  const payments = useCheckoutPayments();
+  const payment = payments.find((item) => item.id === draft.paymentId);
   const total = subtotal !== null ? subtotal + (payment?.fee ?? 0) : null;
   const methodName = t.methods[draft.method].name;
   const n = (value: number) => formatNumber(value, locale);
