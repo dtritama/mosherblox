@@ -19,8 +19,8 @@ export default function RobuxPage() {
     <div className="relative isolate overflow-clip pt-24 pb-14 lg:pt-32 lg:pb-20">
       <div aria-hidden="true" className="absolute inset-x-0 top-0 -z-10 h-[38rem]">
         <div className="absolute inset-0 bg-grid mask-[radial-gradient(ellipse_at_top,black_30%,transparent_75%)]" />
-        <div className="absolute -top-32 -right-24 size-[30rem] rounded-full bg-brand-200/70 blur-3xl dark:opacity-30" />
-        <div className="absolute top-10 -left-40 size-[24rem] rounded-full bg-blush-100/70 blur-3xl dark:opacity-30" />
+        <div className="absolute -top-32 -right-24 size-[30rem] rounded-full bg-brand-200/40 blur-3xl dark:bg-brand-200/70 dark:opacity-30" />
+        <div className="absolute top-10 -left-40 size-[24rem] rounded-full bg-blush-100/40 blur-3xl dark:bg-blush-100/70 dark:opacity-30" />
       </div>
       {/* The panel reads ?method=&amount= (pre-fill from the home page), which needs a Suspense boundary. */}
       <Suspense fallback={<div className="mx-auto h-[40rem] max-w-7xl animate-pulse rounded-[2rem] bg-brand-50" />}>

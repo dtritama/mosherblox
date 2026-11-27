@@ -122,8 +122,8 @@ function HeroBackdrop() {
   return (
     <div aria-hidden="true" className="absolute inset-0 -z-10">
       <div className="absolute inset-0 bg-grid mask-[radial-gradient(ellipse_at_center,black_30%,transparent_75%)]" />
-      <div className="absolute -top-32 -right-24 size-[34rem] rounded-full bg-brand-200/70 blur-3xl dark:opacity-30" />
-      <div className="absolute top-1/3 -left-40 size-[28rem] rounded-full bg-blush-100/70 blur-3xl dark:opacity-30" />
+      <div className="absolute -top-32 -right-24 size-[34rem] rounded-full bg-brand-200/40 blur-3xl dark:bg-brand-200/70 dark:opacity-30" />
+      <div className="absolute top-1/3 -left-40 size-[28rem] rounded-full bg-blush-100/40 blur-3xl dark:bg-blush-100/70 dark:opacity-30" />
       <div className="absolute right-1/4 bottom-0 size-64 rounded-full bg-brand-100/80 blur-3xl dark:opacity-30" />
       <div className="absolute inset-x-0 bottom-0 h-32 bg-linear-to-b from-transparent to-white" />
     </div>
