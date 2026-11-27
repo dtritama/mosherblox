@@ -9,6 +9,7 @@ import { PaymentPicker } from "@/components/checkout/payment-picker";
 import { KitNote } from "@/components/design-kit/kit-frame";
 import { statusStyles } from "@/components/orders/status-styles";
 import { OrderCard } from "@/components/sections/hero";
+import { SAMPLE_DELIVERIES } from "@/lib/recent-deliveries";
 import { ProductCard } from "@/components/topup/product-card";
 import { useTopUp } from "@/components/topup/topup-provider";
 import { products } from "@/data/products";
@@ -176,11 +177,11 @@ export function OrderCards() {
   return (
     <div className="grid gap-8 sm:grid-cols-2">
       <div className="max-w-sm">
-        <OrderCard variant="send-username" />
+        <OrderCard card={SAMPLE_DELIVERIES["send-username"][0]!} />
         <KitNote>OrderCard / send-username (hero)</KitNote>
       </div>
       <div className="max-w-sm">
-        <OrderCard variant="gamepass" />
+        <OrderCard card={SAMPLE_DELIVERIES.gamepass[0]!} />
         <KitNote>OrderCard / gamepass (hero)</KitNote>
       </div>
     </div>

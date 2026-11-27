@@ -205,7 +205,10 @@ Rules:
   `dark:` variants for the rest.
 - Primary buttons: lime background with **ink text** (`text-coal`). Radius scale: xl 12, 2xl 16, card 28, panel 32.
 - Hero: centered text, two tilted "order cards" (Send Username = main/left, Gamepass = right) that
-  drift; full viewport height (`min-h-svh`). Badge, stats bar and hero buttons were removed by request.
+  drift. Each is a swipeable deck of the last 10 real completed orders of that method
+  (`server/recent-deliveries.ts`, cached with tag `stats`: masked name, avatar, amount, finish date; no
+  order ID or price): auto-swipe every 2.8 s (paused on hover / off screen / reduced motion), click or
+  drag to swipe; no orders yet → `SAMPLE_DELIVERIES`. Full viewport height (`min-h-svh`). Badge, stats bar and hero buttons were removed by request.
 - Section eyebrow pills and hero buttons are hidden via `siteConfig.ui` flags (`showEyebrows`,
   `showHeroButtons`) — flip to bring them back.
 - Footer = rounded lime panel with a CTA card + orbit animation, link columns, order-lookup box.

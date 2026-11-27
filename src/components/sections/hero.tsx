@@ -1,8 +1,8 @@
 "use client";
 
-import { animate, m, useMotionValue, useTransform } from "motion/react";
+import { AnimatePresence, animate, m, useInView, useMotionValue, useReducedMotion, useTransform } from "motion/react";
 import { ArrowRight, BadgeCheck, CheckCircle2, ShoppingBag, UserRound } from "lucide-react";
-import { useEffect } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { ButtonLink } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
@@ -13,16 +13,28 @@ import { siteConfig } from "@/config/site";
 import { useTilt } from "@/hooks/use-tilt";
 import { formatNumber } from "@/i18n/format";
 import { useI18n } from "@/i18n/i18n-provider";
+import { SAMPLE_DELIVERIES, type RecentDeliveries, type RecentDelivery } from "@/lib/recent-deliveries";
 import { cn } from "@/lib/utils";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
-const SHOWCASE_ROBUX = 1700;
-
 const ROBUX_ACCENT = ["#bdef6d", "#5f9a17"] as const;
+/** How long each card stays on top of its deck. */
+const DECK_INTERVAL = 2800;
 
-export function Hero() {
+/**
+ * Home hero: centred text with two tilted order cards on the sides. Each card is a small deck of
+ * the latest real completed orders (left = Send Username, right = Gamepass, 10 each): it swipes
+ * by itself, on click, or when dragged sideways.
+ */
+export function Hero({ deliveries }: { deliveries: RecentDeliveries }) {
   const { dict } = useI18n();
   const hero = dict.hero;
+  // A side without completed orders yet shows its sample card.
+  const decks = {
+    "send-username":
+      deliveries["send-username"].length > 0 ? deliveries["send-username"] : SAMPLE_DELIVERIES["send-username"],
+    gamepass: deliveries.gamepass.length > 0 ? deliveries.gamepass : SAMPLE_DELIVERIES.gamepass,
+  };
 
   return (
     <section
@@ -36,8 +48,8 @@ export function Hero() {
         <div className="relative z-10 mx-auto max-w-2xl text-center xl:max-w-3xl">
           {/* Order cards tilted behind the edges of the text — decoration only on wide screens. */}
           <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-20 hidden xl:block">
-            <SideCard side="left" />
-            <SideCard side="right" />
+            <SideCard side="left" cards={decks["send-username"]} />
+            <SideCard side="right" cards={decks.gamepass} />
           </div>
           {/* Soft white glow so the text stays readable where it overlaps the cards. */}
           <div
@@ -108,9 +120,7 @@ export function Hero() {
             transition={{ duration: 0.8, delay: 0.3, ease: EASE }}
             className="relative"
           >
-            <div className="animate-drift">
-              <OrderCard variant="send-username" />
-            </div>
+            <OrderDeck cards={decks["send-username"]} side="left" />
           </m.div>
         </div>
       </Container>
@@ -132,20 +142,20 @@ function HeroBackdrop() {
 
 const sides = {
   left: {
-    variant: "send-username",
     rotate: -9,
     // Anchored to the text block: the card tucks ~5rem under the text's left edge.
     className: "top-[8%] right-[calc(100%-6rem)] 2xl:right-[calc(100%-5rem)]",
   },
   right: {
-    variant: "gamepass",
     rotate: 8,
     className: "top-[20%] left-[calc(100%-6rem)] 2xl:left-[calc(100%-5rem)]",
   },
 } as const;
 
-/** One tilted, drifting order card on the left or right side of the hero. */
-function SideCard({ side }: { side: keyof typeof sides }) {
+type Side = keyof typeof sides;
+
+/** One tilted, drifting deck of order cards on the left or right side of the hero. */
+function SideCard({ side, cards }: { side: Side; cards: RecentDelivery[] }) {
   const config = sides[side];
   const isLeft = side === "left";
 
@@ -158,90 +168,218 @@ function SideCard({ side }: { side: keyof typeof sides }) {
     >
       {/* Continuous drift on an inner element, so it doesn't fight the entrance rotation. */}
       <div className={cn("animate-drift", !isLeft && "[animation-delay:-3.5s] [animation-direction:reverse]")}>
-        <OrderCard variant={config.variant} />
+        <OrderDeck cards={cards} side={side} />
       </div>
     </m.div>
   );
 }
 
-const cardData = {
-  "send-username": { id: "#MB-2F81C9", user: "Builderman_01", robux: SHOWCASE_ROBUX },
-  gamepass: { id: "#MB-7KQ4ZP", user: "BloxyKid_22", robux: 800 },
-} as const;
+/** Cards behind the top one peek out towards the outside of the page. */
+const STACK = [
+  { x: 0, y: 0, rotate: 0, scale: 1 },
+  { x: 14, y: 12, rotate: 3, scale: 0.96 },
+  { x: 28, y: 24, rotate: 6, scale: 0.92 },
+] as const;
 
-/** Sample "order completed" card (illustration only — the hero hides it from screen readers). */
-export function OrderCard({ variant }: { variant: keyof typeof cardData }) {
+/**
+ * A stack of order cards. The top card flies off every DECK_INTERVAL (the right deck half a beat
+ * later), when clicked, or when dragged sideways and let go. Auto-swipe pauses while hovered,
+ * off screen, and for visitors who prefer reduced motion. Hidden from screen readers.
+ */
+function OrderDeck({ cards, side }: { cards: RecentDelivery[]; side: Side }) {
+  const reduce = useReducedMotion();
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref);
+  const [hovered, setHovered] = useState(false);
+  // Grows forever; keys use it so every card shown is a new element (exit = fly off).
+  const [step, setStep] = useState(0);
+  const outward = side === "left" ? -1 : 1;
+  const [direction, setDirection] = useState<number>(outward);
+  const canSwipe = cards.length > 1;
+  const running = canSwipe && !reduce && !hovered && inView;
+
+  const next = useCallback((to: number) => {
+    setDirection(to);
+    setStep((value) => value + 1);
+  }, []);
+
+  useEffect(() => {
+    if (!running) return;
+    // Right deck starts half a beat later so the two never swipe together; `step` restarts the
+    // countdown after a click or drag.
+    const wait = step === 0 && side === "right" ? DECK_INTERVAL * 1.5 : DECK_INTERVAL;
+    const id = window.setTimeout(() => next(outward), wait);
+    return () => window.clearTimeout(id);
+  }, [running, step, side, outward, next]);
+
+  const depth = Math.min(STACK.length, cards.length);
+  const visible = Array.from({ length: depth }, (_, position) => ({
+    key: step + position,
+    position,
+    card: cards[(step + position) % cards.length]!,
+  }));
+  const place = (position: number) => {
+    const spot = STACK[position]!;
+    return { ...spot, x: spot.x * outward, rotate: spot.rotate * outward, opacity: 1 };
+  };
+
+  return (
+    <div
+      ref={ref}
+      aria-hidden="true"
+      onPointerEnter={() => setHovered(true)}
+      onPointerLeave={() => setHovered(false)}
+      className="pointer-events-auto grid grid-cols-[minmax(0,1fr)]"
+    >
+      <AnimatePresence initial={false} custom={direction}>
+        {visible
+          .slice()
+          .reverse()
+          .map(({ key, position, card }) => {
+            const top = position === 0;
+            return (
+              <m.div
+                key={key}
+                custom={direction}
+                variants={{
+                  exit: (to: number) => ({
+                    x: 190 * to,
+                    y: -50,
+                    rotate: 18 * to,
+                    opacity: 0,
+                    transition: { duration: 0.45, ease: EASE },
+                  }),
+                }}
+                initial={{ ...place(depth - 1), opacity: 0 }}
+                animate={place(position)}
+                exit="exit"
+                transition={{ duration: 0.6, ease: EASE }}
+                style={{ zIndex: STACK.length - position, transformOrigin: "50% 80%" }}
+                drag={top && canSwipe ? "x" : false}
+                dragSnapToOrigin
+                dragElastic={0.6}
+                onTap={top && canSwipe ? () => next(outward) : undefined}
+                onDragEnd={(_, info) => {
+                  if (Math.abs(info.offset.x) > 70 || Math.abs(info.velocity.x) > 500) {
+                    next(info.offset.x < 0 ? -1 : 1);
+                  }
+                }}
+                className={cn("[grid-area:1/1]", top && canSwipe && "cursor-grab touch-pan-y active:cursor-grabbing")}
+              >
+                <OrderCard card={card} active={top} />
+              </m.div>
+            );
+          })}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+/** "26 Nov 2026", in Jakarta time (same on server and browser). */
+function formatFinished(iso: string, locale: string) {
+  return new Intl.DateTimeFormat(locale === "id" ? "id-ID" : "en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    timeZone: "Asia/Jakarta",
+  }).format(new Date(iso));
+}
+
+/**
+ * One "order completed" card. `active` = top of its deck: the Robux count runs up and the steps
+ * tick in each time it gets there; cards behind it are plain shells. Hidden from screen readers.
+ */
+export function OrderCard({ card, active = true }: { card: RecentDelivery; active?: boolean }) {
   const { locale, dict } = useI18n();
-  const { card } = dict.hero;
-  const { product, progress } = dict.hero.cards[variant];
-  const data = cardData[variant];
+  const { card: copy } = dict.hero;
+  const { product, progress } = dict.hero.cards[card.method];
   const tilt = useTilt(8);
-  const count = useMotionValue(0);
+  const count = useMotionValue(active ? 0 : card.robux);
   const rounded = useTransform(count, (value) => formatNumber(Math.round(value), locale));
 
   useEffect(() => {
-    const controls = animate(count, data.robux, { duration: 2.2, delay: 0.6, ease: EASE });
+    if (!active) return;
+    count.set(0);
+    const controls = animate(count, card.robux, { duration: 1.6, delay: 0.25, ease: EASE });
     return () => controls.stop();
-  }, [count, data.robux]);
+  }, [active, count, card.robux]);
 
   return (
     <m.div
-      style={tilt.style}
-      onPointerMove={tilt.onPointerMove}
-      onPointerLeave={tilt.onPointerLeave}
-      className="pointer-events-auto relative rounded-[1.75rem] border border-white bg-white/95 p-5 pb-6 shadow-[0_30px_80px_-20px_rgb(95_154_23/0.28)] backdrop-blur-xl will-change-transform"
+      style={active ? tilt.style : undefined}
+      onPointerMove={active ? tilt.onPointerMove : undefined}
+      onPointerLeave={active ? tilt.onPointerLeave : undefined}
+      className="relative rounded-[1.75rem] border border-white bg-white/95 p-5 pb-6 shadow-[0_30px_80px_-20px_rgb(95_154_23/0.28)] backdrop-blur-xl will-change-transform"
     >
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2.5">
-          <Logo eager={variant === "send-username"} height={30} />
-          <div>
-            <p className="text-xs text-ink-500">{card.order}</p>
-            <p className="text-sm font-bold text-ink-900">{data.id}</p>
+      <m.div initial={false} animate={{ opacity: active ? 1 : 0 }} transition={{ duration: 0.4 }}>
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex min-w-0 items-center gap-2.5">
+            <Logo height={30} />
+            <div className="min-w-0">
+              <p className="text-xs text-ink-500">{copy.order}</p>
+              {/* Real orders show the date they were finished; the sample card keeps the line empty. */}
+              <p className="min-h-5 truncate text-sm font-bold text-ink-900">
+                {card.finishedAt ? formatFinished(card.finishedAt, locale) : null}
+              </p>
+            </div>
+          </div>
+          <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-brand-100 px-2.5 py-1 text-xs font-semibold text-brand-800">
+            <BadgeCheck className="size-3.5" aria-hidden="true" /> {copy.success}
+          </span>
+        </div>
+
+        <div className="mt-4 flex items-center gap-3 rounded-2xl bg-brand-50 p-3">
+          {card.avatarUrl ? (
+            // Roblox CDN headshot (allowed in the CSP).
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={card.avatarUrl}
+              alt=""
+              width={44}
+              height={44}
+              draggable={false}
+              className="size-11 shrink-0 rounded-xl bg-white"
+            />
+          ) : (
+            <ProductArt
+              icon="coins"
+              accent={ROBUX_ACCENT}
+              className="grid size-11 shrink-0 place-items-center rounded-xl"
+              iconClassName="relative size-5 text-snow"
+            />
+          )}
+          <div className="min-w-0">
+            <p className="truncate text-sm font-semibold text-ink-900">{product}</p>
+            <p className="flex items-center gap-1 truncate text-xs text-ink-500">
+              <UserRound className="size-3 shrink-0" aria-hidden="true" /> {card.name}
+            </p>
           </div>
         </div>
-        <span className="inline-flex items-center gap-1 rounded-full bg-brand-100 px-2.5 py-1 text-xs font-semibold text-brand-800">
-          <BadgeCheck className="size-3.5" aria-hidden="true" /> {card.success}
-        </span>
-      </div>
 
-      <div className="mt-4 flex items-center gap-3 rounded-2xl bg-brand-50 p-3">
-        <ProductArt
-          icon="coins"
-          accent={ROBUX_ACCENT}
-          className="grid size-11 shrink-0 place-items-center rounded-xl"
-          iconClassName="relative size-5 text-snow"
-        />
-        <div className="min-w-0">
-          <p className="truncate text-sm font-semibold text-ink-900">{product}</p>
-          <p className="flex items-center gap-1 text-xs text-ink-500">
-            <UserRound className="size-3" aria-hidden="true" /> {data.user}
+        <div className="mt-4 rounded-2xl border border-brand-100 bg-linear-to-br from-white to-brand-50 p-4 text-center">
+          <p className="text-[11px] font-semibold tracking-wider text-brand-600 uppercase">{copy.youReceived}</p>
+          <p className="mt-1 flex items-center justify-center gap-2 text-4xl font-extrabold text-ink-900 tabular-nums">
+            <RobuxIcon className="size-7 text-brand-500" aria-hidden="true" />
+            <m.span>{rounded}</m.span>
           </p>
+          <p className="mt-0.5 text-xs text-ink-500">Robux</p>
         </div>
-      </div>
 
-      <div className="mt-4 rounded-2xl border border-brand-100 bg-linear-to-br from-white to-brand-50 p-4 text-center">
-        <p className="text-[11px] font-semibold tracking-wider text-brand-600 uppercase">{card.youReceived}</p>
-        <p className="mt-1 flex items-center justify-center gap-2 text-4xl font-extrabold text-ink-900 tabular-nums">
-          <RobuxIcon className="size-7 text-brand-500" aria-hidden="true" />
-          <m.span>{rounded}</m.span>
-        </p>
-        <p className="mt-0.5 text-xs text-ink-500">Robux</p>
-      </div>
-
-      <ol className="mt-4 grid gap-2">
-        {progress.map((label, index) => (
-          <m.li
-            key={label}
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.9 + index * 0.35 }}
-            className="flex items-center gap-2 text-sm text-ink-700"
-          >
-            <CheckCircle2 className="size-4.5 text-brand-500" aria-hidden="true" />
-            {label}
-          </m.li>
-        ))}
-      </ol>
+        <ol className="mt-4 grid gap-2">
+          {progress.map((label, index) => (
+            <m.li
+              key={label}
+              initial={active ? { opacity: 0, x: -10 } : false}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.5 + index * 0.3 }}
+              className="flex items-center gap-2 text-sm text-ink-700"
+            >
+              <CheckCircle2 className="size-4.5 text-brand-500" aria-hidden="true" />
+              {label}
+            </m.li>
+          ))}
+        </ol>
+      </m.div>
     </m.div>
   );
 }

@@ -9,13 +9,14 @@ import { ReviewsSection } from "@/components/sections/reviews-section";
 import { RobuxSection } from "@/components/sections/robux-section";
 import { ShopSection } from "@/components/sections/shop-section";
 import { resolveBanners } from "@/lib/banners";
+import { getRecentDeliveries } from "@/server/recent-deliveries";
 import { getSiteContent } from "@/server/site-content";
 
 export default async function HomePage() {
-  const { banners } = await getSiteContent();
+  const [{ banners }, deliveries] = await Promise.all([getSiteContent(), getRecentDeliveries()]);
   return (
     <>
-      <Hero />
+      <Hero deliveries={deliveries} />
       <BannerCarousel banners={resolveBanners(banners)} />
       <RobuxSection />
       <ShopSection />
